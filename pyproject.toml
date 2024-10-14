@@ -1,0 +1,19 @@
+[project]
+name = "hall-opt"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "elida", email = ""},
+]
+dependencies = [
+    "matplotlib>=3.9.2",
+    "juliacall>=0.9.23",
+    "scipy>=1.14.1",
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
