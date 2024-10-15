@@ -1,11 +1,11 @@
-import json
+import json 
 import os
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Helper function to load JSON data
 def load_json(filename):
-    file_path = os.path.join("..", "results-combined", filename)  # Load from the results directory
+    file_path = os.path.join("..", "results-L-BFGS-B", filename)  # Load from the results directory
     with open(file_path, 'r') as f:
         return json.load(f)
 
@@ -118,18 +118,32 @@ def main():
         'optimized_data': load_json('w_3.0_optimized_twozonebohm_result.json'),
         'initial_guess_data': load_json('w_3.0_best_initial_guess_result.json')
     }
+
+    # Load data for ion_velocity_weight = 5.0
+    data_w5 = {
+        'observed_data': load_json('w_5.0_observed_data_map.json'),
+        'optimized_data': load_json('w_5.0_optimized_twozonebohm_result.json'),
+        'initial_guess_data': load_json('w_5.0_best_initial_guess_result.json')
+    }
+
+    # Load data for ion_velocity_weight = 10.0
+    data_w10 = {
+        'observed_data': load_json('w_10.0_observed_data_map.json'),
+        'optimized_data': load_json('w_10.0_optimized_twozonebohm_result.json'),
+        'initial_guess_data': load_json('w_10.0_best_initial_guess_result.json')
+    }
     
-    # Plot comparison for ion_velocity_weight = 0.1, 1.0, 2.0, and 3.0
+    # Plot comparison for ion_velocity_weight = 0.1, 1.0, 2.0, 3.0, 5.0, and 10.0
     plot_ion_velocity_comparison(
-        datasets=[data_w01, data_w1, data_w2, data_w3],
-        labels=['Weight 0.1', 'Weight 1.0', 'Weight 2.0', 'Weight 3.0'],
+        datasets=[data_w01, data_w1, data_w2, data_w3, data_w5, data_w10],
+        labels=['Weight 0.1', 'Weight 1.0', 'Weight 2.0', 'Weight 3.0', 'Weight 5.0', 'Weight 10.0'],
         offset=True  # Set to True to apply vertical offset for visual separation
     )
     
     # Plot thrust comparison for the same datasets
     plot_thrust_comparison(
-        datasets=[data_w01, data_w1, data_w2, data_w3],
-        labels=['Weight 0.1', 'Weight 1.0', 'Weight 2.0', 'Weight 3.0']
+        datasets=[data_w01, data_w1, data_w2, data_w3, data_w5, data_w10],
+        labels=['Weight 0.1', 'Weight 1.0', 'Weight 2.0', 'Weight 3.0', 'Weight 5.0', 'Weight 10.0']
     )
 
 

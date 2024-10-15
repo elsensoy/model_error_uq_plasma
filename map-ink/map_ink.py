@@ -249,7 +249,7 @@ def prior_logpdf(v1_log, v2_log):
     return prior1 + prior2
 
 
-def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=5.0):
+def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=10.0):
     """Compute the log-likelihood of the observed data given the simulated data."""
     log_likelihood_value = 0
 
@@ -350,7 +350,7 @@ def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_g
     save_results_to_json(iteration_metrics, f'w_{weight_str}_iteration_metrics.json', save_every_n_grid_points)
 
 
-def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=5.0, maxiter=100, save_every_n_grid_points=10):
+def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=10.0, maxiter=100, save_every_n_grid_points=10):
     """
     Run MAP estimation with multiple initial guesses, log each iteration, and return the best optimized v1 and v2.
     """
@@ -506,7 +506,7 @@ def main():
 
     # List of ion_velocity_weights
     #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0]
-    ion_velocity_weights = [5.0]
+    ion_velocity_weights = [10.0]
 
 
     for ion_velocity_weight in ion_velocity_weights:
