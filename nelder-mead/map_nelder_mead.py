@@ -100,7 +100,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
             print(f"Subsampled {key} data shape for saving: {np.array(result_dict_copy[key]).shape}")
 
     # Ensure the results directory exists
-    results_dir = os.path.join("..", "nm")
+    results_dir = os.path.join("..", "results-Nelder-Mead")
     os.makedirs(results_dir, exist_ok=True)  # Create directory if it doesn't exist
 
     # Define the full path for the JSON file
@@ -295,102 +295,10 @@ def compute_neg_log_posterior(v_log, observed_data, config, ion_velocity_weight,
     return -(log_likelihood_value + log_prior_value)
 
 # -----------------------------
-# 6. Run MLE or MAP
+# 6. Run MAP
 # -----------------------------
-def run_map(observed_data, config, ion_velocity_weight=3.0, maxiter=100, callback=None, initial_guess=None):
-# Added penalty function for bound enforcement in Nelder-Mead
-    bounds_penalty = lambda v_log: 1e6 if not (-5 <= v_log[0] <= 0 and 0 <= v_log[1] <= 3) else 0
-    # Objective function with penalty
-    result = minimize(
-        lambda v_log: compute_neg_log_posterior(v_log, observed_data, config, ion_velocity_weight) + bounds_penalty(v_log),
-        initial_guess,
-        method='Nelder-Mead',
-        callback=callback, 
-        options={'maxiter': maxiter, 'fatol': 1e-6, 'xatol': 1e-6}
-)
-
-    if result.success:
-        v1_log_opt, alpha_log_opt = result.x
-        v1_opt = np.exp(v1_log_opt)
-        alpha_opt = np.exp(alpha_log_opt)
-        v2_opt = alpha_opt * v1_opt
-        print(f"MAP estimates: v1 = {v1_opt:.6f}, v2 = {v2_opt:.6f}")
-        return v1_opt, v2_opt, result.fun  # Return the function value (negative log-posterior)
-    else:
-        print(f"MAP optimization failed: {result.message}")
-        return None, None, None
-
-
-def run_map_and_optimization(ground_truth_data, config, ion_velocity_weight=2.0, maxiter=100, use_time_averaged=True, save_every_n_grid_points=10):
-    """
-    Run MAP optimization for multiple initial guesses, track the progress, and choose the best result.
-    """
-	
-    print("Running MAP optimization...")
-
-    # List of initial guesses for the optimization process
-    initial_guesses = [[-2, 0.5]]  
-
-    # Counter to track the iteration number
-    iteration_counter = [0]
-    
-
-    results = []
-
-    def iteration_callback(v_log):
-        """Inner callback to handle iteration-specific logging."""
-        callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_grid_points)
-
-    # Loop through all initial guesses
-    for idx, initial_guess in enumerate(initial_guesses):
-        print(f"Running optimization with initial guess {idx+1}: v1_log = {initial_guess[0]}, alpha_log = {initial_guess[1]}")
-
-        # Run the MAP optimization for this initial guess
-        v1_opt, v2_opt, neg_log_post = run_map(
-            ground_truth_data, 
-            config, 
-            ion_velocity_weight, 
-            maxiter, 
-            callback=iteration_callback, 
-            initial_guess=initial_guess
-        )
-
-        # Log the result for this initial guess
-        if v1_opt is not None and v2_opt is not None:
-            print(f"Initial guess {idx+1}: v1 = {v1_opt:.6f}, v2 = {v2_opt:.6f}, negative log-posterior = {neg_log_post:.6f}")
-            results.append((v1_opt, v2_opt, neg_log_post))
-        else:
-            print(f"Initial guess {idx+1} optimization failed.")
-
-    # Print all  v1, v2 values
-    print("\nAll optimization results:")
-    for idx, (v1_opt, v2_opt, neg_log_post) in enumerate(results):
-        print(f"Guess {idx+1}: v1 = {v1_opt:.6f}, v2 = {v2_opt:.6f}, negative log-posterior = {neg_log_post:.6f}")
-
-    # Find the best result (minimizing the negative log-posterior)
-    if results:
-        best_v1_opt, best_v2_opt, best_neg_log_post = min(results, key=lambda x: x[2])
-        print(f"\nBest result: v1 = {best_v1_opt:.6f}, v2 = {best_v2_opt:.6f}, negative log-posterior = {best_neg_log_post:.6f}")
-
-        # Run the final simulation with the best values
-        print(f"Running TwoZoneBohm simulation with optimized values v1: {best_v1_opt}, v2: {best_v2_opt}...")
-        optimized_result = hallthruster_jl_wrapper(
-            best_v1_opt, best_v2_opt, 
-            config, 
-            use_time_averaged=use_time_averaged, 
-        )
-        save_results_to_json(optimized_result, 'nm_optimized_twozonebohm_result.json')
-        print("Optimized results saved.")
-        return best_v1_opt, best_v2_opt
-    else:
-        raise RuntimeError("MAP optimization failed for all initial guesses.")
-
-# -----------------------------
-# Saving Iteration Results
-# -----------------------------
-
-def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_grid_points):
-    """Callback function to log v1, v2, and metrics during optimization."""
+def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_grid_points, observed_data, ion_velocity_weight, loss_history):
+    """Callback function to log v1, v2, metrics, and loss during optimization."""
     iteration_counter[0] += 1
 
     # Compute v1 and v2 for the current iteration
@@ -399,17 +307,160 @@ def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_g
     v2_iter = alpha_iter * v1_iter
     print(f"Running TwoZoneBohm for iteration {iteration_counter[0]} with v1: {v1_iter:.4f}, v2: {v2_iter:.4f}...")
 
-    # Run the simulation to get the metrics for this iteration
+    # Run the simulation to get the full metrics for this iteration (no subsampling during computation)
     iteration_metrics = hallthruster_jl_wrapper(
         v1_iter, v2_iter, config, 
         use_time_averaged=use_time_averaged, 
-        save_every_n_grid_points=save_every_n_grid_points
+        save_every_n_grid_points=None  # No subsampling in the optimization process
     )
 
-    # Save the iteration result along with the metrics
-    save_map_iteration(v_log, iteration_counter[0], filename="nm_map_iteration_results.json")
-    save_iteration_metrics(iteration_metrics, v_log, iteration_counter[0], filename="nm_iteration_metrics.json")
+    # Calculate the current loss (negative log-posterior)
+    current_loss = compute_neg_log_posterior(v_log, observed_data, config, ion_velocity_weight)
+    loss_history.append(current_loss)
+    print(f"Iteration {iteration_counter[0]} loss: {current_loss}")
 
+    # Subsample only when saving to JSON for visualization (for plotting)
+    save_results_to_json(iteration_metrics, f'nm_w_{ion_velocity_weight}_iteration_metrics.json', save_every_n_grid_points, subsample_for_saving=True)
+
+    # Save the iteration result (v1 and v2)
+    save_map_iteration(v_log, iteration_counter[0], filename=f"nm_w_{ion_velocity_weight}_map_iteration_results.json")
+
+class OptimizationStop(Exception):
+    """Custom exception to stop the optimization early."""
+    pass
+
+def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=2.0, maxiter=100, save_every_n_grid_points=None, max_total_iters=100, maxfev=100):
+    """
+    Run MAP estimation with multiple initial guesses using the Nelder-Mead method, log each iteration, and return the best optimized v1 and v2.
+    """
+
+    # Multiple initial guesses for log10(v1) and log10(alpha)
+    initial_guesses = [[-2, 0.5], [-3, 0.6], [-1, 0.7]]
+
+    best_result = None
+    best_v1, best_v2 = None, None
+    best_metrics = None  # To store the best result's full metrics
+
+    # Store results for each initial guess to plot later
+    all_results = []
+
+    # Counter to track the iteration number and function evaluations
+    iteration_counter = [0]  # Wrapped in a list to be mutable
+    func_eval_counter = [0]  # To track the function evaluations
+
+    # Loss history to track the loss values over iterations
+    loss_history = []
+
+    print(f"Running MAP optimization with {len(initial_guesses)} initial guesses...")
+
+    # Inner callback for iteration-specific logging for each initial guess
+    def iteration_callback(v_log):
+        iteration_counter[0] += 1
+        func_eval_counter[0] += 1
+        print(f"Iteration: {iteration_counter[0]} | Function evaluations: {func_eval_counter[0]}")
+
+        # Check if we exceeded max total iterations or max function evaluations
+        if iteration_counter[0] >= max_total_iters or func_eval_counter[0] >= maxfev:
+            print(f"Exceeded maximum total iterations ({max_total_iters}) or function evaluations ({maxfev}). Stopping optimization.")
+            raise OptimizationStop()  # Raise custom exception to halt the optimization
+
+        # Call the regular callback (e.g., logging and saving results)
+        callback(v_log, iteration_counter, config, True, save_every_n_grid_points, observed_data, ion_velocity_weight, loss_history)
+
+    # Iterate over multiple initial guesses
+    for idx, initial_guess in enumerate(initial_guesses):
+        print(f"\nStarting optimization for initial guess {idx + 1}: {initial_guess}")
+
+        bounds_penalty = lambda v_log: 1e6 if not (-5 <= v_log[0] <= 0 and 0 <= v_log[1] <= 3) else 0
+
+        try:
+            # Objective function with penalty
+            result = minimize(
+                lambda v_log: compute_neg_log_posterior(v_log, observed_data, config, ion_velocity_weight) + bounds_penalty(v_log),
+                initial_guess,
+                method='Nelder-Mead',
+                callback=iteration_callback,
+                options={'maxiter': maxiter, 'maxfev': maxfev, 'fatol': 1e-6, 'xatol': 1e-6}  # Enforcing stopping criteria
+            )
+        except OptimizationStop:
+            print("Optimization was stopped early due to exceeding iteration or function evaluation limits.")
+            break
+        except Exception as e:
+            print(f"Optimization stopped with exception: {e}")
+            break
+
+        if result.success:
+            v1_log_opt, alpha_log_opt = result.x
+            v1_opt = np.exp(v1_log_opt)
+            alpha_opt = np.exp(alpha_log_opt)
+            v2_opt = alpha_opt * v1_opt
+            loss = result.fun  # Loss
+
+            print(f"MAP estimates for initial guess {idx + 1}: v1 = {v1_opt:.6f}, v2 = {v2_opt:.6f}, loss = {loss:.6f}")
+
+            # Add the result for visualization later
+            all_results.append({
+                "initial_guess": initial_guess,
+                "v1": v1_opt,
+                "v2": v2_opt,
+                "loss": loss
+            })
+
+            # Keep track of the best result
+            if best_result is None or result.fun < best_result.fun:
+                best_result = result
+                best_v1, best_v2 = v1_opt, v2_opt
+
+                # Run the simulation for the best v1, v2 and store the metrics
+                best_metrics = hallthruster_jl_wrapper(
+                    v1_opt, v2_opt, config, 
+                    use_time_averaged=True, 
+                    save_every_n_grid_points=None  # No subsampling for best result
+                )
+
+        else:
+            print(f"MAP optimization failed for initial guess {idx + 1}: {result.message}")
+
+    # Log all results before selecting the best one
+    print("\nSummary of all initial guesses and their results:")
+    for idx, res in enumerate(all_results):
+        print(f"Initial guess {idx + 1}: {res['initial_guess']}, v1 = {res['v1']:.6f}, v2 = {res['v2']:.6f}, loss = {res['loss']:.6f}")
+
+    # Save the loss values to a file after the optimization
+    weight_str = str(ion_velocity_weight).replace('.', '_')
+    loss_filename = f'nm_loss_values_w_{weight_str}.json'
+    with open(loss_filename, 'w') as f:
+        json.dump(loss_history, f, indent=4)
+    print(f"Loss values saved to {loss_filename}")
+
+    # Save the best result (v1 and v2)
+    if best_result:
+        print(f"\nNM best result: v1 = {best_v1:.6f}, v2 = {best_v2:.6f}, with the lowest loss = {best_result.fun:.6f}.")
+
+        # Save best v1, v2 to a file
+        best_initial_guess = {
+            "v1": best_v1,
+            "v2": best_v2
+        }
+        best_initial_guess_filename = f'nm_best_initial_guess_w_{weight_str}.json'
+        with open(best_initial_guess_filename, 'w') as f:
+            json.dump(best_initial_guess, f, indent=4)
+        print(f"Best initial guess saved to {best_initial_guess_filename}")
+
+        # Save the best metrics
+        best_result_filename = f'nm_best_result_w_{weight_str}.json'
+        save_results_to_json(best_metrics, best_result_filename, save_every_n_grid_points)
+        print(f"Best metrics saved to {best_result_filename}")
+
+        return best_v1, best_v2
+
+    else:
+        print("MAP optimization failed for all initial guesses.")
+        return None, None
+
+# -----------------------------
+# Saving Iteration Results
+# -----------------------------
 def save_map_iteration(v_log, iteration, filename):
     """Save v1, v2 values to map_iteration_results.json for each iteration."""
     v1 = np.exp(v_log[0])
@@ -466,9 +517,14 @@ def save_iteration_metrics(metrics, v_log, iteration, filename):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
+# -----------------------------
+# -----------------------------
 
 def main():
     start_time = time.time()
+
+    # List of ion_velocity_weights
+    #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0, 1e-10]
     ion_velocity_weights = [2.0]
 
 
@@ -480,53 +536,70 @@ def main():
 		
         print(f"Ground truth data for ion_velocity_weight {ion_velocity_weight} saved.")
 
+        # Step 2:the best initial guess by running the simulation for each initial guess and selecting the best one
+        print("Running simulations with multiple initial guesses...")
+        initial_guesses = [[-2, 0.5], [-3, 0.6], [-1, 0.7]]
+        best_initial_result = None
+        best_v1, best_v2 = None, None
+        lowest_loss = None
 
-    print("Running TwoZoneBohm simulation with the best initial guess...")
-    best_initial_guess = [-2, 0.5]  
-    best_v1_initial = np.exp(best_initial_guess[0])
-    best_alpha_initial = np.exp(best_initial_guess[1])
-    best_v2_initial = best_alpha_initial * best_v1_initial
+        for idx, initial_guess in enumerate(initial_guesses):
+            v1_initial = np.exp(initial_guess[0])
+            alpha_initial = np.exp(initial_guess[1])
+            v2_initial = alpha_initial * v1_initial
 
-    # Run the TwoZoneBohm simulation with the best initial guess
-    initial_guess_result = hallthruster_jl_wrapper(
-        best_v1_initial, best_v2_initial, 
-        config_spt_100, 
-        use_time_averaged=True, 
-        save_every_n_grid_points=10
-    )
-    save_results_to_json(initial_guess_result, 'nm_initial_guess_twozonebohm_result.json')
-    print(f"Initial guess simulation results saved with v1: {best_v1_initial}, v2: {best_v2_initial}.")
+            print(f"Running simulation for initial guess {idx + 1}: v1 = {v1_initial}, v2 = {v2_initial}...")
+            
+            initial_result = hallthruster_jl_wrapper(
+                v1_initial, v2_initial, 
+                config_spt_100, 
+                use_time_averaged=True, 
+                save_every_n_grid_points=10
+            )
 
-    # Step 3: Run MAP optimization with multiple initial guesses
-    print("Running MAP optimization with multiple initial guesses...")
+            # we compute the loss (negative log-posterior) for the initial guess
+            current_loss = compute_neg_log_posterior([np.log(v1_initial), np.log(alpha_initial)], ground_truth_data, config_spt_100, ion_velocity_weight)
+            print(f"Initial guess {idx + 1}: v1 = {v1_initial}, v2 = {v2_initial}, loss = {current_loss:.6f}")
 
-    best_v1_opt, best_v2_opt = run_map_and_optimization(
-        ground_truth_data, 
-        config_spt_100, 
-        ion_velocity_weight=2.0, 
-        maxiter=100, 
-        use_time_averaged=True, 
-        save_every_n_grid_points=10
-    )
+            if lowest_loss is None or current_loss < lowest_loss:
+                lowest_loss = current_loss
+                best_initial_result = initial_result
+                best_v1, best_v2 = v1_initial, v2_initial
 
-    if best_v1_opt is not None and best_v2_opt is not None:
-        # Step 4: Run the final TwoZoneBohm simulation with the best parameters from optimization
-        print(f"Running TwoZoneBohm simulation with optimized values v1: {best_v1_opt}, v2: {best_v2_opt}...")
-        optimized_result = hallthruster_jl_wrapper(
-            best_v1_opt, best_v2_opt, 
+        # Step 3: saving the results of the best initial guess
+        print(f"Best initial guess found: v1 = {best_v1}, v2 = {best_v2}, with the lowest loss = {lowest_loss:.6f}")
+        save_results_to_json(best_initial_result, f'nm_w_{ion_velocity_weight}_best_initial_guess_result.json', save_every_n_grid_points=10)
+        print(f"Best initial guess results for ion_velocity_weight {ion_velocity_weight} saved.")
+
+        # Step 4: map optimization with multiple initial guesses (starting from the best initial guess)
+        print("Running MAP optimization with multiple initial guesses...")
+        v1_opt, v2_opt = run_map_multiple_initial_guesses(
+            ground_truth_data, 
             config_spt_100, 
-            use_time_averaged=True, 
-            save_every_n_grid_points=10
+            ion_velocity_weight, 
+            maxiter=100,
+            save_every_n_grid_points=10  # subsampling value for saving results
         )
-        save_results_to_json(optimized_result, 'nm_twozonebohm_result.json')
-        print("Optimized results saved.")
-    else:
-        print("MAP optimization failed for all initial guesses.")
+        
+        if v1_opt is not None and v2_opt is not None:
+            # Step 5: Run the final TwoZoneBohm simulation with optimized parameters
+            print(f"Running TwoZoneBohm simulation with optimized values v1: {v1_opt}, v2: {v2_opt} for ion_velocity_weight {ion_velocity_weight}...")
+            optimized_result = hallthruster_jl_wrapper(
+                v1_opt, v2_opt, 
+                config_spt_100, 
+                use_time_averaged=True, 
+                save_every_n_grid_points=10
+            )
+            # save optimized results with a unique filename
+            save_results_to_json(optimized_result, f'nm_w_{ion_velocity_weight}_optimized_twozonebohm_result.json', save_every_n_grid_points=10)
+            print(f"Optimized results for ion_velocity_weight {ion_velocity_weight} saved.")
+        else:
+            print(f"MAP optimization failed for ion_velocity_weight {ion_velocity_weight}.")
 
-    # End the timer,calculate the duration
+    # End the timer and calculate the duration
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"MAP took {elapsed_time:.2f} seconds.")
+    print(f"\nAll simulations completed. Total time: {elapsed_time:.2f} seconds.")
 
 if __name__ == "__main__":
     main()
