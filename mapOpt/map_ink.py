@@ -80,7 +80,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
     """
     spatial_keys = ['ion_velocity', 'z_normalized']
     
-    # Create a copy to avoid modifying the original result_dict in memory
+    # create a copy to avoid modifying the original result_dict in memory
     result_dict_copy = result_dict.copy()
 
     for key in spatial_keys:
@@ -103,7 +103,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
     results_dir = os.path.join("..", "results-LBFGSB")
     os.makedirs(results_dir, exist_ok=True)  # Create directory if it doesn't exist
 
-    # Define the full path for the JSON file
+    # full path for the JSON file
     result_file_path = os.path.join(results_dir, filename)
 
     # Save the subsampled results to the file
@@ -117,8 +117,6 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
 def run_simulation(config):
     """Run the HallThruster simulation using the provided configuration and track the time."""
     print("Starting simulation...")
-    
-    # Start the timer
     start_time = time.time()
     
     with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as temp_file:
@@ -130,7 +128,6 @@ def run_simulation(config):
         result = jl.HallThruster.run_simulation(config_file_path, is_path=True, verbose=True)
         os.unlink(config_file_path)
         
-        # end the timer and calculate the duration
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"Simulation completed in {elapsed_time:.2f} seconds.")
@@ -140,7 +137,7 @@ def run_simulation(config):
         raise RuntimeError(f"Julia simulation failed: {e}")
 
 def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
-    """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
+    # Run the HallThruster simulation with parameters v1 and v2, and extract metrics
     print(f"Running simulation with v1: {v1}, v2: {v2}")
     config_copy = config.copy()
     config_copy["anom_model_coeffs"] = [v1, v2]
@@ -173,7 +170,7 @@ def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n
 
 
 def extract_solution_data_julia(solution):
-    """Extract solution data from Julia's simulation output."""
+    #Extract solution data from Julia's simulation output
     extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(solution)
     return json.loads(extracted_data_json)
 
@@ -192,18 +189,12 @@ def load_json_data(filename):
         return None
 
 def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=True, save_every_n_grid_points=10):
-    """
-    param use_time_averaged: If True, apply time-averaging to spatial metrics (e.g., ion velocity, potential). 
-                              Otherwise, extract spatial metrics without time-averaging.
-    param save_every_n_grid_points: Only use for subsampling during saving (not during time-averaging).
-    return: dictionary containing the simulation results (both spatial and non-spatial metrics).
-    """
     
     print("Running MultiLogBohm simulation...")  
-    # Step 1: Run the simulation (this runs a non-time-averaged simulation)
+    # Step 1:run the simulation
     result = run_simulation(config)
 
-    # Initialize a dictionary to store ground truth data (both spatial and non-spatial metrics)
+    # initialize a dictionary to store ground truth data (both spatial and non-spatial metrics)
     ground_truth_data = {}
 
     # Step 2: extract non-spatial scalars thrust and discharge current
@@ -226,7 +217,7 @@ def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=T
         print("Extracting non-time-averaged spatial metrics...")
         spatial_data = jl.SolutionMetrics.extract_performance_metrics(result)
 
-    # Step 4: Convert the spatial data to a dictionary (without subsampling here)
+    # Step 4: Convert the spatial data to a dictionary (without subsampling)
     ground_truth_data.update(json.loads(spatial_data))  # Convert from JSON to dict
     
     print("MultiLogBohm simulation and data extraction complete.")
@@ -244,11 +235,11 @@ def prior_logpdf(v1_log, v2_log):
     return prior1 + prior2
 
 
-def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=1.0):
+def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=0.1):
     """Compute the log-likelihood of the observed data given the simulated data."""
     log_likelihood_value = 0
 
-    # Check the keys in the simulated and observed data
+    # DEBUG: Check the keys in the simulated and observed data
     print("Keys in simulated_data:", simulated_data.keys())
     print("Keys in observed_data:", observed_data.keys())
 
@@ -267,7 +258,7 @@ def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weigh
         simulated_ion_velocity = np.array(simulated_data["ion_velocity"])
         observed_ion_velocity = np.array(observed_data["ion_velocity"])
 
-        # Debugging: Print the shapes of both arrays
+        # DEBUG: Print the shapes of both arrays
         print(f"Shape of simulated_ion_velocity: {simulated_ion_velocity.shape}")
         print(f"Shape of observed_ion_velocity: {observed_ion_velocity.shape}")
 
@@ -314,7 +305,7 @@ def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_g
     v2_iter = alpha_iter * v1_iter
     print(f"Running TwoZoneBohm for iteration {iteration_counter[0]} with v1: {v1_iter:.4f}, v2: {v2_iter:.4f}...")
 
-    # Run the simulation to get the full metrics for this iteration (no subsampling during computation)
+    # Run the simulation to get the full metrics for this iteration (no subsampling)
     iteration_metrics = hallthruster_jl_wrapper(
         v1_iter, v2_iter, config, 
         use_time_averaged=use_time_averaged, 
@@ -326,14 +317,14 @@ def callback(v_log, iteration_counter, config, use_time_averaged, save_every_n_g
     loss_history.append(current_loss)
     print(f"Iteration {iteration_counter[0]} loss: {current_loss}")
 
-    # Subsample only when saving to JSON for visualization (for plotting)
+    # Subsample only when saving to JSON for visualization (ex. plotting)
     save_results_to_json(iteration_metrics, f'w_{ion_velocity_weight}_iteration_metrics.json', save_every_n_grid_points, subsample_for_saving=True)
 
     # Save the iteration result (v1 and v2)
     save_map_iteration(v_log, iteration_counter[0], filename=f"w_{ion_velocity_weight}_map_iteration_results.json")
 
 
-def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=1.0, maxiter=100, save_every_n_grid_points=None):
+def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=0.1, maxiter=100, save_every_n_grid_points=None):
     """
     Run MAP estimation with multiple initial guesses, log each iteration, and return the best optimized v1 and v2.
     """
@@ -344,15 +335,15 @@ def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=
 
     best_result = None
     best_v1, best_v2 = None, None
-    best_metrics = None  # To store the best result's full metrics
+    best_metrics = None  # to store the best results metrics
     
-    # Store results for each initial guess to plot later
+    # Store results for each initial guess for later use
     all_results = []
 
-    # Counter to track the iteration number
+    # track the iteration number
     iteration_counter = [0]
 
-    # Loss history to track the loss values over iterations
+    # track the loss values over iterations
     loss_history = []
 
     print(f"Running MAP optimization with {len(initial_guesses)} initial guesses...")
@@ -519,10 +510,10 @@ def main():
     start_time = time.time()
 
     # List of ion_velocity_weights
-    #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0]
+    #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0, 1e-10]
     #tried to keep determining iv_weight in main but also needed as a parameter in log_likelihood and run_map_multiple_initial_guesses functions.
     #so when switching to another weight value update function definitions accordingly.
-    ion_velocity_weights = [1.0]
+    ion_velocity_weights = [0.1]
 
 
     for ion_velocity_weight in ion_velocity_weights:
