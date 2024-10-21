@@ -33,10 +33,10 @@ import Pkg
 Pkg.add("HallThruster")
 Pkg.add("JSON3")
 
-Install HallThrusterPEM manually if needed
-git clone https://github.com/JANUS-Institute/HallThrusterPEM.git
-cd HallThrusterPEM
-pdm install
+    #Install HallThrusterPEM manually if needed
+     git clone https://github.com/JANUS-Institute/HallThrusterPEM.git
+     cd HallThrusterPEM
+     pdm install
 
 
 ## Step 3: Running the Project
