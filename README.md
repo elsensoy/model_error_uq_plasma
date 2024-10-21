@@ -3,7 +3,7 @@
 ## Project Overview
 This project uses the HallThruster.jl Julia package, integrated with Python through Juliacall, to simulate and optimize the behavior of a Hall Thruster.
 
-## Key Features:
+# Key Features:
 - MultiLogBohm Simulation: Simulates Hall Thruster behavior using the MultiLogBohm model.
 - TwoZoneBohm Simulation: Uses MAP (Maximum A Posteriori) parameter optimization to simulate Hall Thruster behavior.
 - MAP Estimation: Optimizes key model parameters using MAP.
@@ -28,12 +28,12 @@ PDM will create a virtual environment and install all necessary dependencies, in
 pdm venv activate
 
 <!-- Julia Installation -->
-# Ensure Julia is installed. Also the following Julia packages:
+Ensure Julia is installed. Also the following Julia packages:
 import Pkg
 Pkg.add("HallThruster")
 Pkg.add("JSON3")
 
-# Install HallThrusterPEM manually if needed
+Install HallThrusterPEM manually if needed
 git clone https://github.com/JANUS-Institute/HallThrusterPEM.git
 cd HallThrusterPEM
 pdm install
@@ -99,5 +99,5 @@ hall-project/
 └── tests #some unit tests, etc.
 
 11 directories, 6 files
-# Contact
+Contact
 Feel free to contact me at elsensoy@umich.edu!
