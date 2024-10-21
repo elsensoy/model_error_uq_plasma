@@ -98,6 +98,4 @@ The Python dependencies are listed in the pyproject.toml. The main dependencies 
     ├── src
     └── tests #some unit tests, etc.
 
-11 directories, 6 files
-Contact
 Feel free to contact me at elsensoy@umich.edu!
