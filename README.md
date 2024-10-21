@@ -11,27 +11,27 @@ This project uses the HallThruster.jl Julia package, integrated with Python thro
 
 ## Step 1: Install PDM
 If PDM is not installed, install it via pip:
-pip install pdm
+    #pip install pdm
 
 ## Step 2: Install Project Dependencies
 Once PDM is installed, clone the repository and install the dependencies:
 
 # Clone the repository
-git clone https://github.com/elsensoy/HallOpt.git
-cd hall-opt
+    git clone https://github.com/elsensoy/HallOpt.git
+    cd hall-opt
 
 # Install Python dependencies with PDM
-pdm install
+    pdm install
 PDM will create a virtual environment and install all necessary dependencies, including matplotlib, scipy, and juliacall.
 
-# Activate the PDM virtual environment:
-pdm venv activate
+    # Activate the PDM virtual environment:
+    pdm venv activate
 
 <!-- Julia Installation -->
 Ensure Julia is installed. Also the following Julia packages:
-import Pkg
-Pkg.add("HallThruster")
-Pkg.add("JSON3")
+    import Pkg
+    Pkg.add("HallThruster")
+    Pkg.add("JSON3")
 
     #Install HallThrusterPEM manually if needed
      git clone https://github.com/JANUS-Institute/HallThrusterPEM.git
@@ -42,8 +42,8 @@ Pkg.add("JSON3")
 ## Step 3: Running the Project
 Once the dependencies are installed, you can run the main simulation script.
 
-cd mapOpt
-pdm run python map_ink.py
+    cd mapOpt
+    pdm run python map_ink.py
 
 # The script include the following tasks:
 Simulates the Hall Thruster using MultiLogBohm.
@@ -64,15 +64,15 @@ Performance Metrics: Metrics like thrust, ion velocity, and discharge current.
 
 ## Step 4: Visualizing Results
 To visualize the results, you can use the plotting scripts. For example, you can generate comparison plots by running:
-pdm run python ion_velocity_weight_plots.py
+    pdm run python ion_velocity_weight_plots.py
 This script will generate comparison plots between observed and optimized results, saving the plots in the plots_comparison directory.
 
 # Dependencies
 The Python dependencies are listed in the pyproject.toml. The main dependencies include:
 
-matplotlib
-juliacall
-scipy
+    matplotlib
+    juliacall
+    scipy
 
 # Project Structure
 
