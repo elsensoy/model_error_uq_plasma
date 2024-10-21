@@ -76,7 +76,7 @@ def subsample_data(data, step=10):
 def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, subsample_for_saving=True):
     """
     Save the results as a JSON file, ensuring the directory exists.
-    Optionally subsample only when saving and keep original data untouched for processing.
+    Subsample only when saving and keep original data untouched for processing.
     """
     spatial_keys = ['ion_velocity', 'z_normalized']
     
@@ -511,8 +511,8 @@ def main():
 
     # List of ion_velocity_weights
     #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0, 1e-10]
-    #tried to keep determining iv_weight in main but also needed as a parameter in log_likelihood and run_map_multiple_initial_guesses functions.
-    #so when switching to another weight value update function definitions accordingly.
+    #tried to keep determining iv_weight in main but also it needs updating in log_likelihood and run_map_multiple_initial_guesses functions.
+    # when switching to another weight, update function definitions accordingly.
     ion_velocity_weights = [0.1]
 
 
