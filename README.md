@@ -53,7 +53,7 @@ Saves results for different ion velocity weights.
     # The default ion velocity weights used in the project are:
     ion_velocity_weights = [1e-10, 0.1, 1.0, 2.0, 3.0, 5.0, 10.0]
 
-    #Ion velocity weight is set in main but also in log_likelihood and run_map_multiple_initial_guesses functions. Function definitions might need a slight adjustment for the weight chosen.
+Ion velocity weight is set in main but also in log_likelihood and run_map_multiple_initial_guesses functions. Function definitions might need a slight adjustment for the weight chosen.
     ion_velocity_weights = []
 
 # Expected Outputs
@@ -76,27 +76,27 @@ The Python dependencies are listed in the pyproject.toml. The main dependencies 
 
 # Project Structure
 
-hall-project/
-├── HallThrusterPEM
-├── README.md
-├── __pycache__
-├── bfield_spt100.csv
-├── extract_metrics.jl
-├── mapOpt
-    ├── ion_velocity_weight_plots.py
-    ├── loss_comparison_plots.py
-    ├── map_ink.py
-    ├── plots_comparison
-    └── residuals_plots_map.py
-├── nelder-mead #still work in progress. dublicate files might exist. 
-├── output               #these are some saved terminal outputs for debugging map_ink.py 
-├── pdm.lock
-├── pyproject.toml
-├── requirements.txt #dependencies
-├── results-LBFGSB      #lbfgsb results directory.
-├── results-Nelder-Mead #nelder mead results directory.(still work in progress.)
-├── src
-└── tests #some unit tests, etc.
+    hall-project/
+    ├── HallThrusterPEM
+    ├── README.md
+    ├── __pycache__
+    ├── bfield_spt100.csv
+    ├── extract_metrics.jl
+    ├── mapOpt
+        ├── ion_velocity_weight_plots.py
+        ├── loss_comparison_plots.py
+        ├── map_ink.py
+        ├── plots_comparison
+        └── residuals_plots_map.py
+    ├── nelder-mead #still work in progress. dublicate files might exist. 
+    ├── output               #these are some saved terminal outputs for debugging         map_ink.py 
+    ├── pdm.lock
+    ├── pyproject.toml
+    ├── requirements.txt #dependencies
+    ├── results-LBFGSB      #lbfgsb results directory.
+    ├── results-Nelder-Mead #nelder mead results directory.(still work in progress.)
+    ├── src
+    └── tests #some unit tests, etc.
 
 11 directories, 6 files
 Contact
