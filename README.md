@@ -89,7 +89,7 @@ The Python dependencies are listed in the pyproject.toml. The main dependencies 
         ├── plots_comparison
         └── residuals_plots_map.py
     ├── nelder-mead #still work in progress. dublicate files might exist. 
-    ├── output               #these are some saved terminal outputs for debugging         map_ink.py 
+    ├── output               #these are some saved terminal outputs for debugging         
     ├── pdm.lock
     ├── pyproject.toml
     ├── requirements.txt #dependencies
