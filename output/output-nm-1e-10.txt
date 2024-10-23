@@ -1,1008 +1,996 @@
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.747443255 seconds.
-Simulation completed in 5.75 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.016992115690052975
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.897895761 seconds.
-Simulation completed in 5.90 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01716538092853955
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.154671283 seconds.
-Simulation completed in 6.16 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01716538110019336
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.08966093 seconds.
-Simulation completed in 6.09 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01716538110019336
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.051406997 seconds.
-Simulation completed in 6.05 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running TwoZoneBohm for iteration 21 with v1: 0.0067, v2: 0.0172...
-Running simulation with v1: 0.006737946999085467, v2: 0.01716538092853955
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.8444009 seconds.
-Simulation completed in 5.85 seconds.
-Applying time-averaging to the simulation results...
-Running simulation with v1: 0.006737946999085467, v2: 0.01716538092853955
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.774339967 seconds.
-Simulation completed in 5.78 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Iteration 21 loss: 996522450770.1008
-Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/w_5_0_iteration_metrics.json
-Running simulation with v1: 0.006737946999085467, v2: 0.016987063961387272
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.073837892 seconds.
-Simulation completed in 6.08 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01698706413125791
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.996682419 seconds.
-Simulation completed in 6.00 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.016987064131257914
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.831154246 seconds.
-Simulation completed in 5.83 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017109772410895684
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.728705526 seconds.
-Simulation completed in 5.73 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017109772581993407
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.936219231 seconds.
-Simulation completed in 5.94 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01710977258199341
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.915302833 seconds.
-Simulation completed in 5.92 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158554923940396
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.871513624 seconds.
-Simulation completed in 5.87 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017158555095525947
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.739142902 seconds.
-Simulation completed in 5.74 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158555095525947
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.796548598 seconds.
-Simulation completed in 5.80 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017126342884430115
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.792099298 seconds.
-Simulation completed in 5.79 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017126343055693546
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.822133673 seconds.
-Simulation completed in 5.82 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017126343055693546
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.756472369 seconds.
-Simulation completed in 5.76 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01715443392119567
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.91683887 seconds.
-Simulation completed in 5.92 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017154434092740006
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.716437166 seconds.
-Simulation completed in 5.72 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01715443409274001
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.129665417 seconds.
-Simulation completed in 6.13 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470673095352
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.71390082 seconds.
-Simulation completed in 5.72 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017158470844680057
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.951218694 seconds.
-Simulation completed in 5.95 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470844680057
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.764973845 seconds.
-Simulation completed in 5.77 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158441468937257
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.679808187 seconds.
-Simulation completed in 5.68 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01715844164052167
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.797533818 seconds.
-Simulation completed in 5.80 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158441640521674
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.728943911 seconds.
-Simulation completed in 5.73 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470673095352
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.921165721 seconds.
-Simulation completed in 5.92 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017158470844680057
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.836701603 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.83538296 seconds.
 Simulation completed in 5.84 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470844680057
+Iteration 131 loss: 4.151677549273455
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.01744062123380873, v2: 0.011095796756015889
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.796134196 seconds.
-Simulation completed in 5.80 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running TwoZoneBohm for iteration 22 with v1: 0.0067, v2: 0.0172...
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470673095352
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.022266094 seconds.
-Simulation completed in 6.02 seconds.
-Applying time-averaging to the simulation results...
-Running simulation with v1: 0.006737946999085467, v2: 0.017158470673095352
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.760626875 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.75958546 seconds.
 Simulation completed in 5.76 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Iteration 22 loss: 996356531470.0449
-Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/w_5_0_iteration_metrics.json
-Running simulation with v1: 0.006737946999085467, v2: 0.01660248687771388
+Running simulation with v1: 0.01746151352341569, v2: 0.011098447490538862
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.868196375 seconds.
-Simulation completed in 5.87 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.64670486 seconds.
+Simulation completed in 5.65 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.016602487043738748
+Running simulation with v1: 0.0174545466475732, v2: 0.01109756384201109
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.026670672 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.687201443 seconds.
+Simulation completed in 5.69 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017430097363245578, v2: 0.011106344873988433
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.665352817 seconds.
+Simulation completed in 5.67 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 132 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.757173645 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.880381841 seconds.
+Simulation completed in 5.88 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 132 loss: 4.151677549273455
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017416191455367287, v2: 0.01110457638977296
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.363987529 seconds.
+Simulation completed in 6.37 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017419666891902788, v2: 0.011105018484425168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.837847705 seconds.
+Simulation completed in 5.84 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 133 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.763258913 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.672753015 seconds.
+Simulation completed in 5.67 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 133 loss: 4.151677549273455
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017357041537057222, v2: 0.011120828225752803
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.038249209 seconds.
+Simulation completed in 6.04 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017430119138593377, v2: 0.0111033753713138
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.755295575 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017405725815731757, v2: 0.011109189943975693
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.645429493 seconds.
+Simulation completed in 5.65 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017423143021968724, v2: 0.011105460596678008
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.703474598 seconds.
+Simulation completed in 5.71 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 134 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.7138582 seconds.
+Simulation completed in 5.72 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.853556911 seconds.
+Simulation completed in 5.86 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 134 loss: 4.151677549273455
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.01737441002690447, v2: 0.011117094971492063
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.851753909 seconds.
+Simulation completed in 5.85 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01738658048192754, v2: 0.011114185235617108
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.646465004 seconds.
+Simulation completed in 5.65 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 135 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.705008189 seconds.
+Simulation completed in 5.71 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01739179589669743, v2: 0.011113362970482168
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.675494898 seconds.
+Simulation completed in 5.68 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 135 loss: 4.151677549273455
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.969791903 seconds.
+Simulation completed in 5.97 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017356159474544396, v2: 0.011122948074045786
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.763136006 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 136 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.697831117 seconds.
+Simulation completed in 5.70 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.754578743 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 136 loss: 4.1528933955573955
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017377877125870658, v2: 0.01111753756453319
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.232548364 seconds.
+Simulation completed in 6.23 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017380052556357474, v2: 0.011116699387520766
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.754173466 seconds.
+Simulation completed in 5.76 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017382228259173155, v2: 0.011115861273700449
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.944530415 seconds.
+Simulation completed in 5.95 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737962179092941, v2: 0.01111627249108499
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.910253425 seconds.
+Simulation completed in 5.91 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 137 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.70345693 seconds.
+Simulation completed in 5.71 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.792602935 seconds.
+Simulation completed in 5.79 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 137 loss: 4.1528933955573955
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017370060850668122, v2: 0.011118771448368526
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.913865343 seconds.
+Simulation completed in 5.92 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737918560824445, v2: 0.011116588745950742
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.028488227 seconds.
 Simulation completed in 6.03 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01660248704373875
+Running simulation with v1: 0.01737614348991285, v2: 0.011117316265810105
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.0549215 seconds.
-Simulation completed in 6.06 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.63610001 seconds.
+Simulation completed in 5.64 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01708486915519038
+Running simulation with v1: 0.017377446414360755, v2: 0.01111711063591028
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.092534974 seconds.
-Simulation completed in 6.09 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017084869326039073
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.740230457 seconds.
-Simulation completed in 5.74 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017084869326039077
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.885090957 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.889681507 seconds.
 Simulation completed in 5.89 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running TwoZoneBohm for iteration 23 with v1: 0.0067, v2: 0.0171...
-Running simulation with v1: 0.006737946999085467, v2: 0.01708486915519038
+Running TwoZoneBohm for iteration 138 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.791000407 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.726374205 seconds.
+Simulation completed in 5.73 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.791817005 seconds.
 Simulation completed in 5.79 seconds.
 Applying time-averaging to the simulation results...
-Running simulation with v1: 0.006737946999085467, v2: 0.01708486915519038
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.664557689 seconds.
-Simulation completed in 6.67 seconds.
-Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Iteration 23 loss: 996286251745.2201
+Iteration 138 loss: 4.1528933955573955
 Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/w_5_0_iteration_metrics.json
-Running simulation with v1: 0.006737946999085467, v2: 0.017004862037802264
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017371363319018326, v2: 0.011118565791553127
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.095583176 seconds.
-Simulation completed in 6.10 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017004862207850885
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.744662581 seconds.
-Simulation completed in 5.75 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01700486220785089
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.923515514 seconds.
-Simulation completed in 5.93 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963694911895
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.463932314 seconds.
-Simulation completed in 6.47 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707596386567153
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.652288011 seconds.
-Simulation completed in 6.65 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963865671534
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.928728109 seconds.
-Simulation completed in 6.93 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075698346159175
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.345399404 seconds.
-Simulation completed in 6.35 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707569851691616
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 8.158778924 seconds.
-Simulation completed in 8.16 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707569851691616
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.854707918 seconds.
-Simulation completed in 6.86 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963694911895
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.88876754 seconds.
-Simulation completed in 5.89 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707596386567153
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.513723678 seconds.
-Simulation completed in 6.52 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963865671534
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.496882711 seconds.
-Simulation completed in 6.50 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running TwoZoneBohm for iteration 24 with v1: 0.0067, v2: 0.0171...
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963694911895
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.208479562 seconds.
-Simulation completed in 6.21 seconds.
-Applying time-averaging to the simulation results...
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963694911895
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.816507016 seconds.
-Simulation completed in 5.82 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Iteration 24 loss: 996215456224.8525
-Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/w_5_0_iteration_metrics.json
-Running simulation with v1: 0.006737946999085467, v2: 0.016983842343309928
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.864091333 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.864045806 seconds.
 Simulation completed in 5.87 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.016983842513148353
+Running TwoZoneBohm for iteration 139 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.72219259 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.926994195 seconds.
+Simulation completed in 5.93 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.901315383 seconds.
+Simulation completed in 5.90 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 139 loss: 4.1528933955573955
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017367886670825505, v2: 0.01111960978161024
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.718149079 seconds.
 Simulation completed in 5.72 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.016983842513148353
+Running simulation with v1: 0.01737407891721218, v2: 0.011117889600407188
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.146504184 seconds.
-Simulation completed in 7.15 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.945351983 seconds.
+Simulation completed in 5.95 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017071419092986678
+Running simulation with v1: 0.01737201458981683, v2: 0.011118462964571887
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.321528111 seconds.
-Simulation completed in 6.32 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017071419263700868
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.521263381 seconds.
-Simulation completed in 6.52 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707141926370087
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.479515736 seconds.
-Simulation completed in 6.48 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707593975986734
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.290133933 seconds.
-Simulation completed in 7.29 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707593993062674
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.818270843 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.82207009 seconds.
 Simulation completed in 5.82 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707593993062674
+Running simulation with v1: 0.01737440460046424, v2: 0.01111783818992449
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.756940685 seconds.
-Simulation completed in 6.76 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.78958599 seconds.
+Simulation completed in 5.79 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596368547345
+Running TwoZoneBohm for iteration 140 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.561288412 seconds.
-Simulation completed in 6.56 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.734411591 seconds.
+Simulation completed in 5.74 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017372665885032165, v2: 0.011118360138541615
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.713147195 seconds.
+Simulation completed in 5.71 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075963856233087
+Iteration 140 loss: 4.1528933955573955
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017370276113561216, v2: 0.011118984942520284
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.756766768 seconds.
-Simulation completed in 7.76 seconds.
+Simulation exited at t = 0.001 with retcode :success in 6.012729898 seconds.
+Simulation completed in 6.02 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075963856233087
+Running simulation with v1: 0.017371308143308506, v2: 0.011118698243282866
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 8.294231218 seconds.
-Simulation completed in 8.30 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.730551744 seconds.
+Simulation completed in 5.73 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707594789456966
+Running simulation with v1: 0.017372340234372344, v2: 0.011118411551437885
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.030016352 seconds.
-Simulation completed in 6.03 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.939390463 seconds.
+Simulation completed in 5.94 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707594806532914
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.228403081 seconds.
-Simulation completed in 7.23 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.694205435 seconds.
+Simulation completed in 5.70 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707594806532914
+Running TwoZoneBohm for iteration 141 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.735894296 seconds.
-Simulation completed in 7.74 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.696016161 seconds.
+Simulation completed in 5.70 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.821775676 seconds.
+Simulation completed in 5.82 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596244370861
+Iteration 141 loss: 4.15282519173942
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373860894057482, v2: 0.011118047749718392
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 8.311832353 seconds.
-Simulation completed in 8.31 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.654297583 seconds.
+Simulation completed in 5.66 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075962614468237
+Running simulation with v1: 0.017373480716657733, v2: 0.011118138699032267
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.943477192 seconds.
-Simulation completed in 6.95 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.679710894 seconds.
+Simulation completed in 5.68 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962614468237
+Running simulation with v1: 0.01737310054757708, v2: 0.011118229649090134
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 9.501354182 seconds.
-Simulation completed in 9.50 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.721523497 seconds.
+Simulation completed in 5.72 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961397148245
+Running simulation with v1: 0.017372937717410237, v2: 0.01111825535520686
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.740296847 seconds.
-Simulation completed in 6.74 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.950406096 seconds.
+Simulation completed in 5.95 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707596156790786
+Running TwoZoneBohm for iteration 142 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.772280538 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.863138903 seconds.
+Simulation completed in 5.86 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.017850207 seconds.
+Simulation completed in 6.02 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 142 loss: 4.15282519173942
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.01737337238675639, v2: 0.011118124866985166
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.106648532 seconds.
+Simulation completed in 6.11 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017373168506973152, v2: 0.011118203453471318
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.842815762 seconds.
+Simulation completed in 5.84 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737323646663505, v2: 0.011118177257914212
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.660542897 seconds.
+Simulation completed in 5.66 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017373317882927737, v2: 0.011118164404938706
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.821602511 seconds.
+Simulation completed in 5.82 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 143 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.794907313 seconds.
+Simulation completed in 5.80 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.9118263 seconds.
+Simulation completed in 5.91 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 143 loss: 4.15282519173942
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373453803686052, v2: 0.011118112014070234
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.790957708 seconds.
+Simulation completed in 5.79 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 144 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.670629503 seconds.
+Simulation completed in 5.67 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.6733913 seconds.
+Simulation completed in 5.67 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 144 loss: 4.15282519173942
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373752561785614, v2: 0.011118033917784455
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.739029705 seconds.
+Simulation completed in 5.74 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 145 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.720977707 seconds.
+Simulation completed in 5.72 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.01737353522099723, v2: 0.011118099161170143
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.929175907 seconds.
+Simulation completed in 5.93 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 145 loss: 4.15282519173942
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373833980496876, v2: 0.011118021064974651
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.739750402 seconds.
+Simulation completed in 5.74 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.6534897 seconds.
+Simulation completed in 5.66 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 146 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.6722168 seconds.
+Simulation completed in 5.67 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.6921734 seconds.
+Simulation completed in 5.69 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 146 loss: 4.152823649195479
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373331508868856, v2: 0.011118154520437133
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.873232803 seconds.
+Simulation completed in 5.88 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737364729759977, v2: 0.01111806406832498
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.649673899 seconds.
+Simulation completed in 5.65 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 147 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.764911996 seconds.
 Simulation completed in 5.77 seconds.
 Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596156790786
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.000386843 seconds.
-Simulation completed in 6.00 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.656183297 seconds.
+Simulation completed in 5.66 seconds.
 Applying time-averaging to the simulation results...
 Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
 Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
 Shape of simulated_ion_velocity: (1, 102)
 Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962438662218
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.747183064 seconds.
-Simulation completed in 6.75 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075962609421843
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.086568837 seconds.
-Simulation completed in 6.09 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962609421846
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.410476365 seconds.
-Simulation completed in 7.41 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596175126299
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.87554126 seconds.
-Simulation completed in 6.88 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075961922022608
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.062146833 seconds.
-Simulation completed in 7.06 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961922022608
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.453603033 seconds.
-Simulation completed in 7.46 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962316314554
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.859135441 seconds.
-Simulation completed in 5.86 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.01707596248707418
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.048937832 seconds.
-Simulation completed in 6.05 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596248707418
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.18848296 seconds.
-Simulation completed in 6.19 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962214916442
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.123641078 seconds.
-Simulation completed in 6.13 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075962385676064
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.090628388 seconds.
-Simulation completed in 6.09 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962385676064
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.325181096 seconds.
-Simulation completed in 7.33 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.01707596198308971
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.605295408 seconds.
-Simulation completed in 6.61 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075962153849333
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.468565076 seconds.
-Simulation completed in 6.47 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962153849333
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.219435166 seconds.
-Simulation completed in 6.22 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961830084075
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.409706667 seconds.
-Simulation completed in 6.41 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737947066464937, v2: 0.017075962000843693
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.578781481 seconds.
-Simulation completed in 6.58 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running simulation with v1: 0.006737946999085467, v2: 0.017075962000843697
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.701950605 seconds.
-Simulation completed in 6.70 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Running TwoZoneBohm for iteration 25 with v1: 0.0067, v2: 0.0171...
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961830084075
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.005634001 seconds.
-Simulation completed in 6.01 seconds.
-Applying time-averaging to the simulation results...
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961830084075
-Starting simulation...
-Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 5.857016222 seconds.
-Simulation completed in 5.86 seconds.
-Applying time-averaging to the simulation results...
-Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
-Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
-Shape of simulated_ion_velocity: (1, 102)
-Shape of observed_ion_velocity: (1, 102)
-Iteration 25 loss: 996215453930.3436
+Iteration 147 loss: 4.152823649195479
 Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/w_5_0_iteration_metrics.json
-MAP estimates for initial guess 3: v1 = 0.006738, v2 = 0.017076, loss = 996215453930.343628
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961830084075
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.017373436771141382, v2: 0.011118124369651311
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 6.066523056 seconds.
-Simulation completed in 6.07 seconds.
+Simulation exited at t = 0.001 with retcode :success in 5.80267561 seconds.
+Simulation completed in 5.80 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737359466574601, v2: 0.011118079143625902
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.733026209 seconds.
+Simulation completed in 5.73 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.01737354203405169, v2: 0.011118094218947263
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.637424709 seconds.
+Simulation completed in 5.64 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017373598072284578, v2: 0.011118076672518648
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.682400309 seconds.
+Simulation completed in 5.68 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 148 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.729988639 seconds.
+Simulation completed in 5.73 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017373548847108837, v2: 0.01111808927672659
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.976666346 seconds.
+Simulation completed in 5.98 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 148 loss: 4.152823649195479
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running simulation with v1: 0.01737349280903471, v2: 0.01111810682317509
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.926754938 seconds.
+Simulation completed in 5.93 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.684944802 seconds.
+Simulation completed in 5.69 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Running TwoZoneBohm for iteration 149 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.774712405 seconds.
+Simulation completed in 5.78 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.695711009 seconds.
+Simulation completed in 5.70 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 149 loss: 4.152825785877169
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+Running TwoZoneBohm for iteration 150 with v1: 0.0174, v2: 0.0111...
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 5.847473318 seconds.
+Simulation completed in 5.85 seconds.
+Applying time-averaging to the simulation results...
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.107622903 seconds.
+Simulation completed in 6.11 seconds.
+Applying time-averaging to the simulation results...
+Keys in simulated_data: dict_keys(['thrust', 'time', 'discharge_current', 'z_normalized', 'ion_velocity'])
+Keys in observed_data: dict_keys(['thrust', 'discharge_current', 'time', 'z_normalized', 'ion_velocity'])
+Shape of simulated_ion_velocity: (1, 102)
+Shape of observed_ion_velocity: (1, 102)
+Iteration 150 loss: 4.152825785877169
+Original ion_velocity data shape: (1, 102)
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_iteration_metrics.json
+MAP estimates for initial guess 3: v1 = 0.017374, v2 = 0.011118, loss = 4.352074
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 6.180442072 seconds.
+Simulation completed in 6.18 seconds.
 Applying time-averaging to the simulation results...
 
 Summary of all initial guesses and their results:
-Initial guess 1: [-2, 0.5], v1 = 0.026307, v2 = 0.033011, loss = 1297126386461.961426
-Initial guess 2: [-3, 0.6], v1 = 0.006738, v2 = 0.017000, loss = 996475386359.669556
-Initial guess 3: [-1, 0.7], v1 = 0.006738, v2 = 0.017076, loss = 996215453930.343628
-Loss values saved to loss_values_w_5_0.json
+Initial guess 1: [-2, 0.5], v1 = 0.014338, v2 = 0.012274, loss = 4.444511
+Initial guess 2: [-3, 0.6], v1 = 0.011127, v2 = 0.014035, loss = 4.875776
+Initial guess 3: [-1, 0.7], v1 = 0.017374, v2 = 0.011118, loss = 4.352074
+Loss values saved to loss_values_w_1e-10.json
 
-Best result: v1 = 0.006738, v2 = 0.017076, with the lowest loss = 996215453930.343628.
-Best initial guess saved to best_initial_guess_w_5_0.json
+Best result: v1 = 0.017374, v2 = 0.011118, with the lowest loss = 4.352074.
+Best initial guess saved to best_initial_guess_w_1e-10.json
 Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
-Original z_normalized data shape: (11,)
-Subsampled z_normalized data shape: (2,)
-Results successfully saved to ../results-combined/best_result_w_5_0.json
-Best metrics saved to best_result_w_5_0.json
-Running TwoZoneBohm simulation with optimized values v1: 0.006737946999085467, v2: 0.017075961830084075 for ion_velocity_weight 5.0...
-Running simulation with v1: 0.006737946999085467, v2: 0.017075961830084075
+Subsampled ion_velocity data shape for saving: (1, 11)
+Original z_normalized data shape: (102,)
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/best_result_w_1e-10.json
+Best metrics saved to best_result_w_1e-10.json
+Running TwoZoneBohm simulation with optimized values v1: 0.017373519124787386, v2: 0.011118099285503311 for ion_velocity_weight 1e-10...
+Running simulation with v1: 0.017373519124787386, v2: 0.011118099285503311
 Starting simulation...
 Running simulation...
-Simulation exited at t = 0.001 with retcode :success in 7.480539522 seconds.
-Simulation completed in 7.48 seconds.
+Simulation exited at t = 0.001 with retcode :success in 6.148696458 seconds.
+Simulation completed in 6.15 seconds.
 Applying time-averaging to the simulation results...
 Original ion_velocity data shape: (1, 102)
-Subsampled ion_velocity data shape: (1, 11)
+Subsampled ion_velocity data shape for saving: (1, 11)
 Original z_normalized data shape: (102,)
-Subsampled z_normalized data shape: (11,)
-Results successfully saved to ../results-combined/w_5.0_optimized_twozonebohm_result.json
-Optimized results for ion_velocity_weight 5.0 saved.
+Subsampled z_normalized data shape for saving: (11,)
+Results successfully saved to ../results-Nelder-Mead/nm_w_1e-10_optimized_twozonebohm_result.json
+Optimized results for ion_velocity_weight 1e-10 saved.

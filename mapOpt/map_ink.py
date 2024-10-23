@@ -425,11 +425,6 @@ def run_map_multiple_initial_guesses(observed_data, config, ion_velocity_weight=
             json.dump(best_initial_guess, f, indent=4)
         print(f"Best initial guess saved to {best_initial_guess_filename}")
 
-        # Subsample the best result's metrics before saving (if needed)
-        # subsampled_best_metrics = {
-        #     key: subsample_data(value, step=save_every_n_grid_points) if isinstance(value, list) else value
-        #     for key, value in best_metrics.items()
-        # }
 
         # Save the best metrics
         best_result_filename = f'best_result_w_{weight_str}.json'
