@@ -1,62 +1,237 @@
 import json 
 import os
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import make_interp_spline
+
 
 # Hilfsfunktion zum Laden von JSON-Daten
 def load_json(filename):
     file_path = os.path.join("..", "results-LBFGSB", filename)  # Load from the results directory
     with open(file_path, 'r') as f:
         return json.load(f)
-
-
-def plot_ion_velocity_comparison(datasets, labels, save_dir="plots_comparison", offset=True):
+import matplotlib.pyplot as plt
+import matplotlib
+def plot_ion_velocity_comparison(datasets, labels, save_dir="plots_comparison"):
     os.makedirs(save_dir, exist_ok=True)
     
-    plt.figure(figsize=(12, 8))  
+    plt.figure(figsize=(12, 8))  # Standard portrait size
     
+    # Use a larger color palette like 'tab20' for more distinct colors
+    color_map = matplotlib.colormaps.get_cmap('tab10')  # Get colormap once, outside the loop
+
+    # Define different markers and line styles for each dataset
+    optimized_marker = 'x'  # X marker for optimized
+    initial_guess_marker = 'o'  # Circle marker for initial guesses
+    optimized_line_style = '-'  # Solid line for optimized
+    initial_guess_line_style = '--'  # Dashed line for initial guesses
+
     for idx, data in enumerate(datasets):
-        # Load the various data types for each weight
         observed_data = data['observed_data']
         optimized_data = data['optimized_data']
         initial_guess_data = data['initial_guess_data']
-        
-        # Convert ion velocity lists to numpy arrays
+
         observed_ion_velocity = np.array(observed_data['ion_velocity'][0])
         optimized_ion_velocity = np.array(optimized_data['ion_velocity'][0])
         initial_guess_ion_velocity = np.array(initial_guess_data['ion_velocity'][0])
-        
-        # Define grids based on ion velocity arrays
-        z_grid_observed = np.linspace(0, 1, len(observed_ion_velocity))
-        z_grid_optimized = np.linspace(0, 1, len(optimized_ion_velocity))
-        z_grid_initial = np.linspace(0, 1, len(initial_guess_ion_velocity))
 
-        # skip offset (-delete it-)
-        offset_value = 0 * idx if offset else 0
+        z_grid = np.linspace(0, 1, len(observed_ion_velocity))
 
-        # Plot the observed data (ground truth) once for all comparisons
+        # Assign distinct color for each dataset based on the index
+        color = color_map(idx)
+
+        # Plot observed data (ground truth) only once for all comparisons
         if idx == 0:
-            plt.plot(z_grid_observed, observed_ion_velocity + offset_value, 
-                     linestyle='-', color='red', label='Observed (Ground Truth for MAP)', linewidth=3, alpha=0.7)
+            plt.plot(z_grid, observed_ion_velocity, 
+                     linestyle='-', color='purple', linewidth=3, alpha=0.7, label='Observed (Ground Truth)')
+            plt.scatter(z_grid, observed_ion_velocity, color='purple', s=50)
 
-        # Plot the initial guess ion velocity for each dataset
-        plt.plot(z_grid_initial, initial_guess_ion_velocity + offset_value, 
-                 linestyle='--', label=f'{labels[idx]} Initial Guess', linewidth=1.0, marker='o', markersize=6)
+        # Plot the initial guess with distinct marker and line style (transparent)
+        plt.plot(z_grid, initial_guess_ion_velocity, 
+                 linestyle=initial_guess_line_style, linewidth=2, color=color, label=f'{labels[idx]} Initial Guess', alpha=0.9)
+        plt.scatter(z_grid, initial_guess_ion_velocity, color=color, s=80, marker=initial_guess_marker, alpha=0.6)
 
-        # Plot the optimized ion velocity for each dataset
-        plt.plot(z_grid_optimized, optimized_ion_velocity + offset_value, 
-                 linestyle='-.', label=f'{labels[idx]} Optimized', linewidth=3)
+        # Plot the optimized values with 'x' marker and solid line
+        plt.plot(z_grid, optimized_ion_velocity, 
+                 linestyle=optimized_line_style, linewidth=3, color=color, label=f'{labels[idx]} Optimized', alpha=1)
+        plt.scatter(z_grid, optimized_ion_velocity, color=color, s=100, marker=optimized_marker)
 
+    # Adjustments for plot aesthetics
     plt.title('Ion Velocity Comparison (Observed, Initial Guess, Optimized)', fontsize=14)
     plt.xlabel('Normalized z', fontsize=12)
     plt.ylabel('Ion Velocity', fontsize=12)
-    plt.grid(True, linestyle=':', linewidth=1)
+    plt.grid(True, linestyle=':', linewidth=1)  # Dotted grid lines for reduced distraction
+    
+    # Add a legend with distinct colors for clarity
     plt.legend(loc='best', fontsize=10)
+    
     plt.tight_layout()  # Adjust layout to prevent overlapping elements
-    plt.savefig(os.path.join(save_dir, 'ion_velocity_comparison.png'))
+    
+    # Save the plot
+    plt.savefig(os.path.join(save_dir, 'ion_velocity_comparison_enhanced.png'))
     plt.close()
-    print(f"Ion velocity comparison plot saved in {save_dir}/ion_velocity_comparison.png")
+    print(f"Ion velocity comparison plot saved in {save_dir}/ion_velocity_comparison_enhanced.png")
+
+def plot_each_combined_weight(datasets, labels, save_dir="plots_comparison"):
+    os.makedirs(save_dir, exist_ok=True)
+
+    # Define markers and line styles
+    optimized_marker = 'x'  # X marker for optimized
+    initial_guess_marker = 'o'  # Circle marker for initial guesses
+    optimized_line_style = '-'  # Solid line for optimized
+    initial_guess_line_style = '--'  # Dashed line for initial guesses
+
+    for idx, data in enumerate(datasets):
+        plt.figure(figsize=(12, 8))  # Standard portrait size
+        
+        initial_guess_data = data['initial_guess_data']
+        optimized_data = data['optimized_data']
+        initial_guess_ion_velocity = np.array(initial_guess_data['ion_velocity'][0])
+        optimized_ion_velocity = np.array(optimized_data['ion_velocity'][0])
+        z_grid = np.linspace(0, 1, len(initial_guess_ion_velocity))
+
+        # Use distinct colors for each dataset
+        color = matplotlib.colormaps.get_cmap('tab10')(idx)
+
+        # Plot the initial guess with distinct marker and dashed line
+        plt.plot(z_grid, initial_guess_ion_velocity, linestyle=initial_guess_line_style, linewidth=2, color=color, label=f'{labels[idx]} Initial Guess', alpha=0.8)
+        plt.scatter(z_grid, initial_guess_ion_velocity, color=color, s=80, marker=initial_guess_marker, alpha=0.6)
+
+        # Plot the optimized values with distinct marker and solid line
+        plt.plot(z_grid, optimized_ion_velocity, linestyle=optimized_line_style, linewidth=3, color=color, label=f'{labels[idx]} Optimized', alpha=1)
+        plt.scatter(z_grid, optimized_ion_velocity, color=color, s=100, marker=optimized_marker)
+
+        # Plot adjustments
+        plt.title(f'Comparison for {labels[idx]}: Initial Guess and Optimized', fontsize=14)
+        plt.xlabel('Normalized z', fontsize=12)
+        plt.ylabel('Ion Velocity', fontsize=12)
+        plt.grid(True, linestyle=':', linewidth=1)
+        plt.legend(loc='best', fontsize=10)
+
+        # Save the plot for each combined weight
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'combined_initial_optimized_{labels[idx].replace(" ", "_")}.png'))
+        plt.close()
+        print(f"Combined initial guess and optimized plot saved for {labels[idx]} in {save_dir}/combined_initial_optimized_{labels[idx].replace(' ', '_')}.png")
+
+# Separate Plot for Each Initial Guess
+def plot_each_initial_guess(datasets, labels, save_dir="plots_comparison"):
+    os.makedirs(save_dir, exist_ok=True)
+
+    for idx, data in enumerate(datasets):
+        plt.figure(figsize=(12, 8))  # Standard portrait size
+        
+        initial_guess_data = data['initial_guess_data']
+        initial_guess_ion_velocity = np.array(initial_guess_data['ion_velocity'][0])
+        z_grid = np.linspace(0, 1, len(initial_guess_ion_velocity))
+
+        # Assign a distinct color for each dataset
+        color = plt.cm.get_cmap('tab10')(idx)
+
+        # Plot the initial guess with distinct marker
+        plt.plot(z_grid, initial_guess_ion_velocity, linestyle='--', linewidth=2, color=color, label=f'{labels[idx]} Initial Guess', alpha=0.8)
+        plt.scatter(z_grid, initial_guess_ion_velocity, color=color, s=80, marker='o', alpha=0.8)
+
+        plt.title(f'Initial Guess Ion Velocity for {labels[idx]}', fontsize=14)
+        plt.xlabel('Normalized z', fontsize=12)
+        plt.ylabel('Ion Velocity', fontsize=12)
+        plt.grid(True, linestyle=':', linewidth=1)
+
+        # Add a legend
+        plt.legend(loc='best', fontsize=10)
+
+        # Save the plot for each initial guess
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'initial_guess_{labels[idx].replace(" ", "_")}.png'))
+        plt.close()
+        print(f"Initial guess plot saved for {labels[idx]} in {save_dir}/initial_guess_{labels[idx].replace(' ', '_')}.png")
+# Separate Plot for Optimized Values Only
+# Separate Plot for Optimized Values Only
+def plot_each_optimized_value(datasets, labels, save_dir="plots_comparison"):
+    os.makedirs(save_dir, exist_ok=True)
+
+    for idx, data in enumerate(datasets):
+        plt.figure(figsize=(12, 8))  # Standard portrait size
+        
+        optimized_data = data['optimized_data']
+        optimized_ion_velocity = np.array(optimized_data['ion_velocity'][0])
+        z_grid = np.linspace(0, 1, len(optimized_ion_velocity))
+
+        # Use a larger color palette for distinct colors
+        color = matplotlib.colormaps.get_cmap('tab10')(idx)
+
+        # Plot the optimized values with distinct marker and solid line
+        plt.plot(z_grid, optimized_ion_velocity, linestyle='-', linewidth=2, color=color, label=f'{labels[idx]} Optimized', alpha=0.8)
+        plt.scatter(z_grid, optimized_ion_velocity, color=color, s=80, marker='x', alpha=0.8)
+
+        # Add text labels for each optimized value
+        for i, (z, val_opt) in enumerate(zip(z_grid, optimized_ion_velocity)):
+            plt.text(z, val_opt, f'{val_opt:.1f}', fontsize=8, color=color, ha='right', va='bottom')
+
+        plt.title(f'Optimized Ion Velocity for {labels[idx]}', fontsize=14)
+        plt.xlabel('Normalized z', fontsize=12)
+        plt.ylabel('Ion Velocity', fontsize=12)
+        plt.grid(True, linestyle=':', linewidth=1)
+
+        # Add a legend
+        plt.legend(loc='best', fontsize=10)
+
+        # Save the plot for each optimized value
+        plt.tight_layout()
+        plt.savefig(os.path.join(save_dir, f'optimized_value_{labels[idx].replace(" ", "_")}.png'))
+        plt.close()
+
+        # Correct print statement
+        print(f"Optimized value plot saved for {labels[idx]} in {save_dir}/optimized_value_{labels[idx].replace(' ', '_')}.png")
+
+
+
+def plot_initial_guess_only(datasets, labels, save_dir="plots_comparison"):
+    os.makedirs(save_dir, exist_ok=True)
+
+    plt.figure(figsize=(12, 8))  # Standard portrait size
+    
+    # Use the new way to get colormap: matplotlib.colormaps.get_cmap
+    color_map = matplotlib.colormaps.get_cmap('tab10')  # Removed the len(datasets) argument
+
+    for idx, data in enumerate(datasets):
+        # Load the initial guess data only
+        initial_guess_data = data['initial_guess_data']
+
+        # Convert ion velocity lists to numpy arrays
+        initial_guess_ion_velocity = np.array(initial_guess_data['ion_velocity'][0])
+
+        # Print the initial guess data for debugging
+        print(f"Initial Guess for {labels[idx]}: {initial_guess_ion_velocity}")
+
+        # Define grids based on ion velocity arrays
+        z_grid = np.linspace(0, 1, len(initial_guess_ion_velocity))
+
+        # Assign distinct color for each dataset based on the index
+        color = color_map(idx)
+
+        # Plot the initial guess ion velocity for each dataset
+        plt.plot(z_grid, initial_guess_ion_velocity, 
+                 linestyle='--', linewidth=2, color=color, label=f'{labels[idx]} Initial Guess')
+
+        # Scatter plot for the initial guess grid points
+        plt.scatter(z_grid, initial_guess_ion_velocity, color=color, s=50)
+
+    # Adjustments for plot aesthetics
+    plt.title('Initial Guess Ion Velocity Comparison', fontsize=14)
+    plt.xlabel('Normalized z', fontsize=12)
+    plt.ylabel('Ion Velocity', fontsize=12)
+    plt.grid(True, linestyle=':', linewidth=1)
+    
+    # Add a legend with distinct colors for clarity
+    plt.legend(loc='best', fontsize=10)
+    
+    plt.tight_layout()  # Adjust layout to prevent overlapping elements
+    
+    # Save the plot
+    plt.savefig(os.path.join(save_dir, 'initial_guess_comparison_debug.png'))
+    plt.close()
+    print(f"Initial guess comparison plot saved in {save_dir}/initial_guess_comparison_debug.png")
 
 
 def plot_thrust_comparison(datasets, labels, save_dir="plots_comparison"):
@@ -279,16 +454,17 @@ def main():
         'initial_guess_data': load_json('w_1e-10_best_initial_guess_result.json')
     }
 
-    # Create a list of datasets and labels including the new weight 1e-10
-    datasets = [data_w01, data_w1, data_w2, data_w3, data_w5, data_w10, data_w1e10]
-    labels = ['Weight 0.1', 'Weight 1.0', 'Weight 2.0', 'Weight 3.0', 'Weight 5.0', 'Weight 10.0', 'Weight 1e-10']
+   # Matching labels to datasets (ensure both have the same length)
+    datasets = [ data_w01, data_w2, data_w10, data_w1e10]
+    labels = ['Weight 0.1', 'Weight 2.0', 'Weight 10.0', 'Weight 1e-10']
 
     #  comparison for ion_velocity_weight = 0.1, 1.0, 2.0, 3.0, 5.0, 10.0, and 1e-10
     plot_ion_velocity_comparison(
         datasets=datasets,
         labels=labels,
-        offset=False
     )
+    plot_each_initial_guess(datasets=datasets, labels=labels, save_dir="plots_comparison")
+
 
     #  thrust comparison bar
     plot_thrust_comparison_bar(
@@ -318,6 +494,15 @@ def main():
         datasets=datasets,
         labels=labels
     )
+
+    
+    plot_each_combined_weight(datasets=datasets, labels=labels)
+    plot_each_optimized_value(datasets=datasets, labels=labels)
+    plot_each_initial_guess(datasets=datasets, labels=labels)
+
+    plot_initial_guess_only(
+        datasets=datasets,
+        labels=labels)
 
 if __name__ == "__main__":
     main()

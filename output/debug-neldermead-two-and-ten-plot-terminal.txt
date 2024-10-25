@@ -1,0 +1,31 @@
+First value for Weight 2.0 Initial Guess: -1432.9953834111914
+First value for Weight 2.0 Optimized: -2511.8987476923444
+First value for Weight 10.0 Initial Guess: -1432.9953834111914
+First value for Weight 10.0 Optimized: -2511.919046356441
+Initial Guess for Weight 2.0: [-1.43299538e+03 -6.31705407e+00  1.03701123e+03  3.46192007e+03
+  7.08947783e+03  1.07942870e+04  1.37957640e+04  1.60895539e+04
+  1.80221928e+04  1.96762244e+04  2.14191007e+04]
+Optimized Values for Weight 2.0: [-2511.89874769  1716.94452046  2489.74231208  3911.29375917
+  5947.2083363   8333.6065901  12050.8673502  15064.64091086
+ 17626.64741216 19777.49248475 21988.62872788]
+Combined plot saved for Weight 2.0 in nm_plots_comparison/combined_weights_2_10_Weight_2.0.png
+Initial Guess for Weight 10.0: [-1.43299538e+03 -6.31705407e+00  1.03701123e+03  3.46192007e+03
+  7.08947783e+03  1.07942870e+04  1.37957640e+04  1.60895539e+04
+  1.80221928e+04  1.96762244e+04  2.14191007e+04]
+Optimized Values for Weight 10.0: [-2511.91904636  1716.96037583  2489.75334943  3911.29623976
+  5947.19376828  8333.58405439 12050.85944609 15064.63893862
+ 17626.64933657 19777.49772305 21988.6397034 ]
+Combined plot saved for Weight 10.0 in nm_plots_comparison/combined_weights_2_10_Weight_10.0.png
+elidasensoy@CCS-BVBD163:~/hall-project/nelder-mead$ 
+
+
+(note:Initial Guess Values:
+
+Weight 2.0: [-1432.995, -6.317, 1037.011, ...]
+Weight 10.0: [-1432.995, -6.317, 1037.011, ...]
+As expected, the initial guesses are identical for both weights.
+Optimized Values:
+
+Weight 2.0: [-2511.899, 1716.944, 2489.742, ...]
+Weight 10.0: [-2511.919, 1716.960, 2489.753, ...]
+The optimized values for the two weights are very close to each other, but they are indeed different.)
