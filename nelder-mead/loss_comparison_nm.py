@@ -49,7 +49,6 @@ def main():
         'Weight 1e-10'
     ]
 
-    # plotten des Verlustvergleichs für alle Gewichte
     plot_loss_comparison(loss_files, labels, save_dir="plots_nm_comparison")
 
 if __name__ == "__main__":
