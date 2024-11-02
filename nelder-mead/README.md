@@ -47,8 +47,4 @@
 
 ## 9. Execution
    - To run the script, execute the main function. 
-
-   pdm venv activate
-   pdm run python mcmc.py
-
    - After running, the MCMC results, metadata, and checkpoint files will be saved in the `results-Nelder-Mead` directory.
