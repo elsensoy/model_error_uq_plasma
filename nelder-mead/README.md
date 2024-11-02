@@ -1,8 +1,8 @@
 
-# README_MCMC_Steps
+## README_MCMC_Steps
 
-# Overview
-This script performs MCMC sampling to estimate parameters for the TwoZoneBohm model using initial guesses from a prior optimization (using the Nelder-Mead algorithm) and observed data. The main steps involve setting up configurations, defining prior and likelihood functions, running MCMC sampling with checkpointing, and saving results along with metadata.
+## Overview
+'mcmc.py' script performs MCMC sampling to estimate parameters for the TwoZoneBohm model using initial guesses from a prior optimization (using the Nelder-Mead algorithm) and observed data. The main steps involve setting up configurations, defining prior and likelihood functions, running MCMC sampling with checkpointing, and saving results along with metadata.
 
 ### Step-by-Step Explanation
 
@@ -23,7 +23,7 @@ This script performs MCMC sampling to estimate parameters for the TwoZoneBohm mo
    - load_optimized_params: Loads the optimized parameters (v1 and v2) from a JSON file.
    - load_json_data: General-purpose function to load JSON data with error handling.
    - save_metadata: Saves metadata to a JSON file, helping document parameter values, acceptance rate, and other relevant details from the MCMC run.
-   - create_specific_config: Extracts relevant configuration details and formats them for documentation, capturing essential information for reproducibility.
+   - create_specific_config: Extracts relevant configuration details and formats them for documentation.
 
 ## 5. Define Prior and Likelihood Functions
    - prior_logpdf: Sets up Gaussian priors on the logarithmic scale for the parameters `v1` and the scaling factor `alpha`.
@@ -32,13 +32,13 @@ This script performs MCMC sampling to estimate parameters for the TwoZoneBohm mo
 
 ## 6. MCMC Sampling with Checkpointing
    - mcmc_inference: Runs MCMC sampling using the Delayed Rejection Adaptive Metropolis (DRAM) algorithm. 
-   - Checkpointing: Saves intermediate samples and acceptance rate at specified intervals (`save_interval`), allowing for resuming if the process is interrupted. Checkpoints are saved to both `.csv` and `.json` formats, providing robustness in case of failure.
+   - Checkpointing: Saves intermediate samples and acceptance rate at specified intervals (`save_interval`), allowing for resuming if the process is interrupted. Checkpoints are saved to both `.csv` and `.json` formats.
    - Final samples are saved at the end of the process.
 
 ## 7. Run MCMC with Initial Optimized Parameters
    - run_mcmc_with_optimized_params: Initializes the MCMC sampling with the optimized parameters from Nelder-Mead with ion velocity weight 2.0 as the starting point.
    - Sets up initial parameters (v_log_initial), runs mcmc_inference with these, and saves both final samples and metadata.
-   - Metadata includes initial guesses, acceptance rate, configuration details, and file paths for saved data, ensuring full documentation for reproducibility.
+   - Metadata includes initial guesses, acceptance rate, configuration details, and file paths for saved data.
 
 ## 8. Main Function
    - Loads initial parameters and observed data.
