@@ -9,6 +9,9 @@ dependencies = [
     "matplotlib>=3.9.2",
     "juliacall>=0.9.23",
     "scipy>=1.14.1",
+    "pandas>=2.2.3",
+    "seaborn>=0.13.2",
+    "arviz>=0.20.0",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

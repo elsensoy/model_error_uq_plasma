@@ -90,6 +90,7 @@ ipython_config.py
 # .python-version
 
 # pipenv
+<<<<<<< HEAD
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
@@ -109,6 +110,15 @@ ipython_config.py
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
 #   https://pdm-project.org/#use-with-ide
+=======
+#Pipfile.lock
+
+# poetry
+#poetry.lock
+
+# pdm
+pdm.lock
+>>>>>>> b33446aaa01c3a7ebc508031719542e18dd514e8
 .pdm.toml
 .pdm-python
 .pdm-build/
@@ -163,11 +173,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
-<<<<<<< HEAD
 =======
 # .idea/ is ignored for PyCharm projects
 .idea/
 >>>>>>> b33446aaa01c3a7ebc508031719542e18dd514e8
-=======
-
->>>>>>> 6f3bc11 (Added HallThrusterPEM as a submodule)
