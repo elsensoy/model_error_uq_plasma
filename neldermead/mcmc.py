@@ -226,7 +226,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=100, lower_bound=-5, upper
     print("\nDEBUG: Initial sample type and shape:")
     print(f"Type: {type(initial_sample)}, Shape: {initial_sample.shape}")
 
-    initial_cov = 0.05 * np.eye(len(initial_sample))
+    initial_cov = 0.01 * np.eye(len(initial_sample))
     
     # Initialize the sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
