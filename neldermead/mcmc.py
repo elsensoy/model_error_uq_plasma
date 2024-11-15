@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import norm
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
-
+#aaaaaaa
 
 # MCMC results directory path
 results_dir = os.path.join("..", "results-mcmc")
@@ -153,7 +153,7 @@ def prior_logpdf(v1_log, alpha_log):
 
 
 
-def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=10.0):
+def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=2.0):
     """Compute the log-likelihood of the observed data given the simulated data."""
     log_likelihood_value = 0
 

@@ -30,7 +30,7 @@ This script performs MCMC sampling to estimate parameters for the TwoZoneBohm mo
    - log_likelihood: Computes the likelihood of observing the data given the simulated data, with weights applied to certain metrics (e.g., ion velocity). The function compares simulated and observed values for `thrust`, `discharge_current`, and `ion_velocity`.
    - log_posterior: Combines the likelihood and prior functions to calculate the log-posterior. This is the main function used in the MCMC sampling to evaluate each parameter set.
 
-## 6. MCMC Sampling with Checkpoints
+## 6. MCMC Sampling with Checkpointing
    - mcmc_inference: Runs MCMC sampling using the Delayed Rejection Adaptive Metropolis (DRAM) algorithm. 
    - Checkpointing: Saves intermediate samples and acceptance rate at specified intervals (`save_interval`), allowing for resuming if the process is interrupted. Checkpoints are saved to both `.csv` and `.json` formats, providing robustness in case of failure.
    - Final samples are saved at the end of the process.
