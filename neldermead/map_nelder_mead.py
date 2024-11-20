@@ -128,16 +128,24 @@ def run_simulation(config):
     try:
         print("Running simulation...")
         result = jl.HallThruster.run_simulation(config_file_path, is_path=True, verbose=True)
+        
+        # Delete the temporary file after the simulation
         os.unlink(config_file_path)
         
-        # end the timer and calculate the duration
+        # End the timer and calculate the duration
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"Simulation completed in {elapsed_time:.2f} seconds.")
 
         return result
     except juliacall.JuliaError as e:
-        raise RuntimeError(f"Julia simulation failed: {e}")
+        print(f"Julia simulation failed with error: {e}. Continuing to the next iteration.")
+        os.unlink(config_file_path)  # Clean up the temporary file even if there's an error
+        return None  # Return None to indicate failure
+    except Exception as e:
+        print(f"Unexpected error during simulation: {e}. Continuing to the next iteration.")
+        os.unlink(config_file_path)  # Clean up the temporary file for any other exception
+        return None  # Return None to indicate failure
 
 def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
     """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
@@ -147,6 +155,11 @@ def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n
     
     # Run the simulation
     result = run_simulation(config_copy)
+    if result is None:
+        print("Simulation failed. Skipping to the next iteration.")
+    else:
+        print("Simulation succeeded.")
+    # Process the result
 
     # time-averaging if chosen
     if use_time_averaged:
@@ -193,6 +206,12 @@ def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=T
     print("Running MultiLogBohm simulation...")  
     # Step 1: Run the simulation (this runs a non-time-averaged simulation)
     result = run_simulation(config)
+    if result is None:
+        print("Simulation failed. Skipping to the next iteration.")
+    else:
+        print("Simulation succeeded.")
+    
+
 
     # Initialize a dictionary to store ground truth data (both spatial and non-spatial metrics)
     ground_truth_data = {}

@@ -12,6 +12,8 @@ dependencies = [
     "pandas>=2.2.3",
     "seaborn>=0.13.2",
     "arviz>=0.20.0",
+    "sklearn>=0.0.post12",
+    "scikit-learn>=1.5.2",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

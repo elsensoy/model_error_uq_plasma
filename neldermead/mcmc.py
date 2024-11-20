@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import norm
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
-#aaaaaaa
+
 
 # MCMC results directory path
 results_dir = os.path.join("..", "results-mcmc")
@@ -219,14 +219,17 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
 # -----------------------------
 
 # Define the results directory path
-def mcmc_inference(logpdf, initial_sample, iterations=100, lower_bound=-5, upper_bound=3, save_interval=10, base_path="mcmc_results"):
+def mcmc_inference(logpdf, initial_sample, iterations=200, lower_bound=-5, upper_bound=3, save_interval=10, base_path="mcmc_results"):
     # Ensure initial_sample is a numpy array
     initial_sample = np.array(initial_sample)
    
     print("\nDEBUG: Initial sample type and shape:")
     print(f"Type: {type(initial_sample)}, Shape: {initial_sample.shape}")
 
-    initial_cov = 0.01 * np.eye(len(initial_sample))
+    initial_cov = np.array([[0.2, 0], [0, 1e-2]])
+# DEBUG: Check initial covariance matrix
+    print("\nDEBUG: Initial covariance matrix:")
+    print(initial_cov)
     
     # Initialize the sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
@@ -278,7 +281,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=100, lower_bound=-5, upper
     acceptance_rate = acceptances / iterations
     return np.array(samples), acceptance_rate
 
-def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=100):
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200):
     # Load optimized parameters as the initial guess
     v1_opt, v2_opt = load_optimized_params(json_path)
     
@@ -318,6 +321,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
 
     metadata = {
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
+        "initial_cov": [[0.2, 0], [0, 1e-2]], 
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
@@ -361,12 +365,11 @@ def main():
         observed_data=observed_data,
         config=config_spt_100,
         ion_velocity_weight=2.0,
-        iterations=100
+        iterations=200
     )
 
 if __name__ == "__main__":
     main()
-
 
 
 

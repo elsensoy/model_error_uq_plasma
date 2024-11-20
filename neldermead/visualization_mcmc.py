@@ -15,7 +15,7 @@ os.makedirs(PLOTS_DIR, exist_ok=True)  # Ensure plot directory exists
 def load_data():
     """Loads MCMC samples, truth data, pre-MCMC target data, and initial parameter guess."""
     # Load MCMC samples
-    samples = pd.read_csv("final_mcmc_samples_w_2.0.csv", header=None)
+    samples = pd.read_csv("final_mcmc_samples_w_2.0_16.csv", header=None)
     samples.columns = ["log_v1", "log_alpha"]
     samples["v1"] = 10 ** samples["log_v1"]
     samples["alpha"] = 10 ** samples["log_alpha"]
@@ -62,11 +62,41 @@ def plot_posterior(idata, initial_params):
     plt.savefig(os.path.join(PLOTS_DIR, "posterior_marginals.png"))
     plt.show()
 
-def plot_autocorrelation(idata):
-    """Autocorrelation plot using ArviZ."""
-    fig = az.plot_autocorr(idata, var_names=["log_v1", "log_alpha"])
+def plot_autocorrelation(samples):
+    """
+    Plot and save autocorrelation for each parameter, adjusted for 2000 iterations.
+    """
+    # Convert samples to InferenceData format for ArviZ
+    inference_data = az.from_dict(
+        posterior={
+            "log_v1": samples["log_v1"].values,
+            "log_alpha": samples["log_alpha"].values,
+        }
+    )
+    
+    # Define maximum lag for autocorrelation
+    max_lag = 200  # You can adjust this based on your needs
+
+    # Plot autocorrelations using ArviZ
+    fig, axes = plt.subplots(1, 2, figsize=(10, 6))
+    
+    # Autocorrelation for log(v1)
+    az.plot_autocorr(inference_data, var_names=["log_v1"], max_lag=max_lag, ax=axes[0])
+    axes[0].set_title("Autocorrelation for log(v1)")
+    axes[0].set_xlabel("Lag")
+    axes[0].set_ylabel("Autocorrelation")
+
+    # Autocorrelation for log(alpha)
+    az.plot_autocorr(inference_data, var_names=["log_alpha"], max_lag=max_lag, ax=axes[1])
+    axes[1].set_title("Autocorrelation for log(alpha)")
+    axes[1].set_xlabel("Lag")
+    axes[1].set_ylabel("Autocorrelation")
+
+    # Save and show plots
+    plt.tight_layout()
     plt.savefig(os.path.join(PLOTS_DIR, "autocorrelation_plots.png"))
-    plt.show()
+    plt.close(fig)
+    print("Autocorrelation plots saved as 'autocorrelation_plots.png'")
 
 def plot_pair(idata):
     """Pair plot using ArviZ."""
