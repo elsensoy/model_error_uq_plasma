@@ -147,8 +147,16 @@ def create_specific_config(config):
 
 # Define log-prior function
 def prior_logpdf(v1_log, alpha_log):
+    # Reject samples outside the valid range of log10(alpha)
+    if alpha_log <= 0 or alpha_log > 2:
+        return -np.inf  # Invalid prior
+        print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
+    # Gaussian prior on log10(c1)
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
-    prior2 = norm.logpdf(alpha_log, loc=np.log10(1/16), scale=np.sqrt(2))
+    
+    # Uniform prior on log10(alpha) in [0, 2]
+    prior2 = 0  # log(1) for a uniform distribution in valid range
+    
     return prior1 + prior2
 
 
@@ -265,9 +273,9 @@ def mcmc_inference(
             result = next(sampler)
             sample = result[0]
             accepted = result[1]
-            if sample[0] < -5 or sample[0] > 3 or sample[1] < -5 or sample[1] > 3:
-                print(f"Iteration {i + 1}: Rejected due to bounds") #debugging purposes
-                accepted = False
+            # if sample[0] < -5 or sample[0] > 3 or sample[1] < -5 or sample[1] > 3:
+            #     print(f"Iteration {i + 1}: Rejected due to bounds") #debugging purposes
+            #     accepted = False
             all_samples.append(sample)
             acceptance_status.append('T' if accepted else 'F')
             if accepted:
@@ -339,7 +347,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
 
     metadata = {
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
-        "initial_cov": initial_cov,
+        "initial_cov": "[[0.8, 0], [0, 0.2]]",
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
