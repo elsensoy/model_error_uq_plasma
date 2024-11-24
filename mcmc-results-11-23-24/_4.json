@@ -1,0 +1,48 @@
+{
+    "initial_guess": {
+        "v1": 2.0124301397620146,
+        "v2": 2.0028894367014445
+    },
+    "initial_cov": "[[0.8, 0], [0, 0.2]]",
+    "v_log_initial": [
+        0.3037208130436473,
+        -0.002063836968121456
+    ],
+    "iterations": 200,
+    "acceptance_rate": 1.0,
+    "ion_velocity_weight": 2.0,
+    "saved_file": "mcmc_samples_w_2.0",
+    "final_samples_file": "../mcmc-results-11-23-24/final_mcmc_samples_w_2.0_5.csv",
+    "model": "TwoZoneBohm",
+    "config": {
+        "Thruster Model": "SPT-100 Hall Thruster",
+        "Spatial Resolution and Grid": {
+            "num_cells": 100,
+            "channel_length": 0.025
+        },
+        "Simulation Duration": {
+            "duration_s": 0.001,
+            "num_save": 100
+        },
+        "Magnetic Field and Boundary Conditions": {
+            "magnetic_field_file": "../bfield_spt100.csv",
+            "anode_potential": 300,
+            "cathode_potential": 0.0
+        },
+        "Additional Model Configurations": {
+            "Propellant and Wall Material": {
+                "propellant": "Xenon",
+                "wall_material": "BNSiO2"
+            },
+            "Ion and Neutral Temperatures": {
+                "ion_temp_K": 1000.0,
+                "neutral_temp_K": 500.0,
+                "neutral_velocity_m_s": 150.0
+            },
+            "Anomalous Transport Coefficients": {
+                "description": "Anomalous coefficients c(z) adjust the anomalous collision frequency.",
+                "equation": "\\nu_{AN}(z) = c(z) \\cdot \\omega_{ce}(z)"
+            }
+        }
+    }
+}

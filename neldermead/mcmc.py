@@ -7,7 +7,7 @@ from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogb
 
 
 # MCMC results directory path
-results_dir = os.path.join("..", "mcmc-results-11-23-24")
+results_dir = os.path.join("..", "mcmc-results-11-24-24")
 # Path to results directory
 RESULTS_NELDERMEAD = os.path.join("..", "results-Nelder-Mead")
 
@@ -93,7 +93,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
             print(f"Subsampled {key} data shape for saving: {np.array(result_dict_copy[key]).shape}")
 
     # Ensure the results directory exists
-    results_dir = os.path.join("..", "mcmc-results-11-23-24")
+    results_dir = os.path.join("..", "mcmc-results-11-24-24")
     os.makedirs(results_dir, exist_ok=True)  # Create directory if it doesn't exist
 
     # Define the full path for the JSON file
@@ -147,17 +147,18 @@ def create_specific_config(config):
 
 # Define log-prior function
 def prior_logpdf(v1_log, alpha_log):
-    # Reject samples outside the valid range of log10(alpha)
-    if alpha_log <= 0 or alpha_log > 2:
-        return -np.inf  # Invalid prior
-        print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
     # Gaussian prior on log10(c1)
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
     
     # Uniform prior on log10(alpha) in [0, 2]
+    if alpha_log <= 0 or alpha_log > 2:
+        print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
+        return -np.inf  # Reject invalid samples
+    
     prior2 = 0  # log(1) for a uniform distribution in valid range
     
     return prior1 + prior2
+
 
 
 
@@ -187,8 +188,6 @@ def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weigh
         # DEBUG: Print the shapes of both arrays
         # print(f"Shape of simulated_ion_velocity: {simulated_ion_velocity.shape}")
         # print(f"Shape of observed_ion_velocity: {observed_ion_velocity.shape}")
-
-       
         if simulated_ion_velocity.shape == observed_ion_velocity.shape:
             residual = simulated_ion_velocity - observed_ion_velocity
             log_likelihood_value += -0.5 * np.sum((residual / (sigma / ion_velocity_weight)) ** 2)
@@ -199,45 +198,54 @@ def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weigh
 
     return log_likelihood_value
 
+
 def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
     v1_log, alpha_log = v_log
     v1 = 10 ** v1_log
     alpha = 10 ** alpha_log
     v2 = alpha * v1
+    
+    print(f"DEBUG: v1_log = {v1_log}, alpha_log = {alpha_log}, v1 = {v1}, v2 = {v2}")
 
-    # Run the simulation with given parameters
-    simulated_result = hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None)
+    # Enforce physical constraint: v2 >= v1
+    # if v2 < v1:
+    #     print(f"Rejecting invalid proposal: v1 = {v1}, v2 = {v2}")
+    #     return -np.inf  # Invalid posterior
 
-    # Convert all lists to numpy arrays
-    for key in simulated_result:
-        simulated_result[key] = np.array(simulated_result[key])
+    try:
+        # Run the simulation
+        simulated_data = hallthruster_jl_wrapper(v1, v2, config)
+        
+        # Handle simulation failure by setting log-likelihood to 0
+        if simulated_data is None:
+            print(f"Simulation failed for v1: {v1}, v2: {v2}. Setting log-likelihood to 0.")
+            log_likelihood_value = 0  # Neutral log-likelihood
+        else:
+            # Compute log-likelihood normally if the simulation succeeds
+            log_likelihood_value = log_likelihood(simulated_data, observed_data, ion_velocity_weight=ion_velocity_weight)
 
-    # DEBUG: Confirm the conversion has taken effect
-    # print("\nDEBUG: After conversion in log_posterior...")
-    # for key, value in simulated_result.items():
-    #     print(f"Key: {key}, Type: {type(value)}, Shape: {value.shape if hasattr(value, 'shape') else 'Not an array'}")
+        # Compute the log-prior
+        log_prior_value = prior_logpdf(v1_log, alpha_log)
 
-    # Calculate log-likelihood and log-prior
-    log_likelihood_value = log_likelihood(simulated_result, observed_data, ion_velocity_weight=ion_velocity_weight)
-    log_prior_value = prior_logpdf(v1_log, alpha_log)
-    return log_likelihood_value + log_prior_value
+        # Compute the posterior as the sum of prior and likelihood
+        log_posterior_value = log_prior_value + log_likelihood_value
+        print(f"log_prior = {log_prior_value}, log_likelihood = {log_likelihood_value}, log_posterior = {log_posterior_value}")
+        return log_posterior_value
 
-# -----------------------------
-# 3. MCMC Step
-# -----------------------------
-#    lower_bound=-5, not needed? 
- #   upper_bound=3,
+    except Exception as e:
+        print(f"Error in log-posterior computation: {e}")
+        return -np.inf  # Treat as invalid posterior
 
-def mcmc_inference(
+def mcmc_inference( 
     logpdf,
     initial_sample,
-    iterations=200,
+    iterations=100,
     save_interval=10,
-    base_path="mcmc-results-11-23-24"
+    base_path="mcmc-results-11-24-24"
 ):
     # Ensure initial_sample is a numpy array
     initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.8, 0], [0, 0.2]])
+    initial_cov = np.array([[0.3, 0], [0, 0.02]])
     print(f"\nDEBUG: Initial covariance matrix:\n{initial_cov}")
 
     # Initialize the sampler
@@ -248,10 +256,11 @@ def mcmc_inference(
 
     all_samples = []
     acceptance_status = []
+    simulation_failures = []  # Track iterations with simulation failures
     acceptances = 0
 
     # Save paths
-    results_dir = os.path.join("..", "mcmc-results-11-23-24")
+    results_dir = os.path.join("..", base_path)
     os.makedirs(results_dir, exist_ok=True)
 
     # Incremented filenames for checkpoint and final outputs
@@ -273,9 +282,19 @@ def mcmc_inference(
             result = next(sampler)
             sample = result[0]
             accepted = result[1]
-            # if sample[0] < -5 or sample[0] > 3 or sample[1] < -5 or sample[1] > 3:
-            #     print(f"Iteration {i + 1}: Rejected due to bounds") #debugging purposes
-            #     accepted = False
+
+            # Evaluate the posterior
+            log_post = logpdf(sample)
+
+            # Handle invalid posteriors (-np.inf) and simulation failures (log_posterior = 0)
+            if log_post == -np.inf:
+                print(f"Iteration {i + 1}: Invalid posterior. Sample rejected.")
+                accepted = False  # Explicitly reject invalid samples
+            elif log_post == 0:
+                print(f"Iteration {i + 1}: Simulation failure handled, setting log-likelihood to 0")
+                simulation_failures.append(i + 1)  # Track simulation failures
+
+            # Append the sample and its acceptance status
             all_samples.append(sample)
             acceptance_status.append('T' if accepted else 'F')
             if accepted:
@@ -284,32 +303,29 @@ def mcmc_inference(
             # Save to checkpoint file every `save_interval` iterations
             if (i + 1) % save_interval == 0:
                 with open(checkpoint_file, 'a') as f:
-                    # Save the current iteration and sample to the file
                     f.write(f"{i + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}\n")
-
                 print(f"Checkpoint saved at iteration {i + 1}. Acceptance rate: {acceptances / (i + 1):.2f}")
 
-        except np.linalg.LinAlgError as e:
-            print(f"Numerical error at iteration {i + 1}: {e}")
-            continue
         except Exception as e:
             print(f"Unexpected error at iteration {i + 1}: {e}")
-            break
+            continue
 
     # Final save
-    acceptance_rate = acceptances / len(all_samples)
+    acceptance_rate = acceptances / len(all_samples) if all_samples else 0
 
     np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
     with open(final_status_file, 'w') as status_f:
         for idx, status in enumerate(acceptance_status, start=1):
             status_f.write(f"{idx}: {status}\n")
+
     print(f"Final acceptance rate: {acceptance_rate:.2f}")
     print(f"Final samples saved to: {final_samples_file}")
     print(f"Final acceptance status saved to: {final_status_file}")
+    print(f"Simulation failures handled: {simulation_failures}")
 
-    return np.array(all_samples), acceptance_rate
+    return np.array(all_samples), acceptance_rate, simulation_failures, initial_cov
 
-def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200):
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=100):
     # Load optimized parameters as the initial guess
     v1_opt, v2_opt = load_optimized_params(json_path)
     
@@ -330,7 +346,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     print("Running MCMC sampling based on loaded optimized parameters...")
     base_path = f"mcmc_samples_w_{ion_velocity_weight}"
     
-    samples, acceptance_rate = mcmc_inference(
+    samples, acceptance_rate, simulation_failures, initial_cov = mcmc_inference(
         lambda v_log: log_posterior(v_log, observed_data, config, ion_velocity_weight=ion_velocity_weight),
         v_log_initial,
         iterations=iterations,
@@ -347,10 +363,11 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
 
     metadata = {
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
-        "initial_cov": "[[0.8, 0], [0, 0.2]]",
+        "initial_cov": initial_cov.tolist(),
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
+        "simulation_failures": simulation_failures,  # Track skipped iterations
         "ion_velocity_weight": ion_velocity_weight,
         "saved_file": base_path,
         "final_samples_file": final_samples_file,
@@ -391,7 +408,7 @@ def main():
         observed_data=observed_data,
         config=config_spt_100,
         ion_velocity_weight=2.0,
-        iterations=200
+        iterations=100
     )
 
 if __name__ == "__main__":

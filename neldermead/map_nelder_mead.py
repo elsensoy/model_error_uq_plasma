@@ -147,93 +147,75 @@ def run_simulation(config):
         os.unlink(config_file_path)  # Clean up the temporary file for any other exception
         return None  # Return None to indicate failure
 
-# def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
-#     """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
-#     print(f"Running simulation with v1: {v1}, v2: {v2}")
-#     config_copy = config.copy()
-#     config_copy["anom_model_coeffs"] = [v1, v2]
-    
-#     # Run the simulation
-#     result = run_simulation(config_copy)
-#     if result is None:
-#         print("Simulation failed. Skipping to the next iteration.")
-#     else:
-#         print("Simulation succeeded.")
-#     # Process the result
+def handle_nan_values(data):
+    """
+    Replace NaN, None, or invalid values in the data with a default value (e.g., 0) to ensure JSON compatibility.
 
-#     # time-averaging if chosen
-#     if use_time_averaged:
-#         print("Applying time-averaging to the simulation results...")
-#         try:
-#             extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
-#                 result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=1  # Full data, no subsampling
-#             )
-#         except Exception as e:
-#             print(f"Time-averaging failed: {e}")
-#             print("Falling back to non-time-averaged metrics...")
-#             extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-#                 result, save_every_n_grid_points=1  # Full data, no subsampling
-#             )
-#     else:
-#         print("Extracting non-time-averaged metrics...")
-#         extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-#             result, save_every_n_grid_points=1  # Full data, no subsampling
-#         )
-#     extracted_data = json.loads(extracted_data_json)
-#     # No subsampling here, only when saving
-#     return extracted_data
+    Parameters:
+        data (dict): The data dictionary to process.
+
+    Returns:
+        dict: Cleaned data with NaN and invalid values replaced.
+    """
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, (list, np.ndarray)):
+                # Replace NaN or None in arrays or lists
+                data[key] = [0 if (v is None or isinstance(v, float) and np.isnan(v)) else v for v in value]
+            elif isinstance(value, dict):
+                data[key] = handle_nan_values(value)
+            elif value is None or (isinstance(value, float) and np.isnan(value)):
+                # Replace standalone NaN or None values
+                data[key] = 0
+    return data
+
 def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
-    """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
+    """
+    Run the HallThruster simulation with parameters v1 and v2, and extract metrics.
+    Handles failures gracefully and ensures valid data is returned.
+    """
     print(f"Running simulation with v1: {v1}, v2: {v2}")
     config_copy = config.copy()
     config_copy["anom_model_coeffs"] = [v1, v2]
-    
+
     # Run the simulation
-    result = run_simulation(config_copy)
-    if result is None:
-        print("Simulation failed. Skipping to the next iteration.")
-        return None  # Return None to indicate failure
-    
+    try:
+        result = run_simulation(config_copy)
+        if result is None:
+            print(f"Simulation returned None for v1: {v1}, v2: {v2}. Skipping this iteration.")
+            return None
+    except Exception as e:
+        print(f"Simulation failed with error: {e}. Skipping this iteration.")
+        return None
+
     # Process the result
     extracted_data_json = None
-    if use_time_averaged:
-        print("Applying time-averaging to the simulation results...")
-        try:
+    try:
+        if use_time_averaged:
+            print("Applying time-averaging to the simulation results...")
             extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
                 result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=save_every_n_grid_points or 1
             )
             print("Time-averaged metrics successfully extracted.")
-        except Exception as e:
-            print(f"Time-averaging failed: {e}")
-            print("Falling back to non-time-averaged metrics...")
-            try:
-                extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-                    result, save_every_n_grid_points=save_every_n_grid_points or 1
-                )
-                print("Non-time-averaged metrics successfully extracted.")
-            except Exception as e:
-                print(f"Non-time-averaged metrics extraction also failed: {e}")
-                print("Skipping metric extraction for this iteration.")
-                return None  # Return None if all metric extraction fails
-    else:
-        print("Extracting non-time-averaged metrics...")
-        try:
+        else:
+            print("Extracting non-time-averaged metrics...")
             extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
                 result, save_every_n_grid_points=save_every_n_grid_points or 1
             )
             print("Non-time-averaged metrics successfully extracted.")
-        except Exception as e:
-            print(f"Non-time-averaged metrics extraction failed: {e}")
-            print("Skipping metric extraction for this iteration.")
-            return None  # Return None if metric extraction fails
+    except Exception as e:
+        print(f"Metric extraction failed: {e}. Skipping this iteration.")
+        return None
 
     # Parse extracted data JSON
     try:
         extracted_data = json.loads(extracted_data_json)
-        return extracted_data  # Successfully extracted data
+        # Clean up NaN or invalid values
+        clean_data = handle_nan_values(extracted_data)
+        return clean_data
     except Exception as e:
-        print(f"Failed to parse extracted data JSON: {e}")
-        return None  # Return None if parsing fails
+        print(f"Failed to parse extracted data JSON: {e}. Skipping this iteration.")
+        return None
 
 
 def extract_solution_data_julia(solution):
