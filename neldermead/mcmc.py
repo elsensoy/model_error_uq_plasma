@@ -167,8 +167,8 @@ def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weigh
     log_likelihood_value = 0
 
     # DEBUG:Check the keys in the simulated and observed data
-    print("Keys in simulated_data:", simulated_data.keys())
-    print("Keys in observed_data:", observed_data.keys())
+    # print("Keys in simulated_data:", simulated_data.keys())
+    # print("Keys in observed_data:", observed_data.keys())
 
     # Thrust and discharge current are 1D arrays
     for key in ['thrust', 'discharge_current']:
@@ -208,15 +208,15 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
     print(f"DEBUG: v1_log = {v1_log}, alpha_log = {alpha_log}, v1 = {v1}, v2 = {v2}")
 
     # Enforce physical constraint: v2 >= v1
-    # if v2 < v1:
-    #     print(f"Rejecting invalid proposal: v1 = {v1}, v2 = {v2}")
-    #     return -np.inf  # Invalid posterior
+    if v2 < v1:
+        print(f"Rejecting invalid proposal: v1 = {v1}, v2 = {v2}")
+        return -np.inf  # Invalid posterior
 
     try:
         # Run the simulation
         simulated_data = hallthruster_jl_wrapper(v1, v2, config)
         
-        # Handle simulation failure by setting log-likelihood to 0
+        # Handle simulation failure by setting likelihood to 1
         if simulated_data is None:
             print(f"Simulation failed for v1: {v1}, v2: {v2}. Setting log-likelihood to 0.")
             log_likelihood_value = 0  # Neutral log-likelihood
@@ -245,7 +245,7 @@ def mcmc_inference(
 ):
     # Ensure initial_sample is a numpy array
     initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.3, 0], [0, 0.02]])
+    initial_cov = np.array([[0.2, 0], [0, 0.01]])
     print(f"\nDEBUG: Initial covariance matrix:\n{initial_cov}")
 
     # Initialize the sampler
@@ -256,8 +256,10 @@ def mcmc_inference(
 
     all_samples = []
     acceptance_status = []
-    simulation_failures = []  # Track iterations with simulation failures
-    acceptances = 0
+    invalid_proposals = []  # Track invalid proposals
+    delayed_rejections = 0  # Count delayed rejections
+    acceptances = 0  # Count accepted samples
+    total_attempted = 0  # Count all proposals attempted (including invalids)
 
     # Save paths
     results_dir = os.path.join("..", base_path)
@@ -274,27 +276,46 @@ def mcmc_inference(
 
     # Initialize the checkpoint file
     with open(checkpoint_file, 'w') as f:
-        f.write("iteration,lambda1,lambda2,accepted\n")  # Add a header row
+        f.write("iteration,lambda1,lambda2,accepted,delayed_rejection\n")  # Add a header row
 
     # MCMC loop
     for i in range(iterations):
         try:
+            total_attempted += 1
+            # Get the current proposal result
             result = next(sampler)
             sample = result[0]
             accepted = result[1]
+            delayed_rejection = False
 
             # Evaluate the posterior
             log_post = logpdf(sample)
 
-            # Handle invalid posteriors (-np.inf) and simulation failures (log_posterior = 0)
-            if log_post == -np.inf:
-                print(f"Iteration {i + 1}: Invalid posterior. Sample rejected.")
-                accepted = False  # Explicitly reject invalid samples
-            elif log_post == 0:
-                print(f"Iteration {i + 1}: Simulation failure handled, setting log-likelihood to 0")
-                simulation_failures.append(i + 1)  # Track simulation failures
+            # Handle invalid posteriors or simulation failures
+            if log_post == -np.inf or log_post == 0:
+                print(f"Iteration {i + 1}: Invalid posterior or simulation failure. Marking as rejected.")
+                accepted = False
+                all_samples.append(sample)
+                acceptance_status.append('F')
+                invalid_proposals.append(i + 1)  # Track invalid proposals
+                sampler.reset()  # Prevent DRAM from generating second proposals
+                continue  # Skip further processing for this iteration
 
-            # Append the sample and its acceptance status
+            # Check if DRAM's second proposal is being used
+            if not accepted:
+                delayed_rejection = True
+                delayed_rejections += 1
+                print(f"DEBUG: Iteration {i + 1}: First proposal rejected. DRAM considering second proposal.")
+                # Fetch the second DRAM proposal
+                result = next(sampler)
+                sample = result[0]
+                accepted = result[1]
+
+            # Log whether the sample was accepted and whether delayed rejection occurred
+            print(f"Iteration {i + 1}: Sample {'accepted' if accepted else 'rejected'}."
+                  f" {'Delayed rejection applied.' if delayed_rejection else ''}")
+
+            # Update samples and acceptance status
             all_samples.append(sample)
             acceptance_status.append('T' if accepted else 'F')
             if accepted:
@@ -303,27 +324,32 @@ def mcmc_inference(
             # Save to checkpoint file every `save_interval` iterations
             if (i + 1) % save_interval == 0:
                 with open(checkpoint_file, 'a') as f:
-                    f.write(f"{i + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}\n")
-                print(f"Checkpoint saved at iteration {i + 1}. Acceptance rate: {acceptances / (i + 1):.2f}")
+                    f.write(f"{i + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}," +
+                            f"{'DR' if delayed_rejection else 'No DR'}\n")
+                print(f"Checkpoint saved at iteration {i + 1}. Acceptance rate: {acceptances / total_attempted:.2f}")
 
         except Exception as e:
-            print(f"Unexpected error at iteration {i + 1}: {e}")
+            print(f"DEBUG: Unexpected error at iteration {i + 1}: {e}")
             continue
 
-    # Final save
-    acceptance_rate = acceptances / len(all_samples) if all_samples else 0
+    # Calculate acceptance rate considering all proposals
+    acceptance_rate = acceptances / total_attempted if total_attempted > 0 else 0
 
+    # Save final results
     np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
     with open(final_status_file, 'w') as status_f:
         for idx, status in enumerate(acceptance_status, start=1):
-            status_f.write(f"{idx}: {status}\n")
+            dr_label = "DR" if idx in invalid_proposals else "No DR"
+            status_f.write(f"{idx}: {status}, Delayed rejection: {dr_label}\n")
 
+    # Final summary
     print(f"Final acceptance rate: {acceptance_rate:.2f}")
     print(f"Final samples saved to: {final_samples_file}")
     print(f"Final acceptance status saved to: {final_status_file}")
-    print(f"Simulation failures handled: {simulation_failures}")
+    print(f"Invalid proposals handled: {len(invalid_proposals)}")
+    print(f"Delayed rejections applied: {delayed_rejections}")
 
-    return np.array(all_samples), acceptance_rate, simulation_failures, initial_cov
+    return np.array(all_samples), acceptance_rate, invalid_proposals, initial_cov
 
 def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=100):
     # Load optimized parameters as the initial guess
@@ -332,7 +358,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     # Verify that parameters are loaded
     if v1_opt is None or v2_opt is None:
         print(f"Error: Optimized parameters could not be loaded. v1_opt: {v1_opt}, v2_opt: {v2_opt}")
-        return  # Exit function if parameters are not loaded correctly
+        return  
 
     try:
         # Convert v1 and alpha to log10 space
