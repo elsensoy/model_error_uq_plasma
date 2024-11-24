@@ -7,7 +7,7 @@ from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogb
 
 
 # MCMC results directory path
-results_dir = os.path.join("..", "results-mcmc")
+results_dir = os.path.join("..", "mcmc-results-11-23-24")
 # Path to results directory
 RESULTS_NELDERMEAD = os.path.join("..", "results-Nelder-Mead")
 
@@ -93,7 +93,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
             print(f"Subsampled {key} data shape for saving: {np.array(result_dict_copy[key]).shape}")
 
     # Ensure the results directory exists
-    results_dir = os.path.join("..", "results-mcmc")
+    results_dir = os.path.join("..", "mcmc-results-11-23-24")
     os.makedirs(results_dir, exist_ok=True)  # Create directory if it doesn't exist
 
     # Define the full path for the JSON file
@@ -217,69 +217,89 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
 # -----------------------------
 # 3. MCMC Step
 # -----------------------------
+#    lower_bound=-5, not needed? 
+ #   upper_bound=3,
 
-# Define the results directory path
-def mcmc_inference(logpdf, initial_sample, iterations=200, lower_bound=-5, upper_bound=3, save_interval=10, base_path="mcmc_results"):
+def mcmc_inference(
+    logpdf,
+    initial_sample,
+    iterations=200,
+    save_interval=10,
+    base_path="mcmc-results-11-23-24"
+):
     # Ensure initial_sample is a numpy array
     initial_sample = np.array(initial_sample)
-   
-    print("\nDEBUG: Initial sample type and shape:")
-    print(f"Type: {type(initial_sample)}, Shape: {initial_sample.shape}")
+    initial_cov = np.array([[0.8, 0], [0, 0.2]])
+    print(f"\nDEBUG: Initial covariance matrix:\n{initial_cov}")
 
-    initial_cov = np.array([[0.2, 0], [0, 1e-2]])
-# DEBUG: Check initial covariance matrix
-    print("\nDEBUG: Initial covariance matrix:")
-    print(initial_cov)
-    
     # Initialize the sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf, initial_sample, initial_cov, adapt_start=10, eps=1e-6,
-        sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1 
+        sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
     )
-    
-    samples = []
-    acceptances = 0
-    checkpoint_data = {"samples": [], "acceptance_rate": 0}
-    
-    # Determine the save path based on the next available file in results_dir
-    save_path = get_next_filename(base_path)
 
-    # Main MCMC loop
+    all_samples = []
+    acceptance_status = []
+    acceptances = 0
+
+    # Save paths
+    results_dir = os.path.join("..", "mcmc-results-11-23-24")
+    os.makedirs(results_dir, exist_ok=True)
+
+    # Incremented filenames for checkpoint and final outputs
+    checkpoint_file = get_next_filename(f"{base_path}_checkpoint", results_dir, ".csv")
+    final_samples_file = get_next_filename(f"{base_path}_final_samples", results_dir, ".csv")
+    final_status_file = get_next_filename(f"{base_path}_final_status", results_dir, ".txt")
+
+    print(f"Checkpoint will be saved to: {checkpoint_file}")
+    print(f"Final samples will be saved to: {final_samples_file}")
+    print(f"Final acceptance status will be saved to: {final_status_file}")
+
+    # Initialize the checkpoint file
+    with open(checkpoint_file, 'w') as f:
+        f.write("iteration,lambda1,lambda2,accepted\n")  # Add a header row
+
+    # MCMC loop
     for i in range(iterations):
         try:
             result = next(sampler)
-            sample = np.clip(result[0], lower_bound, upper_bound)
+            sample = result[0]
             accepted = result[1]
-
-            # DEBUG: Check type and shape of sample
-            print(f"\nDEBUG: Sample at iteration {i}, Type: {type(sample)}, Shape: {sample.shape if hasattr(sample, 'shape') else 'N/A'}")
-            
-            samples.append(sample)
+            if sample[0] < -5 or sample[0] > 3 or sample[1] < -5 or sample[1] > 3:
+                print(f"Iteration {i + 1}: Rejected due to bounds") #debugging purposes
+                accepted = False
+            all_samples.append(sample)
+            acceptance_status.append('T' if accepted else 'F')
             if accepted:
                 acceptances += 1
 
-            # Save samples at intervals
+            # Save to checkpoint file every `save_interval` iterations
             if (i + 1) % save_interval == 0:
-                checkpoint_data["samples"] = [s.tolist() for s in samples]
-                checkpoint_data["acceptance_rate"] = acceptances / (i + 1)
-                
-                # Save to the generated path in results_dir
-                np.savetxt(save_path, np.array(samples), delimiter=',')
-                with open(f"{save_path}_checkpoint.json", 'w') as checkpoint_file:
-                    json.dump(checkpoint_data, checkpoint_file)
-                print(f"Checkpoint saved at iteration {i + 1}. Path: {save_path}")
+                with open(checkpoint_file, 'a') as f:
+                    # Save the current iteration and sample to the file
+                    f.write(f"{i + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}\n")
+
+                print(f"Checkpoint saved at iteration {i + 1}. Acceptance rate: {acceptances / (i + 1):.2f}")
 
         except np.linalg.LinAlgError as e:
             print(f"Numerical error at iteration {i + 1}: {e}")
             continue
         except Exception as e:
             print(f"Unexpected error at iteration {i + 1}: {e}")
-            break 
+            break
 
-    # Final save of all samples in results_dir
-    np.savetxt(save_path, np.array(samples), delimiter=',')
-    acceptance_rate = acceptances / iterations
-    return np.array(samples), acceptance_rate
+    # Final save
+    acceptance_rate = acceptances / len(all_samples)
+
+    np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
+    with open(final_status_file, 'w') as status_f:
+        for idx, status in enumerate(acceptance_status, start=1):
+            status_f.write(f"{idx}: {status}\n")
+    print(f"Final acceptance rate: {acceptance_rate:.2f}")
+    print(f"Final samples saved to: {final_samples_file}")
+    print(f"Final acceptance status saved to: {final_status_file}")
+
+    return np.array(all_samples), acceptance_rate
 
 def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200):
     # Load optimized parameters as the initial guess
@@ -306,8 +326,6 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
         lambda v_log: log_posterior(v_log, observed_data, config, ion_velocity_weight=ion_velocity_weight),
         v_log_initial,
         iterations=iterations,
-        lower_bound=-5,
-        upper_bound=3,
         save_interval=10,
         base_path=base_path
     )
@@ -321,12 +339,12 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
 
     metadata = {
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
-        "initial_cov": [[0.2, 0], [0, 1e-2]], 
+        "initial_cov": initial_cov,
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
         "ion_velocity_weight": ion_velocity_weight,
-        "checkpoint_file": base_path,
+        "saved_file": base_path,
         "final_samples_file": final_samples_file,
         "model": "TwoZoneBohm",
         "config": create_specific_config(config)

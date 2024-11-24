@@ -147,6 +147,41 @@ def run_simulation(config):
         os.unlink(config_file_path)  # Clean up the temporary file for any other exception
         return None  # Return None to indicate failure
 
+# def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
+#     """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
+#     print(f"Running simulation with v1: {v1}, v2: {v2}")
+#     config_copy = config.copy()
+#     config_copy["anom_model_coeffs"] = [v1, v2]
+    
+#     # Run the simulation
+#     result = run_simulation(config_copy)
+#     if result is None:
+#         print("Simulation failed. Skipping to the next iteration.")
+#     else:
+#         print("Simulation succeeded.")
+#     # Process the result
+
+#     # time-averaging if chosen
+#     if use_time_averaged:
+#         print("Applying time-averaging to the simulation results...")
+#         try:
+#             extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
+#                 result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=1  # Full data, no subsampling
+#             )
+#         except Exception as e:
+#             print(f"Time-averaging failed: {e}")
+#             print("Falling back to non-time-averaged metrics...")
+#             extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
+#                 result, save_every_n_grid_points=1  # Full data, no subsampling
+#             )
+#     else:
+#         print("Extracting non-time-averaged metrics...")
+#         extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
+#             result, save_every_n_grid_points=1  # Full data, no subsampling
+#         )
+#     extracted_data = json.loads(extracted_data_json)
+#     # No subsampling here, only when saving
+#     return extracted_data
 def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
     """Run the HallThruster simulation with parameters v1 and v2, and extract metrics."""
     print(f"Running simulation with v1: {v1}, v2: {v2}")
@@ -157,31 +192,48 @@ def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n
     result = run_simulation(config_copy)
     if result is None:
         print("Simulation failed. Skipping to the next iteration.")
-    else:
-        print("Simulation succeeded.")
+        return None  # Return None to indicate failure
+    
     # Process the result
-
-    # time-averaging if chosen
+    extracted_data_json = None
     if use_time_averaged:
         print("Applying time-averaging to the simulation results...")
         try:
             extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
-                result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=1  # Full data, no subsampling
+                result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=save_every_n_grid_points or 1
             )
+            print("Time-averaged metrics successfully extracted.")
         except Exception as e:
             print(f"Time-averaging failed: {e}")
             print("Falling back to non-time-averaged metrics...")
-            extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-                result, save_every_n_grid_points=1  # Full data, no subsampling
-            )
+            try:
+                extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
+                    result, save_every_n_grid_points=save_every_n_grid_points or 1
+                )
+                print("Non-time-averaged metrics successfully extracted.")
+            except Exception as e:
+                print(f"Non-time-averaged metrics extraction also failed: {e}")
+                print("Skipping metric extraction for this iteration.")
+                return None  # Return None if all metric extraction fails
     else:
         print("Extracting non-time-averaged metrics...")
-        extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-            result, save_every_n_grid_points=1  # Full data, no subsampling
-        )
-    extracted_data = json.loads(extracted_data_json)
-    # No subsampling here, only when saving
-    return extracted_data
+        try:
+            extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
+                result, save_every_n_grid_points=save_every_n_grid_points or 1
+            )
+            print("Non-time-averaged metrics successfully extracted.")
+        except Exception as e:
+            print(f"Non-time-averaged metrics extraction failed: {e}")
+            print("Skipping metric extraction for this iteration.")
+            return None  # Return None if metric extraction fails
+
+    # Parse extracted data JSON
+    try:
+        extracted_data = json.loads(extracted_data_json)
+        return extracted_data  # Successfully extracted data
+    except Exception as e:
+        print(f"Failed to parse extracted data JSON: {e}")
+        return None  # Return None if parsing fails
 
 
 def extract_solution_data_julia(solution):

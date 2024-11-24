@@ -13,7 +13,7 @@ os.makedirs(PLOTS_DIR, exist_ok=True)  # Ensure plot directory exists
 def load_data():
     """Loads MCMC samples, truth data, and initial parameter guess."""
     # Load MCMC samples
-    samples = pd.read_csv("../results-mcmc/final_mcmc_samples_w_2.0_16.csv", header=None)
+    samples = pd.read_csv("../results-mcmc/final_mcmc_samples_w_2.0_2.csv", header=None)
     samples.columns = ["log_v1", "log_alpha"]
     samples["v1"] = 10 ** samples["log_v1"]
     samples["alpha"] = 10 ** samples["log_alpha"]

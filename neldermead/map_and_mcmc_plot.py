@@ -7,12 +7,12 @@ import seaborn as sns
 # Directory to save plots
 PLOTS_DIR = "mcmc-plots"
 os.makedirs(PLOTS_DIR, exist_ok=True) 
-RESULTS_DIR = os.path.join("..", "results-mcmc")
+RESULTS_DIR = os.path.join("..", "mcmc-results-11-23-24")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Paths to the MAP and MCMC results
 MAP_RESULTS_PATH = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-MCMC_SAMPLES_PATH = os.path.join("..", "results-mcmc", "final_mcmc_samples_w_2.0_16.csv")
+MCMC_SAMPLES_PATH = os.path.join("..", "mcmc-results-11-23-24", "final_mcmc_samples_w_2.0_2.csv")
 
 # Load MAP parameters
 def load_map_results(filepath):

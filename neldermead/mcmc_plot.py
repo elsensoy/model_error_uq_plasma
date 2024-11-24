@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm
 
 # Directory to save plots
-PLOTS_DIR = "mcmc-plots"
+PLOTS_DIR = "mcmc-plots-1123"
 os.makedirs(PLOTS_DIR, exist_ok=True) 
-RESULTS_DIR = os.path.join("..", "results-mcmc")
+RESULTS_DIR = os.path.join("..", "mcmc-results-11-23-24")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # Helper function to save results as JSON
@@ -129,7 +129,7 @@ def main():
     config = config_multilogbohm.copy()
     config['anom_model'] = 'TwoZoneBohm'
     mcmc_simulation_result = hallthruster_jl_wrapper(v1_mcmc, v2_mcmc, config, use_time_averaged=True)
-    save_results_to_json(mcmc_simulation_result, "mcmc_w_2.0_mcmc.json")
+    save_results_to_json(mcmc_simulation_result, "mcmc_w_2.0_mcmc_1.json")
 
     # Generate plots
     plot_ion_velocity_comparison(truth_data, pre_mcmc_target_data, mcmc_simulation_result)
