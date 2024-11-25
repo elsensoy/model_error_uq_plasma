@@ -1,0 +1,3 @@
+iteration,lambda1,lambda2,accepted,delayed_rejection,acceptance_rate
+10,-1.8768469905016563,0.14349870604585913,T,No DR,1.0000
+20,-1.9671014131595457,0.23723520388783303,T,No DR,1.0000

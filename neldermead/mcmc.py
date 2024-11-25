@@ -1,13 +1,14 @@
 import os
 import json
 import numpy as np
+import logging
 from scipy.stats import norm
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from neldermead.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
 
 
 # MCMC results directory path
-results_dir = os.path.join("..", "mcmc-results-11-24-24")
+results_dir = os.path.join("..", "mcmc-results-11-24-2-24")
 # Path to results directory
 RESULTS_NELDERMEAD = os.path.join("..", "results-Nelder-Mead")
 
@@ -151,9 +152,9 @@ def prior_logpdf(v1_log, alpha_log):
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
     
     # Uniform prior on log10(alpha) in [0, 2]
-    if alpha_log <= 0 or alpha_log > 2:
-        print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
-        return -np.inf  # Reject invalid samples
+    # if alpha_log <= 0 or alpha_log > 2:
+    #     print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
+    #     return -np.inf  # Reject invalid samples
     
     prior2 = 0  # log(1) for a uniform distribution in valid range
     
@@ -210,7 +211,7 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
     # Enforce physical constraint: v2 >= v1
     if v2 < v1:
         print(f"Rejecting invalid proposal: v1 = {v1}, v2 = {v2}")
-        return -np.inf  # Invalid posterior
+        return -1e6  # Invalid posterior
 
     try:
         # Run the simulation
@@ -218,7 +219,7 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
         
         # Handle simulation failure by setting likelihood to 1
         if simulated_data is None:
-            print(f"Simulation failed for v1: {v1}, v2: {v2}. Setting log-likelihood to 0.")
+            print(f"Simulation failed for v1: {v1}, v2: {v2}. Setting likelihood to 1.")
             log_likelihood_value = 0  # Neutral log-likelihood
         else:
             # Compute log-likelihood normally if the simulation succeeds
@@ -236,19 +237,22 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
         print(f"Error in log-posterior computation: {e}")
         return -np.inf  # Treat as invalid posterior
 
-def mcmc_inference( 
-    logpdf,
-    initial_sample,
-    iterations=100,
-    save_interval=10,
-    base_path="mcmc-results-11-24-24"
-):
-    # Ensure initial_sample is a numpy array
-    initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.2, 0], [0, 0.01]])
-    print(f"\nDEBUG: Initial covariance matrix:\n{initial_cov}")
+def setup_logger():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),  # Console output
+            logging.FileHandler("mcmc.log")  # File output
+        ]
+    )
 
-    # Initialize the sampler
+def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, base_path="mcmc-results-11-24-2-24"):
+    setup_logger()
+    initial_sample = np.array(initial_sample)
+    initial_cov = np.array([[0.5, 0], [0, 0.05]])
+    logging.debug(f"Initial covariance matrix:\n{initial_cov}")
+
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf, initial_sample, initial_cov, adapt_start=10, eps=1e-6,
         sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
@@ -256,102 +260,116 @@ def mcmc_inference(
 
     all_samples = []
     acceptance_status = []
-    invalid_proposals = []  # Track invalid proposals
-    delayed_rejections = 0  # Count delayed rejections
-    acceptances = 0  # Count accepted samples
-    total_attempted = 0  # Count all proposals attempted (including invalids)
+    delayed_rejections = 0
+    dram_acceptances = 0
+    initial_acceptances = 0
+    rejections = 0
+    invalid_proposals = 0  # Counter for invalid proposals
+    total_attempted = 0
 
-    # Save paths
     results_dir = os.path.join("..", base_path)
     os.makedirs(results_dir, exist_ok=True)
 
-    # Incremented filenames for checkpoint and final outputs
     checkpoint_file = get_next_filename(f"{base_path}_checkpoint", results_dir, ".csv")
     final_samples_file = get_next_filename(f"{base_path}_final_samples", results_dir, ".csv")
     final_status_file = get_next_filename(f"{base_path}_final_status", results_dir, ".txt")
 
-    print(f"Checkpoint will be saved to: {checkpoint_file}")
-    print(f"Final samples will be saved to: {final_samples_file}")
-    print(f"Final acceptance status will be saved to: {final_status_file}")
+    logging.info(f"Checkpoint file: {checkpoint_file}")
+    logging.info(f"Final samples file: {final_samples_file}")
+    logging.info(f"Final status file: {final_status_file}")
 
-    # Initialize the checkpoint file
     with open(checkpoint_file, 'w') as f:
-        f.write("iteration,lambda1,lambda2,accepted,delayed_rejection\n")  # Add a header row
+        f.write("iteration,lambda1,lambda2,accepted,delayed_rejection,acceptance_rate\n")
 
-    # MCMC loop
-    for i in range(iterations):
+    for iteration in range(iterations):
         try:
             total_attempted += 1
-            # Get the current proposal result
+            logging.debug(f"Starting iteration {iteration + 1}/{iterations}. Total attempted: {total_attempted}")
+
+            # Generate the next proposal
             result = next(sampler)
             sample = result[0]
-            accepted = result[1]
             delayed_rejection = False
 
-            # Evaluate the posterior
-            log_post = logpdf(sample)
+            # Extract parameters from the proposal
+            v1_log, alpha_log = sample
+            v1 = 10 ** v1_log
+            alpha = 10 ** alpha_log
+            v2 = alpha * v1
 
-            # Handle invalid posteriors or simulation failures
-            if log_post == -np.inf or log_post == 0:
-                print(f"Iteration {i + 1}: Invalid posterior or simulation failure. Marking as rejected.")
-                accepted = False
+            # Validate v2 > v1
+            if v2 <= v1:
+                logging.warning(f"Invalid proposal: v2 ({v2}) <= v1 ({v1}). Rejecting proposal.")
+                acceptance_status.append('Invalid')
                 all_samples.append(sample)
-                acceptance_status.append('F')
-                invalid_proposals.append(i + 1)  # Track invalid proposals
-                sampler.reset()  # Prevent DRAM from generating second proposals
-                continue  # Skip further processing for this iteration
+                invalid_proposals += 1
+                rejections += 1
 
-            # Check if DRAM's second proposal is being used
+                # Log invalid proposal in checkpoint
+                with open(checkpoint_file, 'a') as f:
+                    f.write(f"{iteration + 1},{v1_log},{alpha_log},Invalid,No DR,0.0\n")
+
+                continue  # Skip the rest of the iteration
+
+            # Handle valid proposals
+            accepted = result[1]
             if not accepted:
                 delayed_rejection = True
                 delayed_rejections += 1
-                print(f"DEBUG: Iteration {i + 1}: First proposal rejected. DRAM considering second proposal.")
-                # Fetch the second DRAM proposal
+                logging.debug("First proposal rejected. DRAM considering second proposal.")
                 result = next(sampler)
                 sample = result[0]
                 accepted = result[1]
 
-            # Log whether the sample was accepted and whether delayed rejection occurred
-            print(f"Iteration {i + 1}: Sample {'accepted' if accepted else 'rejected'}."
-                  f" {'Delayed rejection applied.' if delayed_rejection else ''}")
-
-            # Update samples and acceptance status
-            all_samples.append(sample)
-            acceptance_status.append('T' if accepted else 'F')
             if accepted:
-                acceptances += 1
+                if delayed_rejection:
+                    logging.info("DRAM accepted a previously rejected proposal.")
+                    dram_acceptances += 1
+                else:
+                    logging.info("Proposal accepted initially.")
+                    initial_acceptances += 1
+                acceptance_status.append('T')
+            else:
+                logging.info("Proposal rejected after DRAM.")
+                rejections += 1
+                acceptance_status.append('F')
 
-            # Save to checkpoint file every `save_interval` iterations
-            if (i + 1) % save_interval == 0:
+            all_samples.append(sample)
+
+            # Calculate and display the current acceptance rate
+            acceptance_rate = (initial_acceptances + dram_acceptances) / total_attempted
+            logging.info(f"Iteration {iteration + 1}: Acceptance rate = {acceptance_rate:.2f}")
+
+            if (iteration + 1) % save_interval == 0:
                 with open(checkpoint_file, 'a') as f:
-                    f.write(f"{i + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}," +
-                            f"{'DR' if delayed_rejection else 'No DR'}\n")
-                print(f"Checkpoint saved at iteration {i + 1}. Acceptance rate: {acceptances / total_attempted:.2f}")
+                    f.write(f"{iteration + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}," +
+                            f"{'DR' if delayed_rejection else 'No DR'},{acceptance_rate:.4f}\n")
+                logging.info(f"Checkpoint saved at iteration {iteration + 1}. Acceptance rate = {acceptance_rate:.2f}")
 
         except Exception as e:
-            print(f"DEBUG: Unexpected error at iteration {i + 1}: {e}")
+            logging.error(f"Error during iteration {iteration + 1}: {e}")
+            acceptance_status.append('Error')
+            all_samples.append(None)
             continue
 
-    # Calculate acceptance rate considering all proposals
-    acceptance_rate = acceptances / total_attempted if total_attempted > 0 else 0
+    acceptance_rate = (initial_acceptances + dram_acceptances) / total_attempted if total_attempted > 0 else 0
+    logging.info(f"Final acceptance rate: {acceptance_rate:.2f}")
+    logging.info(f"Initial acceptances: {initial_acceptances}")
+    logging.info(f"DRAM acceptances: {dram_acceptances}")
+    logging.info(f"Total rejections: {rejections}")
+    logging.info(f"Invalid proposals: {invalid_proposals}")
+    logging.info(f"Delayed rejections: {delayed_rejections}")
+    logging.info(f"Final samples saved to: {final_samples_file}")
+    logging.info(f"Final acceptance status saved to: {final_status_file}")
 
-    # Save final results
-    np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
+    np.savetxt(final_samples_file, np.array(all_samples, dtype=object), delimiter=',')
     with open(final_status_file, 'w') as status_f:
         for idx, status in enumerate(acceptance_status, start=1):
-            dr_label = "DR" if idx in invalid_proposals else "No DR"
-            status_f.write(f"{idx}: {status}, Delayed rejection: {dr_label}\n")
+            status_f.write(f"{idx}: {status}\n")
 
-    # Final summary
-    print(f"Final acceptance rate: {acceptance_rate:.2f}")
-    print(f"Final samples saved to: {final_samples_file}")
-    print(f"Final acceptance status saved to: {final_status_file}")
-    print(f"Invalid proposals handled: {len(invalid_proposals)}")
-    print(f"Delayed rejections applied: {delayed_rejections}")
+    return np.array(all_samples, dtype=object), acceptance_rate, initial_cov
 
-    return np.array(all_samples), acceptance_rate, invalid_proposals, initial_cov
-
-def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=100):
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200):
     # Load optimized parameters as the initial guess
     v1_opt, v2_opt = load_optimized_params(json_path)
     
@@ -370,9 +388,9 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     
     # Run MCMC sampling
     print("Running MCMC sampling based on loaded optimized parameters...")
-    base_path = f"mcmc_samples_w_{ion_velocity_weight}"
+    base_path = f"mcmc_samples_2_w_{ion_velocity_weight}"
     
-    samples, acceptance_rate, simulation_failures, initial_cov = mcmc_inference(
+    samples, acceptance_rate, initial_cov = mcmc_inference(
         lambda v_log: log_posterior(v_log, observed_data, config, ion_velocity_weight=ion_velocity_weight),
         v_log_initial,
         iterations=iterations,
@@ -383,7 +401,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     print(f"MCMC sampling complete with acceptance rate: {acceptance_rate:.2f}")
     
     # Save final samples and metadata for analysis in results_dir
-    final_samples_file = get_next_filename(f"final_mcmc_samples_w_{ion_velocity_weight}")
+    final_samples_file = get_next_filename(f"final_mcmc_samples_2_w_{ion_velocity_weight}")
     np.savetxt(final_samples_file, samples, delimiter=',')
     print(f"Final MCMC samples saved to {final_samples_file}")
 
@@ -393,7 +411,6 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
-        "simulation_failures": simulation_failures,  # Track skipped iterations
         "ion_velocity_weight": ion_velocity_weight,
         "saved_file": base_path,
         "final_samples_file": final_samples_file,
@@ -434,7 +451,7 @@ def main():
         observed_data=observed_data,
         config=config_spt_100,
         ion_velocity_weight=2.0,
-        iterations=100
+        iterations=200
     )
 
 if __name__ == "__main__":

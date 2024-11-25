@@ -147,34 +147,43 @@ def run_simulation(config):
         os.unlink(config_file_path)  # Clean up the temporary file for any other exception
         return None  # Return None to indicate failure
 
-def handle_nan_values(data):
+def handle_nan_values(data, placeholder="NaN"): 
     """
-    Replace NaN, None, or invalid values in the data with a default value (e.g., 0) to ensure JSON compatibility.
+    Recursively replace NaN, None, or invalid values in the data with a specified placeholder.
 
     Parameters:
-        data (dict): The data dictionary to process.
+        data: The data to process (dict, list, array, or scalar).
+        placeholder: The value to replace NaN, None, or invalid values with.
 
     Returns:
-        dict: Cleaned data with NaN and invalid values replaced.
+        The cleaned data with invalid values replaced by the placeholder.
     """
+    import math
     if isinstance(data, dict):
-        for key, value in data.items():
-            if isinstance(value, (list, np.ndarray)):
-                # Replace NaN or None in arrays or lists
-                data[key] = [0 if (v is None or isinstance(v, float) and np.isnan(v)) else v for v in value]
-            elif isinstance(value, dict):
-                data[key] = handle_nan_values(value)
-            elif value is None or (isinstance(value, float) and np.isnan(value)):
-                # Replace standalone NaN or None values
-                data[key] = 0
-    return data
+        return {key: handle_nan_values(value, placeholder) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [handle_nan_values(value, placeholder) for value in data]
+    elif isinstance(data, np.ndarray):
+        # Replace NaNs or infinities in numpy arrays
+        return np.where(np.isnan(data) | np.isinf(data), placeholder, data).tolist()
+    elif data is None or (isinstance(data, float) and (math.isnan(data) or math.isinf(data))):
+        return placeholder  # Replace invalid scalar
+    else:
+        return data
 
 def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n_grid_points=None):
     """
     Run the HallThruster simulation with parameters v1 and v2, and extract metrics.
-    Handles failures gracefully and ensures valid data is returned.
+    Handles failures gracefully and skips non-time-averaged fallback.
     """
     print(f"Running simulation with v1: {v1}, v2: {v2}")
+    
+    # Check for invalid parameters
+    # if v2 <= 0 or np.isnan(v1) or np.isnan(v2):
+    #     print(f"Invalid parameters: v1 = {v1}, v2 = {v2}. Skipping this iteration.")
+    #     return None
+
+    # Copy and update configuration
     config_copy = config.copy()
     config_copy["anom_model_coeffs"] = [v1, v2]
 
@@ -188,35 +197,23 @@ def hallthruster_jl_wrapper(v1, v2, config, use_time_averaged=True, save_every_n
         print(f"Simulation failed with error: {e}. Skipping this iteration.")
         return None
 
-    # Process the result
-    extracted_data_json = None
+    # Process the result (time-averaged metrics only)
     try:
-        if use_time_averaged:
-            print("Applying time-averaging to the simulation results...")
-            extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
-                result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=save_every_n_grid_points or 1
-            )
-            print("Time-averaged metrics successfully extracted.")
-        else:
-            print("Extracting non-time-averaged metrics...")
-            extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(
-                result, save_every_n_grid_points=save_every_n_grid_points or 1
-            )
-            print("Non-time-averaged metrics successfully extracted.")
-    except Exception as e:
-        print(f"Metric extraction failed: {e}. Skipping this iteration.")
-        return None
-
-    # Parse extracted data JSON
-    try:
+        print("Applying time-averaging to the simulation results...")
+        extracted_data_json = jl.SolutionMetrics.extract_time_averaged_metrics(
+            result, int(0.4 * config_copy['num_save']), save_every_n_grid_points=save_every_n_grid_points or 1
+        )
+        
+        # Parse the JSON string into a Python dictionary
         extracted_data = json.loads(extracted_data_json)
-        # Clean up NaN or invalid values
-        clean_data = handle_nan_values(extracted_data)
-        return clean_data
+        
+        # Clean invalid values in the extracted data
+        cleaned_data = handle_nan_values(extracted_data, placeholder="NaN")
+        print("Time-averaged metrics successfully extracted.")
+        return cleaned_data
     except Exception as e:
-        print(f"Failed to parse extracted data JSON: {e}. Skipping this iteration.")
+        print(f"Time-averaged metric extraction failed: {e}. Skipping this iteration.")
         return None
-
 
 def extract_solution_data_julia(solution):
     extracted_data_json = jl.SolutionMetrics.extract_performance_metrics(solution)
