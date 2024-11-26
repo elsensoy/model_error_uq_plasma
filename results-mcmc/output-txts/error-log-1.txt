@@ -1,0 +1,30 @@
+n::Vector{Float64}, k::Matrix{Float64}, u1::Matrix{Float64}, γ_SEE::Vector{Float64}, cell_cache_1::Vector{Float64}, error_integral::Vector{Float64}, Id_smoothed::Vector{Float64}, anom_multiplier::Vector{Float64}, smoothing_time_constant::Vector{Float64}, errors::Vector{Float64}, dcoeffs::Vector{Float64}, ohmic_heating::Vector{Float64}, wall_losses::Vector{Float64}, inelastic_losses::Vector{Float64}, channel_area::Vector{Float64}, dA_dz::Vector{Float64}, channel_height::Vector{Float64}, inner_radius::Vector{Float64}, outer_radius::Vector{Float64}, tanδ::Vector{Float64}, anom_variables::Vector{Vector{Float64}}, dt_iz::Vector{Float64}, dt_E::Vector{Float64}, dt_u::Vector{Float64}, dt::Vector{Float64}}, fluids::Vector{HallThruster.Fluid}, fluid_ranges::Vector{UnitRange{Int64}}, species_range_dict::Dict{Symbol, UnitRange{Int64}}, is_velocity_index::Vector{Bool}, iteration::Vector{Int64}, ionization_reactions::Vector{HallThruster.IonizationReaction}, ionization_reactant_indices::Vector{Int64}, ionization_product_indices::Vector{Int64}, excitation_reactions::Vector{HallThruster.ExcitationReaction}, excitation_reactant_indices::Vector{Int64}, electron_neutral_collisions::Vector{HallThruster.ElasticCollision}, dt::Vector{Float64}, CFL::Float64, adaptive::Bool, background_neutral_velocity::Float64, background_neutral_density::Float64, Bmax::Float64, γ_SEE_max::Float64, Δz_cell::Vector{Float64}, Δz_edge::Vector{Float64}, control_current::Bool, target_current::Float64, Kp::Float64, Ti::Float64, Td::Float64, exit_plane_index::Int64, dtbase::Float64, dtmin::Float64, dtmax::Float64, max_small_steps::Int64, pe_factor::Float64}; duration::Float64, nsave::Int64, verbose::Bool)
+    @ HallThruster ~/.julia/packages/HallThruster/gEpeB/src/simulation/simulation.jl:278
+ [10] run_simulation(config::HallThruster.Config{HallThruster.TwoZoneBohm, HallThruster.Mitchner, HallThruster.WallSheath, HallThruster.IonizationLookup, HallThruster.ExcitationLookup, HallThruster.ElectronNeutralLookup, HallThruster.Thruster{HallThruster.LinearInterpolation{Vector{Float64}, Vector{Float64}}}, Vector{Returns{Float64}}, Vector{Returns{Float64}}, Vector{Returns{Float64}}, Returns{Float64}, Returns{Float64}, HallThruster.DefaultInitialization, HallThruster.HyperbolicScheme{typeof(HallThruster.rusanov), HallThruster.var"#22#23"}}; duration::Float64, nsave::Int64, verbose::Bool, kwargs::@Kwargs{grid::HallThruster.HallThrusterGrid{Returns{Float64}}, dt::Float64, adaptive::Bool, dtmin::Float64, dtmax::Float64, max_small_steps::Int64})
+    @ HallThruster ~/.julia/packages/HallThruster/gEpeB/src/simulation/simulation.jl:302
+ [11] run_simulation(json_content::JSON3.Object{Base.CodeUnits{UInt8, String}, Vector{UInt64}}, dir::String; verbose::Bool)
+    @ HallThruster ~/.julia/packages/HallThruster/gEpeB/src/simulation/json.jl:156
+ [12] run_simulation(json_path::String; is_path::Bool, kwargs::@Kwargs{verbose::Bool})
+    @ HallThruster ~/.julia/packages/HallThruster/gEpeB/src/simulation/json.jl:170
+ [13] pyjlany_call(self::typeof(HallThruster.run_simulation), args_::Py, kwargs_::Py)
+    @ PythonCall.JlWrap ~/.julia/packages/PythonCall/Nr75f/src/JlWrap/any.jl:40
+ [14] _pyjl_callmethod(f::Any, self_::Ptr{PythonCall.C.PyObject}, args_::Ptr{PythonCall.C.PyObject}, nargs::Int64)
+    @ PythonCall.JlWrap ~/.julia/packages/PythonCall/Nr75f/src/JlWrap/base.jl:73
+ [15] _pyjl_callmethod(o::Ptr{PythonCall.C.PyObject}, args::Ptr{PythonCall.C.PyObject})
+    @ PythonCall.JlWrap.Cjl ~/.julia/packages/PythonCall/Nr75f/src/JlWrap/C.jl:63
+Simulation exited at t = 0.0007272727272727272 with retcode :error in 25.545843745 seconds.
+Simulation completed in 25.55 seconds.
+Applying time-averaging to the simulation results...
+Time-averaged metrics successfully extracted.
+log_prior = -8.382451167894438, log_likelihood = -5166361766602.333, log_posterior = -5166361766610.716
+DEBUG: v1_log = 1.7381550253950089, alpha_log = -0.13906056383084373, v1 = 54.72112601090443, v2 = 39.72779503269961
+Running simulation with v1: 54.72112601090443, v2: 39.72779503269961
+Starting simulation...
+Running simulation...
+Simulation exited at t = 0.001 with retcode :success in 4.18563562 seconds.
+Simulation completed in 4.19 seconds.
+Applying time-averaging to the simulation results...
+Time-averaged metrics successfully extracted.
+log_prior = -5.150895183260393, log_likelihood = -245742999383.3209, log_posterior = -245742999388.4718
+2024-11-26 01:52:10,088 - INFO - Proposal accepted initially.
+2024-11-26 01:52:10,088 - INFO - Iteration 18: Acceptance Rate = 1.0000 | Initial Acceptances = 18 | DRAM 
