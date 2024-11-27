@@ -158,9 +158,6 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, bas
     logging.info(f"Final samples file: {final_samples_file}")
     logging.info(f"Final status file: {final_status_file}")
 
-    with open(checkpoint_file, 'w') as f:
-        f.write("iteration,lambda1,lambda2,accepted,delayed_rejection,acceptance_rate\n")
-
     for iteration in range(iterations):
         try:
             total_attempted += 1
@@ -209,8 +206,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, bas
 
             if (iteration + 1) % save_interval == 0:
                 with open(checkpoint_file, 'a') as f:
-                    f.write(f"{iteration + 1},{sample[0]},{sample[1]},{'T' if accepted else 'F'}," +
-                            f"{'DR' if delayed_rejection else 'No DR'},{acceptance_rate:.4f}\n")
+                    f.write(f"{iteration + 1},{sample[0]},{sample[1]}\n")
                 logging.info(f"Checkpoint saved at iteration {iteration + 1}. Acceptance rate = {acceptance_rate:.4f}")
 
         except Exception as e:

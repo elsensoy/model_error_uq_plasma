@@ -28,7 +28,7 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10):
 # Load the MCMC samples, truth data, and simulation results
 def load_data():
     # Load MCMC samples
-    samples = pd.read_csv(os.path.join(RESULTS_DIR, "final_mcmc_samples_2_w_2.0_1.csv"), header=None)
+    samples = pd.read_csv(os.path.join(RESULTS_DIR, "final_mcmc_samples_2_w_2.0_3.csv"), header=None)
     samples.columns = ["log_v1", "log_alpha"]
     samples["v1"] = 10 ** samples["log_v1"]
     samples["alpha"] = 10 ** samples["log_alpha"]
@@ -72,47 +72,6 @@ def plot_ion_velocity_comparison(truth_data, pre_mcmc_target_data, mcmc_simulati
     plt.savefig(plot_path)
     print(f"Ion velocity comparison plot saved to {plot_path}")
 
-# def plot_predictive_comparison(samples, truth_data, pre_mcmc_target_data):
-#     """Plot and save predictive comparison for thrust, discharge current, and ion velocity."""
-#     posterior_means = samples[["v1", "v2"]].mean()
-#     v1_mean, v2_mean = posterior_means["v1"], posterior_means["v2"]
-
-#     fig, axes = plt.subplots(3, 1, figsize=(10, 12))
-
-#     # Thrust Comparison
-#     axes[0].plot(truth_data["thrust"], label="Truth Model (MultiLogBohm)", color='blue')
-#     axes[0].axhline(y=v1_mean, color='red', linestyle='--', label="TwoZoneBohm (Posterior Mean)")
-#     axes[0].axhline(y=pre_mcmc_target_data["thrust"], color='purple', linestyle=':', label="TwoZoneBohm (Initial Simulation)")
-#     axes[0].set_title("Thrust Comparison")
-#     axes[0].legend()
-
-#     # Discharge Current Comparison
-#     axes[1].plot(truth_data["discharge_current"], label="Truth Model (MultiLogBohm)", color='blue')
-#     axes[1].axhline(y=v2_mean, color='red', linestyle='--', label="TwoZoneBohm (Posterior Mean)")
-#     axes[1].axhline(y=pre_mcmc_target_data["discharge_current"], color='purple', linestyle=':', label="TwoZoneBohm (Initial Simulation)")
-#     axes[1].set_title("Discharge Current Comparison")
-#     axes[1].legend()
-
-#     # Ion Velocity Comparison
-#     if isinstance(truth_data["ion_velocity"], list):
-#         ion_velocity_truth = np.array(truth_data["ion_velocity"])
-#     else:
-#         ion_velocity_truth = np.array(truth_data["ion_velocity"]).flatten()
-
-#     ion_velocity_pre_mcmc = np.array(pre_mcmc_target_data["ion_velocity"]).flatten()
-
-#     # Plot ion velocity comparison
-#     axes[2].plot(range(len(ion_velocity_truth)), ion_velocity_truth, label="Truth Model (MultiLogBohm)", color='blue')
-#     axes[2].plot(range(len(ion_velocity_truth)), [np.mean(ion_velocity_pre_mcmc)] * len(ion_velocity_truth), 
-#                  label="TwoZoneBohm (Initial Simulation)", color='purple', linestyle=':')
-#     axes[2].axhline(y=v1_mean, color='red', linestyle='--', label="TwoZoneBohm (Posterior Mean)")
-#     axes[2].set_title("Ion Velocity Comparison")
-#     axes[2].legend()
-
-#     plt.tight_layout()
-#     plt.savefig(os.path.join(PLOTS_DIR, "predictive_comparison.png"))
-#     plt.show()
-
 def main():
     
     samples, truth_data, pre_mcmc_target_data = load_data()
@@ -126,7 +85,7 @@ def main():
     config = config_multilogbohm.copy()
     config['anom_model'] = 'TwoZoneBohm'
     mcmc_simulation_result = hallthruster_jl_wrapper(v1_mcmc, v2_mcmc, config, use_time_averaged=True)
-    save_results_to_json(mcmc_simulation_result, "mcmc_metrics_1.json")
+    save_results_to_json(mcmc_simulation_result, "mcmc_metrics_3.json")
 
     
     plot_ion_velocity_comparison(truth_data, pre_mcmc_target_data, mcmc_simulation_result)

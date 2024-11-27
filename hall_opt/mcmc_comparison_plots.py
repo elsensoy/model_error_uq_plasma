@@ -12,19 +12,19 @@ def check_file_exists(file_path):
 
 
 # Paths
-base_results_dir = os.path.join("..", "mcmc-results-11-25-24")
-plots_dir = os.path.join(base_results_dir, "plots-11-25-24")
+base_results_dir = os.path.join("..", "mcmc-results-11-25-24-sl")
+plots_dir = os.path.join(base_results_dir, "plots-11-25-24-sl")
 os.makedirs(plots_dir, exist_ok=True)
 
 
 def load_data():
     """Loads MCMC samples, truth data, initial parameter guess, and metrics."""
     # Paths
-    samples_path = os.path.join(base_results_dir, "final_mcmc_samples_2_w_2.0_1.csv")
+    samples_path = os.path.join(base_results_dir, "final_mcmc_samples_2_w_2.0_2.csv")
     truth_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_observed_data_map.json")
     pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_initial_mcmc.json")
     initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-    metrics_path = os.path.join(base_results_dir, "mcmc_metrics_1.json")
+    metrics_path = os.path.join(base_results_dir, "mcmc_metrics_2_sl.json")
 
     # Check paths
     for path in [samples_path, truth_data_path, pre_mcmc_data_path, initial_params_path, metrics_path]:
@@ -106,18 +106,21 @@ plt.savefig(os.path.join(plots_dir, "iteration_scatter_plot.png"))
 plt.show()
 
 
-
-# 2. Histogram: Thrust Predictions
 # Bar Chart for Thrust Comparison
 plt.figure(figsize=(8, 5))
 
 # Data for bar chart
-thrust_labels = ["Observed Thrust", "Initial Thrust", "MCMC Thrust"]
+thrust_labels = ["Observed", "Initial", "MCMC"]
 thrust_values = [observed_thrust, initial_thrust, mcmc_thrust]
 colors = ["red", "green", "orange"]
 
 # Create bar chart
-plt.bar(thrust_labels, thrust_values, color=colors, alpha=0.7, edgecolor="black")
+bars = plt.bar(thrust_labels, thrust_values, color=colors, alpha=0.7, edgecolor="black")
+
+# Add annotations on top of each bar
+for bar, value in zip(bars, thrust_values):
+    plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.003, 
+             f"{value:.3f}", ha="center", fontsize=10)
 
 # Add labels and grid
 plt.ylabel("Thrust (N)")
@@ -126,49 +129,26 @@ plt.grid(axis="y", linestyle="--", alpha=0.7)
 
 # Save and show the plot
 plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "thrust_bar_comparison.png"))
+plt.savefig(os.path.join(plots_dir, "thrust_bar_comparison_with_annotations.png"))
 plt.show()
 
-# Point Plot for Thrust Comparison
-plt.figure(figsize=(8, 5))
-
-# Plot thrust values
-plt.plot(["Observed Thrust", "Initial Thrust", "MCMC Thrust"], 
-         [observed_thrust, initial_thrust, mcmc_thrust], 
-         marker="o", linestyle="-", color="blue", linewidth=2, markersize=10)
-
-# Add labels for each point
-for i, value in enumerate([observed_thrust, initial_thrust, mcmc_thrust]):
-    plt.text(i, value + 0.01, f"{value:.3f}", ha="center", fontsize=10)
-
-# Add labels and grid
-plt.ylabel("Thrust (N)")
-plt.title("Thrust Comparison: Observed vs. Initial vs. MCMC")
-plt.grid(axis="y", linestyle="--", alpha=0.7)
-
-# Save and show the plot
-plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "thrust_point_comparison.png"))
-plt.show()
+# # 3. Histogram: Discharge Current Predictions
+# plt.figure(figsize=(10, 6))
+# plt.hist(samples["v2"], bins=30, alpha=0.7, color="purple", label="MCMC Discharge Current Predictions")
+# plt.axvline(observed_discharge_current, color="red", linestyle="--", label="Observed Discharge Current")
+# plt.axvline(initial_discharge_current, color="green", linestyle="--", label="Initial Discharge Current")
+# plt.axvline(mcmc_discharge_current, color="orange", linestyle="--", label="MCMC Discharge Current")
+# plt.xlabel("Discharge Current (A)")
+# plt.ylabel("Frequency")
+# plt.title("Discharge Current Predictions Histogram")
+# plt.legend()
+# plt.grid(True)
+# plt.tight_layout()
+# plt.savefig(os.path.join(plots_dir, "discharge_current_histogram.png"))
+# plt.show()
 
 
-# 3. Histogram: Discharge Current Predictions
-plt.figure(figsize=(10, 6))
-plt.hist(samples["v2"], bins=30, alpha=0.7, color="purple", label="MCMC Discharge Current Predictions")
-plt.axvline(observed_discharge_current, color="red", linestyle="--", label="Observed Discharge Current")
-plt.axvline(initial_discharge_current, color="green", linestyle="--", label="Initial Discharge Current")
-plt.axvline(mcmc_discharge_current, color="orange", linestyle="--", label="MCMC Discharge Current")
-plt.xlabel("Discharge Current (A)")
-plt.ylabel("Frequency")
-plt.title("Discharge Current Predictions Histogram")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "discharge_current_histogram.png"))
-plt.show()
-
-
-# Ion Velocity Predictions
+# Ion velocity comparisons
 plt.figure(figsize=(12, 8))
 
 # Plot MCMC ion velocity predictions for each sample
@@ -196,60 +176,40 @@ plt.grid(True)
 
 # Annotate the last points for each metric
 last_z = z_normalized[-1]
-plt.text(last_z, observed_ion_velocity[-1] + 500, f"{observed_ion_velocity[-1]:.2f}", 
+plt.text(last_z, observed_ion_velocity[-1] + 200, f"{observed_ion_velocity[-1]:.2f}", 
          color="red", fontsize=8, ha="center")
-plt.text(last_z, initial_ion_velocity[-1] + 500, f"{initial_ion_velocity[-1]:.2f}", 
+plt.text(last_z, initial_ion_velocity[-1] + 200, f"{initial_ion_velocity[-1]:.2f}", 
          color="green", fontsize=8, ha="center")
-plt.text(last_z, mcmc_ion_velocity[-1] + 200, f"{mcmc_ion_velocity[-1]:.2f}", 
+plt.text(last_z, mcmc_ion_velocity[-1] - 500, f"{mcmc_ion_velocity[-1]:.2f}", 
          color="orange", fontsize=8, ha="center")
 
 # Annotate the initial points for each metric
 first_z = z_normalized[0]
-plt.text(first_z, observed_ion_velocity[0] - 1000, f"{observed_ion_velocity[0]:.2f}", 
-         color="red", fontsize=10, ha="center")
-plt.text(first_z, initial_ion_velocity[0] - 1000, f"{initial_ion_velocity[0]:.2f}", 
-         color="green", fontsize=10, ha="center")
-plt.text(first_z, mcmc_ion_velocity[0] - 1000, f"{mcmc_ion_velocity[0]:.2f}", 
-         color="orange", fontsize=10, ha="center")
+plt.text(first_z, observed_ion_velocity[0] + 200, f"{observed_ion_velocity[0]:.2f}", 
+         color="red", fontsize=8, ha="center")
+plt.text(first_z, initial_ion_velocity[0] + 500, f"{initial_ion_velocity[0]:.2f}", 
+         color="green", fontsize=8, ha="center")
+plt.text(first_z, mcmc_ion_velocity[0] + 1000, f"{mcmc_ion_velocity[0]:.2f}", 
+         color="orange", fontsize=8, ha="center")
 
 # Save and display the plot
 plt.tight_layout()
 plt.savefig(os.path.join(plots_dir, "ion_velocity_predictions_with_annotations.png"))
 plt.show()
 
-
-# Bar Chart for Discharge Current Comparison
-plt.figure(figsize=(8, 5))
-
 # Data for bar chart
-discharge_labels = ["Observed Discharge Current", "Initial Discharge Current", "MCMC Discharge Current"]
+discharge_labels = ["Observed", "Initial", "MCMC"]
 discharge_values = [observed_discharge_current, initial_discharge_current, mcmc_discharge_current]
 colors = ["red", "green", "orange"]
 
 # Create bar chart
-plt.bar(discharge_labels, discharge_values, color=colors, alpha=0.7, edgecolor="black")
-
-# Add labels and grid
-plt.ylabel("Discharge Current (A)")
-plt.title("Discharge Current Comparison: Observed vs. Initial vs. MCMC")
-plt.grid(axis="y", linestyle="--", alpha=0.7)
-
-# Save and display the plot
-plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "discharge_current_bar_comparison.png"))
-plt.show()
-
-# Point Plot for Discharge Current Comparison
 plt.figure(figsize=(8, 5))
+bars = plt.bar(discharge_labels, discharge_values, color=colors, alpha=0.7, edgecolor="black")
 
-# Plot discharge current values
-plt.plot(["Observed Discharge Current", "Initial Discharge Current", "MCMC Discharge Current"], 
-         [observed_discharge_current, initial_discharge_current, mcmc_discharge_current], 
-         marker="o", linestyle="-", color="purple", linewidth=2, markersize=10)
-
-# Add labels for each point
-for i, value in enumerate([observed_discharge_current, initial_discharge_current, mcmc_discharge_current]):
-    plt.text(i, value + 0.1, f"{value:.2f}", ha="center", fontsize=10)
+# Add annotations on top of each bar
+for bar, value in zip(bars, discharge_values):
+    plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1, 
+             f"{value:.2f}", ha="center", fontsize=10)
 
 # Add labels and grid
 plt.ylabel("Discharge Current (A)")
@@ -258,7 +218,7 @@ plt.grid(axis="y", linestyle="--", alpha=0.7)
 
 # Save and display the plot
 plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "discharge_current_point_comparison.png"))
+plt.savefig(os.path.join(plots_dir, "discharge_current_bar_comparison_with_annotations.png"))
 plt.show()
 
 
