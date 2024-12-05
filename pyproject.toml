@@ -15,6 +15,7 @@ dependencies = [
     "sklearn>=0.0.post12",
     "scikit-learn>=1.5.2",
     "logging>=0.4.9.6",
+    "datetime>=5.5",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

@@ -3,12 +3,20 @@ import pickle
 import json
 import numpy as np
 
+
 # Function to generate the next results directory with an enumerated suffix
-def get_next_results_dir(base_dir="..", base_name="mcmc-results"):
+def get_next_results_dir(base_dir="results", base_name="mcmc-results"):
   
     #Generate the next results directory with an enumerated suffix.
     # 'mcmc-results-1', 'mcmc-results-2', etc.
-   
+    #     Example structure:
+    # results/
+    # ├── mcmc-results-1/
+    # ├── mcmc-results-2/
+    # 
+    base_dir = os.path.abspath(base_dir)  # Convert to an absolute path
+    os.makedirs(base_dir, exist_ok=True)  # Ensure the base_dir exists
+
     i = 1
     while True:
         dir_name = os.path.join(base_dir, f"{base_name}-{i}")
@@ -46,14 +54,17 @@ def get_next_filename(base_filename, directory, extension=".csv"):
         full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
     return full_path
 
-def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc-results"):
-    """Save metadata to a JSON file with automatic filename incrementing."""
-    # Use get_next_filename to determine a unique path in the directory
-    full_path = get_next_filename(filename.split('.')[0], directory=directory, extension=".json")
+def save_metadata(metadata, filename="mcmc_metadata.json", directory="results"):
+    """
+    Save metadata to a JSON file in the specified directory.
     
-    with open(full_path, 'w') as f:
+    """
+    os.makedirs(directory, exist_ok=True)  # Ensure the directory exists
+    filepath = os.path.join(directory, filename)
+    
+    with open(filepath, 'w') as f:
         json.dump(metadata, f, indent=4)
-    print(f"Metadata saved to {full_path}")
+    print(f"Metadata saved to {filepath}")
 
 def subsample_data(data, step=10):
     """Subsample the data by taking every nth element."""
@@ -61,7 +72,7 @@ def subsample_data(data, step=10):
         return data[::step]  # Every nth element from the list
     return data 
 
-def save_results_to_json(result_dict, filename, directory, save_every_n_grid_points=10, subsample_for_saving=True):
+def save_results_to_json(result_dict, filename="mcmc_results.json", directory="results", save_every_n_grid_points=10, subsample_for_saving=True):
     """
     Save the results as a JSON file, ensuring the directory exists.
     Subsample only when saving and keep original data untouched for processing.

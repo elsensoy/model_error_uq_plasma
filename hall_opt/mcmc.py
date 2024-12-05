@@ -3,11 +3,12 @@ import json
 import numpy as np
 import logging
 from scipy.stats import norm
+from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
 from hall_opt.mcmc_utils import load_json_data, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, create_specific_config, get_next_results_dir
-
-results_dir = get_next_results_dir(base_dir="..", base_name="mcmc-results")
+#export PYTHONPATH=/home/elidasensoy/hall-project
+results_dir = get_next_results_dir(base_dir="results", base_name="mcmc-results")
 
 # Path to results directory
 RESULTS_NELDERMEAD = os.path.join("..", "results-Nelder-Mead")
@@ -130,7 +131,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, res
     """
     setup_logger()
     initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.3, 0], [0, 0.01]])
+    initial_cov = np.array([[0.3, 0], [0, 0.03]])
     logging.debug(f"Initial covariance matrix:\n{initial_cov}")
 
     sampler = DelayedRejectionAdaptiveMetropolis(
@@ -258,7 +259,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, res
 
     return np.array(all_samples, dtype=object), acceptance_rate, initial_cov
 
-def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200):
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200,  results_dir=results_dir):
     # Load optimized parameters as the initial guess
     v1_opt, v2_opt = load_optimized_params(json_path)
     
@@ -277,7 +278,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     
     # Run MCMC sampling
     print("Running MCMC sampling based on loaded optimized parameters...")
-    base_path = f"mcmc_samples_12-3"
+    
     
     samples, acceptance_rate, initial_cov = mcmc_inference(
         lambda v_log: log_posterior(v_log, observed_data, config, ion_velocity_weight=ion_velocity_weight),
@@ -290,18 +291,19 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     print(f"MCMC sampling complete with acceptance rate: {acceptance_rate:.2f}")
     
     # Save final samples and metadata for analysis in results_dir
-    final_samples_file = get_next_filename(f"final_mcmc_samples")
+    final_samples_file = get_next_filename("final_mcmc_samples", directory=results_dir, extension=".csv")
     np.savetxt(final_samples_file, samples, delimiter=',')
     print(f"Final MCMC samples saved to {final_samples_file}")
 
     metadata = {
+        "timestamp": datetime.now().isoformat(),  # Added timestamp in ISO format
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
         "initial_cov": initial_cov.tolist(),
         "v_log_initial": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate,
         "ion_velocity_weight": ion_velocity_weight,
-        "saved_file": base_path,
+        "directory": results_dir,
         "final_samples_file": final_samples_file,
         "model": "TwoZoneBohm",
         "config": create_specific_config(config)
