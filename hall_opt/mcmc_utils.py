@@ -3,12 +3,20 @@ import pickle
 import json
 import numpy as np
 
-# MCMC results directory path
-results_dir = os.path.join("..", "mcmc-results-11-25-24")
-# Path to results directory
-RESULTS_NELDERMEAD = os.path.join("..", "results-Nelder-Mead")
-
-initial_guess_path = os.path.join(RESULTS_NELDERMEAD, "best_initial_guess_w_2_0.json")
+# Function to generate the next results directory with an enumerated suffix
+def get_next_results_dir(base_dir="..", base_name="mcmc-results"):
+  
+    #Generate the next results directory with an enumerated suffix.
+    # 'mcmc-results-1', 'mcmc-results-2', etc.
+   
+    i = 1
+    while True:
+        dir_name = os.path.join(base_dir, f"{base_name}-{i}")
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)  # Create the directory
+            print(f"Created results directory: {dir_name}")
+            return dir_name
+        i += 1
 
 # Load optimized parameters from JSON
 def load_optimized_params(json_path):
@@ -27,19 +35,18 @@ def load_json_data(filepath):
         print(f"Error decoding JSON from {filepath}")
         return None
 
-def get_next_filename(base_filename, directory=results_dir, extension=".csv"):
+def get_next_filename(base_filename, directory, extension=".csv"):
     """
-    Generate the next available filename with an incremented suffix in the specified directory.
+    Generate the next available filename incremented in the directory.
     """
     i = 1
-    # Ensure the file path includes the directory and extension
     full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
     while os.path.exists(full_path):
         i += 1
         full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
     return full_path
 
-def save_metadata(metadata, filename="mcmc_metadata.json", directory=results_dir):
+def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc-results"):
     """Save metadata to a JSON file with automatic filename incrementing."""
     # Use get_next_filename to determine a unique path in the directory
     full_path = get_next_filename(filename.split('.')[0], directory=directory, extension=".json")
@@ -48,27 +55,24 @@ def save_metadata(metadata, filename="mcmc_metadata.json", directory=results_dir
         json.dump(metadata, f, indent=4)
     print(f"Metadata saved to {full_path}")
 
-
 def subsample_data(data, step=10):
-    """subsample the data by taking every nth element."""
+    """Subsample the data by taking every nth element."""
     if isinstance(data, list):
-        return data[::step]  # every nth element from the list
+        return data[::step]  # Every nth element from the list
     return data 
-def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, subsample_for_saving=True):
+
+def save_results_to_json(result_dict, filename, directory, save_every_n_grid_points=10, subsample_for_saving=True):
     """
-    save the results as a JSON file, ensure the directory exists.
-    subsample only when saving and keep original data untouched for processing.
+    Save the results as a JSON file, ensuring the directory exists.
+    Subsample only when saving and keep original data untouched for processing.
     """
     spatial_keys = ['ion_velocity', 'z_normalized']
-    
-    # create a copy to avoid modifying the original result_dict in memory
-    result_dict_copy = result_dict.copy()
+    result_dict_copy = result_dict.copy()  # Avoid modifying the original result_dict
 
     for key in spatial_keys:
         if key in result_dict_copy:
             print(f"Original {key} data shape: {np.array(result_dict_copy[key]).shape}")
             
-            # Subsample only for saving, if enabled
             if subsample_for_saving:
                 if key == 'z_normalized' and len(result_dict_copy[key]) <= save_every_n_grid_points:
                     print(f"{key} already subsampled. Skipping subsampling.")
@@ -80,14 +84,9 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
             
             print(f"Subsampled {key} data shape for saving: {np.array(result_dict_copy[key]).shape}")
 
-    # Ensure the results directory exists
-    results_dir = os.path.join("..", "mcmc-results-11-25-24")
-    os.makedirs(results_dir, exist_ok=True)  # Create directory if it doesn't exist
-
     # Define the full path for the JSON file
-    result_file_path = os.path.join(results_dir, filename)
+    result_file_path = os.path.join(directory, filename)
 
-    # Save the subsampled results to the file
     try:
         with open(result_file_path, 'w') as json_file:
             json.dump(result_dict_copy, json_file, indent=4)
@@ -106,25 +105,10 @@ def create_specific_config(config):
             "duration_s": config.get("duration_s", 1e-3),
             "num_save": config.get("num_save", 100)
         },
-        "Magnetic Field and Boundary Conditions": {
-            "magnetic_field_file": config.get("magnetic_field_file", "bfield_spt100.csv"),
-            "anode_potential": config.get("anode_potential", 300),
-            "cathode_potential": config.get("cathode_potential", 0)
-        },
-        "Additional Model Configurations": {
-            "Propellant and Wall Material": {
-                "propellant": config.get("propellant", "Xenon"),
-                "wall_material": config.get("wall_material", "BNSiO2")
-            },
-            "Ion and Neutral Temperatures": {
-                "ion_temp_K": config.get("ion_temp_K", 1000),
-                "neutral_temp_K": config.get("neutral_temp_K", 500),
-                "neutral_velocity_m_s": config.get("neutral_velocity_m_s", 150)
-            },
-            "Anomalous Transport Coefficients": {
-                "description": "Anomalous coefficients c(z) adjust the anomalous collision frequency.",
-                "equation": r"\nu_{AN}(z) = c(z) \cdot \omega_{ce}(z)"
-            }
+        "Anomalous Transport Coefficients": {
+            "description": "Anomalous coefficients c(z) adjust the anomalous collision frequency.",
+            "equation": r"\nu_{AN}(z) = c(z) \cdot \omega_{ce}(z)"
         }
     }
     return specific_config
+

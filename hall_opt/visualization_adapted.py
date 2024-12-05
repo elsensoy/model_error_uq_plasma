@@ -7,13 +7,13 @@ import seaborn as sns
 import arviz as az
 
 # Paths
-base_results_dir = "../mcmc-results-11-25-24"
-samples_path = os.path.join(base_results_dir, "final_mcmc_samples_2_w_2.0_2.csv")
-truth_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_observed_data_map.json")
-pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_initial_mcmc.json")
+base_results_dir = "../home/elidasensoy/hall-project/mcmc-results-4"
+samples_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/final_samples_1.csv")
+truth_data_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/mcmc_observed_data_map.json")
+pre_mcmc_data_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/mcmc_pre_mcmc_initial.json")
 initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-metrics_path = os.path.join(base_results_dir, "mcmc_metrics_3.json")
-PLOTS_DIR = "plots-11-25-24"
+# metrics_path = os.path.join(base_results_dir, "mcmc_metrics_3.json")
+PLOTS_DIR = "/home/elidasensoy/hall-project/mcmc-results-4/plots-4"
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
 # Load Data
@@ -38,12 +38,11 @@ def load_data():
     with open(initial_params_path, 'r') as f:
         initial_params = json.load(f)
 
-    # Load final MCMC metrics
-    with open(metrics_path, 'r') as f:
-        mcmc_metrics = json.load(f)
+    # # Load final MCMC metrics
+    # with open(metrics_path, 'r') as f:
+    #     mcmc_metrics = json.load(f)
 
-    return samples, truth_data, pre_mcmc_target_data, initial_params, mcmc_metrics
-
+    return samples, truth_data, pre_mcmc_target_data, initial_params
 
 def plot_autocorrelation(samples):
     """Autocorrelation plots for MCMC samples."""
@@ -95,51 +94,16 @@ def plot_pair(samples):
     plt.close()
     print("Pair plot saved as 'pair_plot.png'")
 
-def compare_with_observed(truth_data, pre_mcmc_target_data, mcmc_metrics):
-    """Compare observed, initial, and MCMC metrics."""
-    # Extract metrics
-    observed_thrust = truth_data["thrust"][0]
-    initial_thrust = pre_mcmc_target_data["thrust"][0]
-    mcmc_thrust = mcmc_metrics["thrust"]
-
-    observed_discharge = truth_data["discharge_current"][0]
-    initial_discharge = pre_mcmc_target_data["discharge_current"][0]
-    mcmc_discharge = mcmc_metrics["discharge_current"]
-
-    # Compare thrust
-    plt.figure(figsize=(8, 6))
-    labels = ["Observed", "Initial", "MCMC"]
-    thrust_values = [observed_thrust, initial_thrust, mcmc_thrust]
-    plt.bar(labels, thrust_values, color=["red", "green", "blue"], alpha=0.7, edgecolor="black")
-    plt.ylabel("Thrust (N)")
-    plt.title("Thrust Comparison")
-    plt.tight_layout()
-    plt.savefig(os.path.join(PLOTS_DIR, "thrust_comparison.png"))
-    plt.close()
-    print("Thrust comparison saved as 'thrust_comparison.png'")
-
-    # Compare discharge current
-    plt.figure(figsize=(8, 6))
-    discharge_values = [observed_discharge, initial_discharge, mcmc_discharge]
-    plt.bar(labels, discharge_values, color=["red", "green", "blue"], alpha=0.7, edgecolor="black")
-    plt.ylabel("Discharge Current (A)")
-    plt.title("Discharge Current Comparison")
-    plt.tight_layout()
-    plt.savefig(os.path.join(PLOTS_DIR, "discharge_comparison.png"))
-    plt.close()
-    print("Discharge current comparison saved as 'discharge_comparison.png'")
-
 # Main function
 def main():
     # Load data
-    samples, truth_data, pre_mcmc_target_data, initial_params, mcmc_metrics = load_data()
+    samples, truth_data, pre_mcmc_target_data, initial_params = load_data()
 
     # Generate plots
     plot_autocorrelation(samples)
     plot_trace(samples)
     plot_posterior(samples)
     plot_pair(samples)
-    compare_with_observed(truth_data, pre_mcmc_target_data, mcmc_metrics)
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ import os
 import numpy as np
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from neldermead.mcmc_utils import save_checkpoint, load_checkpoint, save_metadata
-from neldermead.map_nelder_mead import create_specific_config  # Import specific config function
+from neldermead.map_nelder_mead import create_config  # Import  config function
 
 
 def resume_from_checkpoint(
@@ -16,7 +16,7 @@ def resume_from_checkpoint(
     config=None
 ):
     """
-    Resume MCMC from a saved checkpoint and save results, metadata, and final sampling.
+    Resume ( draft ) MCMC from a saved checkpoint and save results, metadata, and final sampling.
 
     Parameters:
         logpdf: Callable

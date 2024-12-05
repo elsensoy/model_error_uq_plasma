@@ -281,7 +281,8 @@ def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=T
 #old version changed in greatlakesuser
 def prior_logpdf(v1_log, alpha_log):
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
-    prior2 = norm.logpdf(alpha_log, loc=np.log10(1/16), scale=np.sqrt(2))
+    prior2 = 0  # log(1) for a uniform distribution in valid range
+    
     return prior1 + prior2
 
 
@@ -493,14 +494,14 @@ def save_iteration_metrics(metrics, v_log, iteration, filename):
         "metrics": metrics  # add the metrics for this iteration
     }
 
-    # load existing data, or initialize an empty list if the file doesn't exist or is empty
+    # load existing data
     try:
         with open(filename, 'r') as f:
             data = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         data = []
 
-    # check for duplicates (if duplicate iterations present this occurs especially in the first couple of iterations i am not sure what caused it but this snippet might not be needed now) 
+    # check for duplicates (if duplicate iterations present this occurs especially in the first couple of iterations i am not sure what caused it but this snippet might not be needed for now) 
     for i, entry in enumerate(data):
         if entry["iteration"] == iteration:
             # Overwrite the existing entry for this iteration
@@ -534,7 +535,7 @@ def main():
 
         # Step 2:the best initial guess by running the simulation for each initial guess and selecting the best one
         print("Running simulations with multiple initial guesses...")
-        initial_guesses = [[-2, 0.5], [-3, 0.6], [-1, 0.7]]
+        initial_guesses = [[-2, 0.5]]
         best_initial_result = None
         best_v1, best_v2 = None, None
         lowest_loss = None
@@ -553,7 +554,7 @@ def main():
                 save_every_n_grid_points=10
             )
 
-            # we compute the loss (negative log-posterior) for the initial guess
+            # compute the loss (negative log-posterior) for the initial guess
             current_loss = compute_neg_log_posterior([np.log(v1_initial), np.log(alpha_initial)], ground_truth_data, config_spt_100, ion_velocity_weight)
             print(f"Initial guess {idx + 1}: v1 = {v1_initial}, v2 = {v2_initial}, loss = {current_loss:.6f}")
 
