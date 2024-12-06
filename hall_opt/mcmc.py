@@ -7,7 +7,7 @@ from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
 from hall_opt.mcmc_utils import load_json_data, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, create_specific_config, get_next_results_dir
-#export PYTHONPATH=/home/elidasensoy/hall-project
+#export PYTHONPATH=/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma
 results_dir = get_next_results_dir(base_dir="results", base_name="mcmc-results")
 
 # Path to results directory
@@ -131,7 +131,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, res
     """
     setup_logger()
     initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.3, 0], [0, 0.03]])
+    initial_cov = np.array([[0.2, 0], [0, 0.02]])
     logging.debug(f"Initial covariance matrix:\n{initial_cov}")
 
     sampler = DelayedRejectionAdaptiveMetropolis(
