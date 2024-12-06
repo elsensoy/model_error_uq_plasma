@@ -46,13 +46,7 @@ Once the dependencies are installed, you can run the main simulation script.
     pdm run python mcmc.py
 
 # The script include the following tasks:
-Simulates the Hall Thruster using MultiLogBohm.
-Optimizes parameters using MAP for TwoZoneBohm.
-Saves results for different ion velocity weights.
-
-Ion velocity weight is set by default: 
-    ion_velocity_weights = [2.0]
-
+MCMC sampling to estimate parameters for the TwoZoneBohm model using initial guesses from an optimizated initial state(nelder mead result for ion velocity =[2.0]) and multilogbohm model as ground truth. The main steps involve setting up configurations, defining prior and likelihood functions, running MCMC sampling with checkpointing, and saving results along with metadata.
 # Expected Outputs
 Results are saved in results/mcmc-results/ directories in JSON format. Key outputs include:
 Ground Truth Data: Results from the initial MultiLogBohm simulation.(mcmc_observed_data_map.json)
