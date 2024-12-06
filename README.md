@@ -55,10 +55,15 @@ Ion velocity weight is set by default:
 
 # Expected Outputs
 Results are saved in results/mcmc-results/ directories in JSON format. Key outputs include:
-Ground Truth Data: Results from the initial MultiLogBohm simulation.
+Ground Truth Data: Results from the initial MultiLogBohm simulation.(mcmc_observed_data_map.json)
 Optimized Parameters: Best-fit parameters from MAP estimation.
+(mcmc_pre_mcmc_initial.json)
 Performance Metrics: Metrics like thrust, ion velocity, and discharge current.
-
+iteration_metrics/iteration_1_metrics.json, iteration_2_metrics.json...
+Checkpoint file: Includes every 10th sample results. Generated for tracking the results and for resuming MCMC if needed. 
+checkpoint_1.csv
+Final results: Includes simulation parameter values (c1, c2) for the mcmc chain. final_samples_1.csv
+Metadata: Post-processing information for each run: Optimized initial point(map results), timestamp, initial covariance scaling, number of iterations, final acceptance rate, results directories, and additional model configuration information.
 ## Step 4: Visualizing Results
 To visualize the results, you can use the plotting scripts in mcmc-plot-files. For example, you can generate trace plots by running:
     pdm run python visualization.py
