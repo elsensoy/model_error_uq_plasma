@@ -3,60 +3,12 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
-# Helper function to check file existence
-def check_file_exists(file_path):
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-# Paths
-base_results_dir = os.path.join("..", "mcmc-results-12-3-24")
-plots_dir = os.path.join(base_results_dir, "plots-12-3-24")
-metrics_dir = os.path.join(base_results_dir, "iteration_metrics")
-os.makedirs(plots_dir, exist_ok=True)
-
-# Load Data
-def load_data():
-    """Loads MCMC samples, truth data, initial parameter guess, and metrics."""
-    samples_path = os.path.join(base_results_dir, "final_mcmc_samples_12_3_w_2.0_2.csv")
-    truth_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_observed_data_map.json")
-    pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_initial_mcmc.json")
-    initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-
-    # Check paths
-    for path in [samples_path, truth_data_path, pre_mcmc_data_path, initial_params_path]:
-        check_file_exists(path)
-
-    # Load data
-    samples = pd.read_csv(samples_path, header=None, names=["log_v1", "log_alpha"])
-    samples["v1"] = 10 ** samples["log_v1"]
-    samples["alpha"] = 10 ** samples["log_alpha"]
-    samples["v2"] = samples["v1"] * samples["alpha"]
-
-    with open(truth_data_path, 'r') as f:
-        truth_data = json.load(f)
-
-    with open(pre_mcmc_data_path, 'r') as f:
-        pre_mcmc_target_data = json.load(f)
-
-    with open(initial_params_path, 'r') as f:
-        initial_params = json.load(f)
-
-    return samples, truth_data, pre_mcmc_target_data, initial_params
-
-# Load Metrics from JSON Files
-def load_iteration_metrics(metrics_dir):
-    """Load all metrics from individual iteration JSON files."""
-    metrics = []
-    for file in sorted(os.listdir(metrics_dir)):
-        if file.endswith(".json"):
-            with open(os.path.join(metrics_dir, file), 'r') as f:
-                metrics.append(json.load(f))
-    return metrics
+from common_setup import load_data, get_common_paths, load_iteration_metrics
 
 # Load data
 samples, truth_data, pre_mcmc_data, initial_params = load_data()
-iteration_metrics = load_iteration_metrics(metrics_dir)
+iteration_metrics = load_iteration_metrics()
+paths = get_common_paths()
 
 # Verify Observed and Initial Data
 observed_thrust = truth_data["thrust"][0]

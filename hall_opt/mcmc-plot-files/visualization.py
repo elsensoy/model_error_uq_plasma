@@ -5,44 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import arviz as az
+from common_setup import load_data, get_common_paths, load_iteration_metrics
 
-# Paths
-base_results_dir = "../home/elidasensoy/hall-project/mcmc-results-4"
-samples_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/final_samples_1.csv")
-truth_data_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/mcmc_observed_data_map.json")
-pre_mcmc_data_path = os.path.join(base_results_dir, "/home/elidasensoy/hall-project/mcmc-results-4/mcmc_pre_mcmc_initial.json")
-initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-# metrics_path = os.path.join(base_results_dir, "mcmc_metrics_3.json")
-PLOTS_DIR = "/home/elidasensoy/hall-project/mcmc-results-4/plots-4"
-os.makedirs(PLOTS_DIR, exist_ok=True)
+# Load data
+samples, truth_data, pre_mcmc_data, initial_params = load_data()
+iteration_metrics = load_iteration_metrics()
+paths = get_common_paths()
 
-# Load Data
-def load_data():
-   
-    # Load MCMC samples
-    samples = pd.read_csv(samples_path, header=None)
-    samples.columns = ["log_v1", "log_alpha"]
-    samples["v1"] = 10 ** samples["log_v1"]
-    samples["alpha"] = 10 ** samples["log_alpha"]
-    samples["v2"] = samples["v1"] * samples["alpha"]
-
-    # Load observed truth data
-    with open(truth_data_path, 'r') as f:
-        truth_data = json.load(f)
-
-    # Load pre-MCMC initial simulation data
-    with open(pre_mcmc_data_path, 'r') as f:
-        pre_mcmc_target_data = json.load(f)
-
-    # Load initial parameters
-    with open(initial_params_path, 'r') as f:
-        initial_params = json.load(f)
-
-    # # Load final MCMC metrics
-    # with open(metrics_path, 'r') as f:
-    #     mcmc_metrics = json.load(f)
-
-    return samples, truth_data, pre_mcmc_target_data, initial_params
 
 def plot_autocorrelation(samples):
     """Autocorrelation plots for MCMC samples."""
