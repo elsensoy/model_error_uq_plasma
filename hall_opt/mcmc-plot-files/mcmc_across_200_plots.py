@@ -3,22 +3,7 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from common_setup import load_data, get_common_paths
-
-# Load data
-samples, truth_data, pre_mcmc_data, initial_params, metrics = load_data()
-paths = get_common_paths()
-
-
-# Verify Observed and Initial Data
-observed_thrust = truth_data["thrust"][0]
-initial_thrust = pre_mcmc_data["thrust"][0]
-observed_discharge_current = truth_data["discharge_current"][0]
-initial_discharge_current = pre_mcmc_data["discharge_current"][0]
-observed_ion_velocity = truth_data["ion_velocity"][0]
-initial_ion_velocity = pre_mcmc_data["ion_velocity"][0]
-z_normalized = truth_data["z_normalized"]
-
+ 
 # Extract metrics for plots
 thrust_values = [metric["thrust"][0] for metric in iteration_metrics]
 discharge_values = [metric["discharge_current"][0] for metric in iteration_metrics]
@@ -29,6 +14,7 @@ mean_thrust = np.mean(thrust_values)
 last_thrust = thrust_values[-1]
 mean_discharge = np.mean(discharge_values)
 last_discharge = discharge_values[-1]
+
 
 # 1. Histogram: Thrust Predictions
 plt.figure(figsize=(10, 6))

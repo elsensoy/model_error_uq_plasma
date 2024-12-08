@@ -3,8 +3,8 @@ import pandas as pd
 import json
 
 # Paths
-base_results_dir = os.path.join("..", "mcmc-results-12-4-24")
-plots_dir = os.path.join(base_results_dir, "plots-12-4-24")
+base_results_dir = os.path.join("..", "results/mcmc-results-1")
+plots_dir = os.path.join(base_results_dir, "plots-mcmc-1")
 metrics_dir = os.path.join(base_results_dir, "iteration_metrics")
 os.makedirs(plots_dir, exist_ok=True)
 
@@ -17,10 +17,10 @@ def check_file_exists(file_path):
 def load_data(base_results_dir=base_results_dir):
     """Loads MCMC samples, truth data, and initial parameter guess."""
     # File paths
-    samples_path = os.path.join(base_results_dir, "final_mcmc_samples_12_3_w_2.0_1.csv")
-    truth_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_observed_data_map.json")
-    pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_initial_mcmc.json")
-    initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
+    samples_path = os.path.join(base_results_dir, "final_samples_1.csv")
+    truth_data_path = os.path.join(base_results_dir, "mcmc_observed_data_map.json")
+    pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_pre_mcmc_initial.json")
+    initial_params_path = os.path.join("..", "results/best_initial_guess_w_2_0.json")
 
     # Check paths
     for path in [samples_path, truth_data_path, pre_mcmc_data_path, initial_params_path]:
@@ -53,3 +53,10 @@ def load_iteration_metrics(metrics_dir=metrics_dir):
             with open(os.path.join(metrics_dir, file), 'r') as f:
                 metrics.append(json.load(f))
     return metrics
+
+def get_common_paths():
+    return {
+        "base_results_dir": base_results_dir, 
+        "plots_dir": plots_dir,
+        "metrics_dir": metrics_dir,
+    }

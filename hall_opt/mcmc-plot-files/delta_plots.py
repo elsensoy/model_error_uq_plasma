@@ -9,6 +9,7 @@ from common_setup import load_data, get_common_paths, load_iteration_metrics
 samples, truth_data, pre_mcmc_data, initial_params = load_data()
 iteration_metrics = load_iteration_metrics()
 paths = get_common_paths()
+plots_dir = paths["plots_dir"]
 
 # Verify Observed and Initial Data
 observed_thrust = truth_data["thrust"][0]

@@ -3,69 +3,24 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from common_setup import load_data, get_common_paths, load_iteration_metrics
 
+ 
+ # Load data
+samples, truth_data, pre_mcmc_data, initial_params = load_data()
+iteration_metrics = load_iteration_metrics()
+paths = get_common_paths()
+plots_dir = paths["plots_dir"]
 
-# Helper function to check file existence
-def check_file_exists(file_path):
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-
-# Paths
-base_results_dir = os.path.join("..", "mcmc-results-1")
-plots_dir = os.path.join(base_results_dir, "plots-1")
-os.makedirs(plots_dir, exist_ok=True)
-
-
-def load_data():
-    """Loads MCMC samples, truth data, initial parameter guess, and metrics."""
-    # Paths
-    samples_path = os.path.join(base_results_dir, "final_samples_1.csv")
-    truth_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_observed_data_map.json")
-    pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_w_2.0_initial_mcmc.json")
-    initial_params_path = os.path.join("..", "results-Nelder-Mead", "best_initial_guess_w_2_0.json")
-    metrics_path = os.path.join(base_results_dir, "iteration_metrics.json")
-
-    # Check paths
-    for path in [samples_path, truth_data_path, pre_mcmc_data_path, initial_params_path, metrics_path]:
-        check_file_exists(path)
-
-    # Load data
-    samples = pd.read_csv(samples_path, header=None, names=["log_v1", "log_alpha"])
-    samples["v1"] = 10 ** samples["log_v1"]
-    samples["alpha"] = 10 ** samples["log_alpha"]
-    samples["v2"] = samples["v1"] * samples["alpha"]
-
-    with open(truth_data_path, 'r') as f:
-        truth_data = json.load(f)
-
-    with open(pre_mcmc_data_path, 'r') as f:
-        pre_mcmc_target_data = json.load(f)
-
-    with open(initial_params_path, 'r') as f:
-        initial_params = json.load(f)
-
-    with open(metrics_path, 'r') as f:
-        mcmc_metrics = json.load(f)
-
-    return samples, truth_data, pre_mcmc_target_data, initial_params, mcmc_metrics
-
-
-# Load data
-samples, truth_data, pre_mcmc_data, initial_params, mcmc_metrics = load_data()
-
-# Extract relevant data
+# Verify Observed and Initial Data
 observed_thrust = truth_data["thrust"][0]
 initial_thrust = pre_mcmc_data["thrust"][0]
-mcmc_thrust = mcmc_metrics["thrust"][0]
-
 observed_discharge_current = truth_data["discharge_current"][0]
 initial_discharge_current = pre_mcmc_data["discharge_current"][0]
-mcmc_discharge_current = mcmc_metrics["discharge_current"][0]
-
-z_normalized = truth_data["z_normalized"]
 observed_ion_velocity = truth_data["ion_velocity"][0]
 initial_ion_velocity = pre_mcmc_data["ion_velocity"][0]
+z_normalized = truth_data["z_normalized"]
+
 #Ensure mcmc_ion_velocity is a 1D array
 mcmc_ion_velocity = np.array(mcmc_metrics["ion_velocity"]).flatten()
 
