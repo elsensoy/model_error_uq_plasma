@@ -27,7 +27,7 @@ def plot_autocorrelation(samples):
     axes[1].set_title("Autocorrelation for log(alpha)")
 
     plt.tight_layout()
-    plt.savefig(os.path.join(PLOTS_DIR, "autocorrelation_plots.png"))
+    plt.savefig(os.path.join(plots_dir, "autocorrelation_plots.png"))
     plt.close(fig)
     print("Autocorrelation plots saved as 'autocorrelation_plots.png'")
 
@@ -44,7 +44,7 @@ def plot_trace(samples):
 
     plt.xlabel("Iteration")
     plt.tight_layout()
-    plt.savefig(os.path.join(PLOTS_DIR, "trace_plots.png"))
+    plt.savefig(os.path.join(plots_dir, "trace_plots.png"))
     plt.close(fig)
     print("Trace plots saved as 'trace_plots.png'")
 
@@ -52,7 +52,7 @@ def plot_posterior(samples):
     """Posterior marginal distributions."""
     posterior = az.from_dict(posterior={"log_v1": samples["log_v1"], "log_alpha": samples["log_alpha"]})
     az.plot_posterior(posterior)
-    plt.savefig(os.path.join(PLOTS_DIR, "posterior_marginals.png"))
+    plt.savefig(os.path.join(plots_dir, "posterior_marginals.png"))
     plt.close()
     print("Posterior marginals saved as 'posterior_marginals.png'")
 
@@ -60,7 +60,7 @@ def plot_pair(samples):
     """Pair plot for joint distributions."""
     sns.pairplot(samples[["log_v1", "log_alpha"]], kind="scatter", diag_kind="kde", corner=True)
     plt.tight_layout()
-    plt.savefig(os.path.join(PLOTS_DIR, "pair_plot.png"))
+    plt.savefig(os.path.join(plots_dir, "pair_plot.png"))
     plt.close()
     print("Pair plot saved as 'pair_plot.png'")
 

@@ -5,8 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from common_setup import load_data, get_common_paths, load_iteration_metrics
 
- 
- # Load data
+# Load data
 samples, truth_data, pre_mcmc_data, initial_params = load_data()
 iteration_metrics = load_iteration_metrics()
 paths = get_common_paths()
@@ -21,7 +20,17 @@ observed_ion_velocity = truth_data["ion_velocity"][0]
 initial_ion_velocity = pre_mcmc_data["ion_velocity"][0]
 z_normalized = truth_data["z_normalized"]
 
- 
+# Extract metrics for plots
+thrust_values = [metric["thrust"][0] for metric in iteration_metrics]
+discharge_values = [metric["discharge_current"][0] for metric in iteration_metrics]
+ion_velocity_values = [metric["ion_velocity"][0] for metric in iteration_metrics]
+
+# Compute means and last sample values
+mean_thrust = np.mean(thrust_values)
+last_thrust = thrust_values[-1]
+mean_discharge = np.mean(discharge_values)
+last_discharge = discharge_values[-1]
+
 # 1. Histogram: Thrust Predictions
 plt.figure(figsize=(10, 6))
 plt.hist(thrust_values, bins=30, alpha=0.7, color="blue", label="MCMC Thrust Predictions")
