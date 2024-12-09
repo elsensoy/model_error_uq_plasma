@@ -151,48 +151,48 @@ plot_mcmc_delta_bar_chart(
     save_path=os.path.join(plots_dir, "discharge_current_delta_bar_chart.png")
 )
 
-def plot_initial_delta(z_normalized, observed_ion_velocity, initial_ion_velocity, save_path):
-    """
-    Plot the delta (difference from observed ion velocity) for the initial guess.
-    """
-    plt.figure(figsize=(12, 8))
+# def plot_initial_delta(z_normalized, observed_ion_velocity, initial_ion_velocity, save_path):
+#     """
+#     Plot the delta (difference from observed ion velocity) for the initial guess.
+#     """
+#     plt.figure(figsize=(12, 8))
 
-    # Convert lists to numpy arrays
-    z_normalized = np.array(z_normalized)
-    observed_ion_velocity = np.array(observed_ion_velocity)
-    initial_ion_velocity = np.array(initial_ion_velocity)
+#     # Convert lists to numpy arrays
+#     z_normalized = np.array(z_normalized)
+#     observed_ion_velocity = np.array(observed_ion_velocity)
+#     initial_ion_velocity = np.array(initial_ion_velocity)
 
-    # Calculate initial delta
-    initial_delta = initial_ion_velocity - observed_ion_velocity
+#     # Calculate initial delta
+#     initial_delta = initial_ion_velocity - observed_ion_velocity
 
-    # Plot initial delta
-    plt.plot(z_normalized, initial_delta, linestyle="--", color="gray", linewidth=2, label="Initial Delta")
-    plt.scatter(z_normalized, initial_delta, color="gray", s=50, label="Initial Data Points")
+#     # Plot initial delta
+#     plt.plot(z_normalized, initial_delta, linestyle="--", color="gray", linewidth=2, label="Initial Delta")
+#     plt.scatter(z_normalized, initial_delta, color="gray", s=50, label="Initial Data Points")
 
-    # Observed baseline
-    plt.axhline(0, color="black", linestyle="--", linewidth=1.5, label="Observed Baseline")
+#     # Observed baseline
+#     plt.axhline(0, color="black", linestyle="--", linewidth=1.5, label="Observed Baseline")
 
-    plt.title("Ion Velocity Initial Delta", fontsize=14)
-    plt.xlabel("Normalized z", fontsize=12)
-    plt.ylabel("Delta (Ion Velocity, m/s)", fontsize=12)
-    plt.grid(True, linestyle=":", linewidth=0.7)
-    plt.legend(fontsize=10, loc="upper right")
-    plt.tight_layout()
+#     plt.title("Ion Velocity Initial Delta", fontsize=14)
+#     plt.xlabel("Normalized z", fontsize=12)
+#     plt.ylabel("Delta (Ion Velocity, m/s)", fontsize=12)
+#     plt.grid(True, linestyle=":", linewidth=0.7)
+#     plt.legend(fontsize=10, loc="upper right")
+#     plt.tight_layout()
 
-    # Ensure save directory exists
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+#     # Ensure save directory exists
+#     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-    # Save the plot
-    plt.savefig(save_path, format='png')
-    plt.close()
-    print(f"Initial delta plot saved: {save_path}")
+#     # Save the plot
+#     plt.savefig(save_path, format='png')
+#     plt.close()
+#     print(f"Initial delta plot saved: {save_path}")
 
-plot_initial_delta(
-    z_normalized,
-    observed_ion_velocity,
-    initial_ion_velocity,
-    save_path=os.path.join(plots_dir, "initial_delta_plot.png")
-)
+# plot_initial_delta(
+#     z_normalized,
+#     observed_ion_velocity,
+#     initial_ion_velocity,
+#     save_path=os.path.join(plots_dir, "initial_delta_plot.png")
+# )
 def plot_ion_velocity_with_last_values(
     z_normalized, observed_ion_velocity, initial_ion_velocity, ion_velocity_values, save_path
 ):

@@ -3,8 +3,8 @@ import subprocess
 
 plot_scripts = [
     "visualization.py",
-    "delta_plots.py",
-    "plot_mcmc_across_200_plots.py"
+    #"delta_plots.py",
+    "mcmc_across_200_plots.py"
 ]
 
 

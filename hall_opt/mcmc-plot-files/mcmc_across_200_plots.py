@@ -33,19 +33,28 @@ mean_discharge = np.mean(discharge_values)
 last_discharge = discharge_values[-1]
 
 
-# 1. Histogram: Thrust Predictions
+# Histogram: Thrust Predictions
 plt.figure(figsize=(10, 6))
 plt.hist(thrust_values, bins=30, alpha=0.7, color="blue", label="MCMC Thrust Predictions")
+# Add observed thrust line
 plt.axvline(observed_thrust, color="red", linestyle="--", label=f"Observed: {observed_thrust:.3f}")
+# Add initial thrust line
 plt.axvline(initial_thrust, color="green", linestyle="--", label=f"Initial: {initial_thrust:.3f}")
+# Add final (last sample) thrust line
 plt.axvline(last_thrust, color="orange", linestyle="--", label=f"Final (Last Sample): {last_thrust:.3f}")
+# Add mean thrust line
+plt.axvline(mean_thrust, color="purple", linestyle="--", label=f"Mean: {mean_thrust:.3f}")
+
+# Customize the plot
 plt.xlabel("Thrust (N)")
 plt.ylabel("Frequency")
 plt.title("Thrust Predictions Histogram")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(os.path.join(plots_dir, "thrust_histogram.png"))
+
+# Save and display the plot
+plt.savefig(os.path.join(plots_dir, "thrust_histogram_200.png"))
 plt.show()
 
 # 2. Histogram: Discharge Current Predictions
@@ -54,6 +63,9 @@ plt.hist(discharge_values, bins=30, alpha=0.7, color="purple", label="MCMC Disch
 plt.axvline(observed_discharge_current, color="red", linestyle="--", label=f"Observed: {observed_discharge_current:.2f}")
 plt.axvline(initial_discharge_current, color="green", linestyle="--", label=f"Initial: {initial_discharge_current:.2f}")
 plt.axvline(last_discharge, color="orange", linestyle="--", label=f"Final (Last MCMC): {last_discharge:.2f}")
+# Add mean discharge line
+plt.axvline(mean_discharge, color="purple", linestyle="--", label=f"Mean: {mean_discharge:.3f}")
+
 plt.xlabel("Discharge Current (A)")
 plt.ylabel("Frequency")
 plt.title("Discharge Current Predictions Histogram")
@@ -92,7 +104,7 @@ plt.text(last_z, observed_ion_velocity[-1] + 200, f"{observed_ion_velocity[-1]:.
 plt.text(first_z, initial_ion_velocity[0] + 500, f"{initial_ion_velocity[0]:.2f}", color="green", fontsize=8)
 plt.text(last_z, initial_ion_velocity[-1] + 500, f"{initial_ion_velocity[-1]:.2f}", color="green", fontsize=8)
 
-# Annotate mean ion velocity
+# Annotate last ion velocity
 plt.text(last_z, mean_ion_velocity[-1] - 500, f"{mean_ion_velocity[-1]:.2f}", color="orange", fontsize=8)
 
 # Add labels, title, and legend
