@@ -5,18 +5,16 @@ import logging
 from scipy.stats import norm
 from datetime import datetime
 import sys
-from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm,  run_simulation, run_multilogbohm_simulation
-from hall_opt.mcmc_utils import load_json_data, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, create_specific_config, get_next_results_dir
+from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis 
+from utils.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm, run_simulation, run_multilogbohm_simulation
+from utils.mcmc_utils import load_json_data, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, create_specific_config, get_next_results_dir
 
 #check working dir :pdm run python -c "import os; print(os.getcwd())"
-# if mcmc iterators module not found:run sampler_path_check.py
+# if mcmciterators module not found:run sampler_path_check.py
 
 results_dir = get_next_results_dir(base_dir="results", base_name="mcmc-results")
-# Path to results directory
-RESULTS_NELDERMEAD = os.path.join("results")
-
-initial_guess_path = os.path.join(RESULTS_NELDERMEAD, "best_initial_guess_w_2_0.json")
+path_dir = os.path.abspath(os.path.join("..", "hall_opt/results"))
+initial_guess_path = os.path.join(path_dir, "best_initial_guess_w_2_0.json")
 
 # -----------------------------
 # 1.TwoZoneBohm Configuration
@@ -42,14 +40,11 @@ def prior_logpdf(v1_log, alpha_log):
     
     return prior1 + prior2
 
-
-
-
 def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=2.0):
     """Compute the log-likelihood of the observed data given the simulated data."""
     log_likelihood_value = 0
 
-    # DEBUG:Check the keys in the simulated and observed data
+    #DEBUG:Check the keys in the simulated and observed data
     # print("Keys in simulated_data:", simulated_data.keys())
     # print("Keys in observed_data:", observed_data.keys())
 
@@ -129,12 +124,11 @@ def setup_logger():
         ]
     )
 
-
 def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, results_dir=results_dir):
 
     setup_logger()
     initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[0.2, 0], [0, 0.02]])
+    initial_cov = np.array([[3.56995, 0], [0, 0.356995]]) #covariance scaled down 
     logging.debug(f"Initial covariance matrix:\n{initial_cov}")
 
     # Initialize DRAM sampler
@@ -173,7 +167,7 @@ def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, res
             logging.debug(f"Transformed parameters: v1={v1}, v2={v2}")
 
             # Run the simulation
-            simulation_result = hallthruster_jl_wrapper(v1, v2, config_multilogbohm)
+            simulation_result = hallthruster_jl_wrapper(v1, v2, config_spt_100)
             if simulation_result is not None:
                 metrics_filename = f"iteration_{iteration + 1}_metrics.json"
                 save_results_to_json(simulation_result, metrics_filename, directory=metrics_dir)
@@ -262,7 +256,45 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     }
     
     save_metadata(metadata, filename=os.path.join(results_dir, f"mcmc_metadata.json"))
-# Main function
+
+
+# def main():
+#     # Resolve paths relative to the current script
+#     paths = resolve_results_paths(__file__)
+    
+#     # Load each file separately
+#     # 1. Load initial metrics
+#     initial_metrics_result = load_json_data(paths["initial_metrics_result"])
+#     if initial_metrics_result is None:
+#         raise FileNotFoundError(f"Failed to load initial metrics data from {paths['initial_metrics_result']}")
+#     print(f"Initial metrics loaded: {initial_metrics_result.keys()}")
+
+#     # 2. Load observed data
+#     observed_data = load_json_data(paths["observed_data_file"])
+#     if observed_data is None:
+#         raise FileNotFoundError(f"Failed to load observed data from {paths['observed_data_file']}")
+#     print(f"Observed data loaded: {observed_data.keys()}")
+
+#     # 3. Load optimized parameters
+#     v1_opt, v2_opt = load_optimized_params(paths["initial_guess_path"])
+#     if v1_opt is None or v2_opt is None:
+#         raise FileNotFoundError(f"Failed to load initial guess parameters from {paths['initial_guess_path']}")
+#     print(f"Loaded optimized parameters: v1={v1_opt}, v2={v2_opt}")
+
+#     # Proceed with MCMC sampling
+#     print("Starting MCMC sampling...")
+#     run_mcmc_with_optimized_params(
+#         json_path=paths["initial_guess_path"],
+#         observed_data=observed_data,
+#         config=config_spt_100,
+#         ion_velocity_weight=2.0,
+#         iterations=200
+#     )
+
+# if __name__ == "__main__":
+#     main()
+
+
 def main():
     # Load the initial guess parameters from the JSON file
     # results_dir = get_next_results_dir(base_dir="..", base_name="mcmc-results")
@@ -285,15 +317,6 @@ def main():
 
     
     observed_data = ground_truth_data  # Using the result directly
-	# Load the observed data from the existing JSON file
-	#observed_data_file = "/home/elidasensoy/hall-project/results-Nelder-Mead/nm_w_2.0_observed_data_map.json"
-	#observed_data = load_json_data(observed_data_file)
-
-	
-	# if observed_data is None:
-	# raise FileNotFoundError(f"Failed to load observed data from {observed_data_file}")
-	#print("Observed data loaded successfully!")
-    # Run MCMC with the initial guess as the starting point
     print("Starting MCMC sampling...")
     run_mcmc_with_optimized_params(
         json_path=initial_guess_path,
@@ -305,10 +328,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
 
 

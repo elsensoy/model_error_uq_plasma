@@ -3,8 +3,8 @@ import pandas as pd
 import json
 
 # Paths
-base_results_dir = os.path.join("..", "results/mcmc-results-2")
-plots_dir = os.path.join(base_results_dir, "plots-mcmc-2")
+base_results_dir = os.path.join("..", "results/mcmc-results-11") #Update is required for each sampling.
+plots_dir = os.path.join(base_results_dir, "plots-mcmc-11") #Will create a new dir that includes mcmc plots. Update is required after sampling.
 metrics_dir = os.path.join(base_results_dir, "iteration_metrics")
 os.makedirs(plots_dir, exist_ok=True)
 
@@ -17,9 +17,9 @@ def check_file_exists(file_path):
 def load_data(base_results_dir=base_results_dir):
     """Loads MCMC samples, truth data, and initial parameter guess."""
     # File paths
-    samples_path = os.path.join(base_results_dir, "checkpoint_1.csv")
-    truth_data_path = os.path.join(base_results_dir, "mcmc_observed_data_map.json")
-    pre_mcmc_data_path = os.path.join(base_results_dir, "mcmc_pre_mcmc_initial.json")
+    samples_path = os.path.join(base_results_dir, "final_samples_1.csv") #no need to change
+    truth_data_path = os.path.join("..", "results/mcmc_observed_data_map.json")
+    pre_mcmc_data_path = os.path.join("..", "results/mcmc_pre_mcmc_initial.json")
     initial_params_path = os.path.join("..", "results/best_initial_guess_w_2_0.json")
 
     # Check paths

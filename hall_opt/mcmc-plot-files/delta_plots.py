@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from common_setup import load_data, get_common_paths, load_iteration_metrics
+from utils.common_setup import load_data, get_common_paths, load_iteration_metrics
 
 # Load data
 samples, truth_data, pre_mcmc_data, initial_params = load_data()

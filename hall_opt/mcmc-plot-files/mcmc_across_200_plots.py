@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 #source ~/.venvs/pdm/bin/activate
-from common_setup import load_data, get_common_paths, load_iteration_metrics
+from utils.common_setup import load_data, get_common_paths, load_iteration_metrics
 
 # Load data
 samples, truth_data, pre_mcmc_data, initial_params = load_data()
@@ -88,7 +88,7 @@ plt.plot(z_normalized, mean_ion_velocity, color="orange", linestyle="--", linewi
          label=f"Ion Velocity MCMC (Mean): {np.mean(mean_ion_velocity):.2f}")
 
 # Observed Ion Velocity
-plt.plot(z_normalized, observed_ion_velocity, color="maroon", linewidth=2, 
+plt.plot(z_normalized, observed_ion_velocity, color="red", linewidth=1, 
          label=f"Observed Ion Velocity (Mean: {np.mean(observed_ion_velocity):.2f})")
 plt.scatter(z_normalized, observed_ion_velocity, color="red", label="Observed Data")
 

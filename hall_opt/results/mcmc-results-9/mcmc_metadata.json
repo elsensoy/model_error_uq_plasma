@@ -1,0 +1,42 @@
+{
+    "timestamp": "2024-12-09T16:41:56.683090",
+    "initial_guess": {
+        "v1": 2.0124301397620146,
+        "v2": 2.0028894367014445
+    },
+    "initial_cov": [
+        [
+            0.15,
+            0.0
+        ],
+        [
+            0.0,
+            0.015
+        ]
+    ],
+    "v_log_initial": [
+        0.3037208130436473,
+        -0.002063836968121456
+    ],
+    "iterations": 200,
+    "acceptance_rate": 0.08,
+    "ion_velocity_weight": 2.0,
+    "directory": "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc-results-9",
+    "final_samples_file": "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc-results-9/final_mcmc_samples_1.csv",
+    "model": "TwoZoneBohm",
+    "config": {
+        "Thruster Model": "SPT-100 Hall Thruster",
+        "Spatial Resolution and Grid": {
+            "num_cells": 100,
+            "channel_length": 0.025
+        },
+        "Simulation Duration": {
+            "duration_s": 0.001,
+            "num_save": 100
+        },
+        "Anomalous Transport Coefficients": {
+            "description": "Anomalous coefficients c(z) adjust the anomalous collision frequency.",
+            "equation": "\\nu_{AN}(z) = c(z) \\cdot \\omega_{ce}(z)"
+        }
+    }
+}
