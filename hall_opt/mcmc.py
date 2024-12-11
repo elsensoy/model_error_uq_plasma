@@ -17,14 +17,12 @@ results_dir = get_next_results_dir(base_dir="..", base_name="results/mcmc-result
 def prior_logpdf(v1_log, alpha_log):
     # Gaussian prior on log10(c1)
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
-    
+    prior2 = 0  # log(1) for a uniform distribution in valid range
     # Uniform prior on log10(alpha) in [0, 2]
     if alpha_log <= 0 or alpha_log > 2:
         print(f"Invalid prior: log10(alpha)={alpha_log} is out of range [0, 2].")
         return -np.inf  # Reject invalid samples
-    
-    prior2 = 0  # log(1) for a uniform distribution in valid range
-    
+
     return prior1 + prior2
 
 
@@ -81,7 +79,6 @@ def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interva
     setup_logger()
     logging.debug(f"Initial covariance matrix:\n{initial_cov}")
     initial_sample = np.array(initial_sample)
-    #initial_cov = np.array([[0.8, 0], [0, 0.08]]) #covariance scaled down 
     # Initialize DRAM sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf, initial_sample, initial_cov, adapt_start=10, eps=1e-6,
