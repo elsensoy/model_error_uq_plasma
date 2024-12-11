@@ -4,7 +4,6 @@ import json
 import numpy as np
 
 
-# Function to generate the next results directory with an enumerated suffix
 def get_next_results_dir(base_dir="results", base_name="mcmc-results"):
   
     #Generate the next results directory with an enumerated suffix.
@@ -16,7 +15,6 @@ def get_next_results_dir(base_dir="results", base_name="mcmc-results"):
     # 
     base_dir = os.path.abspath(base_dir)  # Convert to an absolute path
     os.makedirs(base_dir, exist_ok=True)  # Ensure the base_dir exists
-
     i = 1
     while True:
         dir_name = os.path.join(base_dir, f"{base_name}-{i}")
@@ -25,6 +23,8 @@ def get_next_results_dir(base_dir="results", base_name="mcmc-results"):
             print(f"Created results directory: {dir_name}")
             return dir_name
         i += 1
+
+
 
 # Load optimized parameters from JSON
 def load_optimized_params(json_path):
@@ -54,11 +54,9 @@ def get_next_filename(base_filename, directory, extension=".csv"):
         full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
     return full_path
 
+
 def save_metadata(metadata, filename="mcmc_metadata.json", directory="results"):
-    """
-    Save metadata to a JSON file in the specified directory.
-    
-    """
+
     os.makedirs(directory, exist_ok=True)  # Ensure the directory exists
     filepath = os.path.join(directory, filename)
     
@@ -105,52 +103,17 @@ def save_results_to_json(result_dict, filename="mcmc_results.json", directory="r
     except Exception as e:
         print(f"Failed to save the results: {e}")
 
-def create_specific_config(config):
-    specific_config = {
-        "Thruster Model": "SPT-100 Hall Thruster",
-        "Spatial Resolution and Grid": {
-            "num_cells": config.get("num_cells", 100),
-            "channel_length": config.get("channel_length", 0.025)
-        },
-        "Simulation Duration": {
-            "duration_s": config.get("duration_s", 1e-3),
-            "num_save": config.get("num_save", 100)
-        },
-        "Anomalous Transport Coefficients": {
-            "description": "Anomalous coefficients c(z) adjust the anomalous collision frequency.",
-            "equation": r"\nu_{AN}(z) = c(z) \cdot \omega_{ce}(z)"
-        }
-    }
-    return specific_config
-
-
-def resolve_results_paths(script_mcmc):
-    """
-    Resolve paths to JSON input files relative to the script directory.
-    Ensures the files exist but does not load their content.
-    """
-    print("Resolving file paths for results processing...")
+def load_mcmc_config(json_path):
     
-    # Resolve the directory containing this script
-    script_dir = os.path.dirname(os.path.abspath(script_mcmc))
-    path_dir = os.path.abspath(os.path.join(script_dir, "..", "hall_opt/results"))
-
-    # Ensure the results directory exists
-    if not os.path.exists(path_dir):
-        raise FileNotFoundError(f"Results directory not found: {path_dir}")
-
-    # Define individual file paths
-    initial_metrics_result = os.path.join(path_dir, "mcmc_pre_mcmc_initial.json")
-    observed_data_file = os.path.join(path_dir, "mcmc_observed_data_map.json")
-    initial_guess_path = os.path.join(path_dir, "best_initial_guess_w_2_0.json")
-
-    # Verify that each file exists
-    for file_path in [initial_metrics_result, observed_data_file, initial_guess_path]:
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Required file not found: {file_path}")
-
-    return {
-        "initial_metrics_result": initial_metrics_result,
-        "observed_data_file": observed_data_file,
-        "initial_guess_path": initial_guess_path
-    }
+    #Load MCMC configuration from a JSON file.
+ 
+    if not os.path.exists(json_path):
+        raise FileNotFoundError(f"Configuration file not found: {json_path}")
+    
+    with open(json_path, 'r') as f:
+        config = json.load(f)
+    
+    # Convert values as needed
+    config["initial_cov"] = np.array(config["initial_cov"])# Convert covariance matrix to numpy array
+    config['results_dir'] = os.path.abspath(config['results_dir'])  # Ensure absolute path for results directory
+    return config

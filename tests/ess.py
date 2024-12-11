@@ -3,8 +3,8 @@ import pandas as pd
 import arviz as az
 import numpy as np
 
-# Define the path to the MCMC samples file
-file_path = os.path.join("..", "results-mcmc", "final_mcmc_samples_w_2.0_16.csv")
+
+file_path = os.path.join("..", "mcmc-results-20", "final_samples_1.csv")
 
 # Load MCMC samples
 mcmc_samples = pd.read_csv(file_path, header=None)

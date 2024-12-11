@@ -1,32 +1,19 @@
 import os
 import json
+import sys
 import numpy as np
 import logging
 from scipy.stats import norm
 from datetime import datetime
-import sys
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis 
-from utils.map_nelder_mead import hallthruster_jl_wrapper, config_multilogbohm, run_simulation, run_multilogbohm_simulation
-from utils.mcmc_utils import load_json_data, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, create_specific_config, get_next_results_dir
+from utils.map_nelder_mead import hallthruster_jl_wrapper, log_likelihood, config_multilogbohm, config_spt_100, run_simulation, run_multilogbohm_simulation
+from utils.mcmc_utils import load_json_data, load_mcmc_config, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, get_next_results_dir
 
-#check working dir :pdm run python -c "import os; print(os.getcwd())"
-# if mcmciterators module not found:run sampler_path_check.py
-
-results_dir = get_next_results_dir(base_dir="results", base_name="mcmc-results")
-path_dir = os.path.abspath(os.path.join("..", "hall_opt/results"))
-initial_guess_path = os.path.join(path_dir, "best_initial_guess_w_2_0.json")
+results_dir = get_next_results_dir(base_dir="..", base_name="results/mcmc-results")
 
 # -----------------------------
-# 1.TwoZoneBohm Configuration
+# 2. Prior and Posterior
 # -----------------------------
-config_spt_100 = config_multilogbohm.copy()
-config_spt_100['anom_model'] = 'TwoZoneBohm'
-
-# -----------------------------
-# 2. Prior and likelihood
-# -----------------------------
-
-# Define log-prior function
 def prior_logpdf(v1_log, alpha_log):
     # Gaussian prior on log10(c1)
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
@@ -39,42 +26,6 @@ def prior_logpdf(v1_log, alpha_log):
     prior2 = 0  # log(1) for a uniform distribution in valid range
     
     return prior1 + prior2
-
-def log_likelihood(simulated_data, observed_data, sigma=0.08, ion_velocity_weight=2.0):
-    """Compute the log-likelihood of the observed data given the simulated data."""
-    log_likelihood_value = 0
-
-    #DEBUG:Check the keys in the simulated and observed data
-    # print("Keys in simulated_data:", simulated_data.keys())
-    # print("Keys in observed_data:", observed_data.keys())
-
-    # Thrust and discharge current are 1D arrays
-    for key in ['thrust', 'discharge_current']:
-        if key in observed_data and key in simulated_data:
-            simulated_metric = np.array(simulated_data[key])
-            observed_metric = np.array(observed_data[key])
-            residual = simulated_metric - observed_metric
-            log_likelihood_value += -0.5 * np.sum((residual / sigma) ** 2)
-        else:
-            print(f"Warning: Key '{key}' not found in data.")
-
-    # ion velocity is 2D (space and time averaged), so we apply a lower weight
-    if "ion_velocity" in observed_data and "ion_velocity" in simulated_data:
-        simulated_ion_velocity = np.array(simulated_data["ion_velocity"])
-        observed_ion_velocity = np.array(observed_data["ion_velocity"])
-
-        # DEBUG: Print the shapes of both arrays
-        # print(f"Shape of simulated_ion_velocity: {simulated_ion_velocity.shape}")
-        # print(f"Shape of observed_ion_velocity: {observed_ion_velocity.shape}")
-        if simulated_ion_velocity.shape == observed_ion_velocity.shape:
-            residual = simulated_ion_velocity - observed_ion_velocity
-            log_likelihood_value += -0.5 * np.sum((residual / (sigma / ion_velocity_weight)) ** 2)
-        else:
-            print("Shapes are not compatible for subtraction.")
-    else:
-        print(f"Warning: Ion velocity data not found in simulation or observed data.")
-
-    return log_likelihood_value
 
 
 def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
@@ -99,11 +50,10 @@ def log_posterior(v_log, observed_data, config, ion_velocity_weight=2.0):
             print(f"Simulation failed for v1: {v1}, v2: {v2}. Setting log-likelihood to 1.")
             return -np.inf
         else:
+            # Compute the log-prior
+            log_prior_value = prior_logpdf(v1_log, alpha_log)
             # Compute log-likelihood normally if the simulation succeeds
             log_likelihood_value = log_likelihood(simulated_data, observed_data, ion_velocity_weight=ion_velocity_weight)
-
-        # Compute the log-prior
-        log_prior_value = prior_logpdf(v1_log, alpha_log)
 
         # Compute the posterior as the sum of prior and likelihood
         log_posterior_value = log_prior_value + log_likelihood_value
@@ -123,118 +73,85 @@ def setup_logger():
             logging.FileHandler("mcmc.log")  # File output
         ]
     )
-
-def mcmc_inference(logpdf, initial_sample, iterations=200, save_interval=10, results_dir=results_dir):
-
+def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interval=10, results_dir=results_dir):
+    """
+    Run MCMC sampling using DRAM, run simulations for each sample, and save the simulator output.
+    """
+    # Initialize directories and logging
     setup_logger()
-    initial_sample = np.array(initial_sample)
-    initial_cov = np.array([[3.56995, 0], [0, 0.356995]]) #covariance scaled down 
     logging.debug(f"Initial covariance matrix:\n{initial_cov}")
-
+    initial_sample = np.array(initial_sample)
+    #initial_cov = np.array([[0.8, 0], [0, 0.08]]) #covariance scaled down 
     # Initialize DRAM sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf, initial_sample, initial_cov, adapt_start=10, eps=1e-6,
         sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
     )
 
-    # Prepare directories and file paths
+     # Prepare directories and file paths
     metrics_dir = os.path.join(results_dir, "iteration_metrics")
     os.makedirs(metrics_dir, exist_ok=True)
-    checkpoint_file = get_next_filename("checkpoint", directory=results_dir, extension=".csv")
     final_samples_file = get_next_filename("final_samples", directory=results_dir, extension=".csv")
-    final_status_file = get_next_filename("final_status", directory=results_dir, extension=".txt")
-    logging.info(f"Checkpoint file: {checkpoint_file}")
 
-    # Initialize variables
-    all_samples, acceptance_status = [], []
-    dram_acceptances, initial_acceptances, rejections = 0, 0, 0
- 
+    # Initialize storage for samples
+    all_samples = []
+
+    # Run MCMC sampling
     for iteration in range(iterations):
         try:
-            logging.debug(f"Starting iteration {iteration + 1}/{iterations}.")
-
             # Get the next sample from the sampler
             proposed_sample, log_posterior, accepted = next(sampler)
-            logging.debug(f"Sampler result: {proposed_sample}, log_posterior: {log_posterior}, accepted: {accepted}")
+            logging.debug(f"Iteration {iteration + 1}: Sample={proposed_sample}, Log Posterior={log_posterior}, Accepted={accepted}")
 
+            # Store the sample
             all_samples.append(proposed_sample)
 
-            # Extract parameters
+            # Transform MCMC sample to simulation inputs
             v1_log, alpha_log = proposed_sample
             v1, alpha = 10 ** v1_log, 10 ** alpha_log
             v2 = alpha * v1
-
-            logging.debug(f"Transformed parameters: v1={v1}, v2={v2}")
+            logging.debug(f"Transformed parameters for simulation: v1={v1}, v2={v2}")
 
             # Run the simulation
             simulation_result = hallthruster_jl_wrapper(v1, v2, config_spt_100)
             if simulation_result is not None:
-                metrics_filename = f"iteration_{iteration + 1}_metrics.json"
-                save_results_to_json(simulation_result, metrics_filename, directory=metrics_dir)
-                logging.info(f"Metrics saved for iteration {iteration + 1} as {metrics_filename}")
-
-            # Update acceptance counts
-
-            if accepted:
-                initial_acceptances += 1
-                logging.info(f"Iteration {iteration + 1}: Sample accepted.")
+                # Save simulator output (iteration metrics) as a JSON file
+                metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
+                save_results_to_json(simulation_result, metrics_filename)
+                logging.info(f"Iteration metrics saved for iteration {iteration + 1} to {metrics_filename}")
             else:
-                rejections += 1
-                logging.info(f"Iteration {iteration + 1}: Sample rejected.")
-            # Periodically save checkpoints
-            if (iteration + 1) % save_interval == 0:
-                np.savetxt(checkpoint_file, np.array(all_samples), delimiter=',')
-                logging.info(f"Checkpoint saved at iteration {iteration + 1}.")
-        #include errors to rejection count. acceptance is false.
+                logging.warning(f"Simulation failed for iteration {iteration + 1}. No metrics saved.")
+
         except Exception as e:
             logging.error(f"Error during iteration {iteration + 1}: {e}")
-            acceptance_status.append('False')
-            rejections += 1
-            continue
-
-    # Final summaries
-    acceptance_rate = (initial_acceptances + dram_acceptances) / iterations
-    logging.info(f"Final acceptance rate: {acceptance_rate:.4f}")
+            raise  # Stop execution on error instead of continuing
 
     # Save final results
     np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
-    with open(final_status_file, 'w') as status_f:
-        for idx, status in enumerate(acceptance_status, start=1):
-            status_f.write(f"{idx}: {status}\n")
+    # Return all samples and the acceptance rate
+    return np.array(all_samples), sampler.accept_ratio()
 
-    return np.array(all_samples), acceptance_rate, initial_cov
 
-def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight=2.0, iterations=200,  results_dir=results_dir):
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight, iterations, initial_cov, results_dir=results_dir):
     # Load optimized parameters as the initial guess
     v1_opt, v2_opt = load_optimized_params(json_path)
-    
-    # Verify that parameters are loaded
     if v1_opt is None or v2_opt is None:
-        print(f"Error: Optimized parameters could not be loaded. v1_opt: {v1_opt}, v2_opt: {v2_opt}")
-        return  
+        raise ValueError("Failed to load initial guess parameters.")
 
-    try:
-        # Convert v1 and alpha to log10 space
-        v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
-        print("Initial log parameters:", v_log_initial)  # Debugging: Verify initial log values
-    except Exception as e:
-        print(f"Error calculating v_log_initial: {e}")
-        return
-    
+    # Convert v1 and alpha to log10 space
+    v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
+    print(f"Initial log parameters: {v_log_initial}")
+
     # Run MCMC sampling
-    print("Running MCMC sampling based on loaded optimized parameters...")
-    
-    
-    samples, acceptance_rate, initial_cov = mcmc_inference(
-        lambda v_log: log_posterior(v_log, observed_data, config, ion_velocity_weight=ion_velocity_weight),
+    samples, acceptance_rate = mcmc_inference(
+        lambda v_log: log_posterior(v_log, observed_data, config),
         v_log_initial,
+        initial_cov=initial_cov,
         iterations=iterations,
         save_interval=10,
         results_dir=results_dir
     )
-    
-    print(f"MCMC sampling complete with acceptance rate: {acceptance_rate:.2f}")
-    
+
     # Save final samples and metadata for analysis in results_dir
     final_samples_file = get_next_filename("final_mcmc_samples", directory=results_dir, extension=".csv")
 
@@ -247,62 +164,27 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
         "initial_cov": initial_cov.tolist(),
         "v_log_initial": v_log_initial,
         "iterations": iterations,
-        "acceptance_rate": acceptance_rate,
-        "ion_velocity_weight": ion_velocity_weight,
-        "directory": results_dir,
-        "final_samples_file": final_samples_file,
-        "model": "TwoZoneBohm",
-        "config": create_specific_config(config)
+        "acceptance_rate": acceptance_rate
     }
-    
     save_metadata(metadata, filename=os.path.join(results_dir, f"mcmc_metadata.json"))
 
-
-# def main():
-#     # Resolve paths relative to the current script
-#     paths = resolve_results_paths(__file__)
-    
-#     # Load each file separately
-#     # 1. Load initial metrics
-#     initial_metrics_result = load_json_data(paths["initial_metrics_result"])
-#     if initial_metrics_result is None:
-#         raise FileNotFoundError(f"Failed to load initial metrics data from {paths['initial_metrics_result']}")
-#     print(f"Initial metrics loaded: {initial_metrics_result.keys()}")
-
-#     # 2. Load observed data
-#     observed_data = load_json_data(paths["observed_data_file"])
-#     if observed_data is None:
-#         raise FileNotFoundError(f"Failed to load observed data from {paths['observed_data_file']}")
-#     print(f"Observed data loaded: {observed_data.keys()}")
-
-#     # 3. Load optimized parameters
-#     v1_opt, v2_opt = load_optimized_params(paths["initial_guess_path"])
-#     if v1_opt is None or v2_opt is None:
-#         raise FileNotFoundError(f"Failed to load initial guess parameters from {paths['initial_guess_path']}")
-#     print(f"Loaded optimized parameters: v1={v1_opt}, v2={v2_opt}")
-
-#     # Proceed with MCMC sampling
-#     print("Starting MCMC sampling...")
-#     run_mcmc_with_optimized_params(
-#         json_path=paths["initial_guess_path"],
-#         observed_data=observed_data,
-#         config=config_spt_100,
-#         ion_velocity_weight=2.0,
-#         iterations=200
-#     )
-
-# if __name__ == "__main__":
-#     main()
-
-
 def main():
-    # Load the initial guess parameters from the JSON file
+    # MCMC configuration
     # results_dir = get_next_results_dir(base_dir="..", base_name="mcmc-results")
+    json_config_path = "mcmc_config.json"  
+    mcmc_config = load_mcmc_config(json_config_path)
 
-    ion_velocity_weight = [2.0]
-    for ion_velocity_weight in ion_velocity_weight:
-        ground_truth_data = run_multilogbohm_simulation(config_multilogbohm, ion_velocity_weight)
-        save_results_to_json(ground_truth_data, f'mcmc_observed_data_map.json',directory=results_dir,save_every_n_grid_points=10)
+    # parameters from configuration
+    # results_dir = mcmc_config["results_dir"]
+    initial_guess_path = mcmc_config["initial_guess_path"]
+    ion_velocity_weight = mcmc_config["ion_velocity_weight"]
+    iterations = mcmc_config["iterations"]
+    initial_cov = mcmc_config["initial_cov"]
+
+    # results directory
+    os.makedirs(results_dir, exist_ok=True)
+    ground_truth_data = run_multilogbohm_simulation(config_multilogbohm, ion_velocity_weight)
+    save_results_to_json(ground_truth_data, f'mcmc_observed_data_map.json',directory=results_dir,save_every_n_grid_points=10)
 		
     v1_opt, v2_opt = load_optimized_params(initial_guess_path)
     if v1_opt is None or v2_opt is None:
@@ -316,19 +198,22 @@ def main():
     print(f"Initial simulation result saved")
 
     
-    observed_data = ground_truth_data  # Using the result directly
-    print("Starting MCMC sampling...")
-    run_mcmc_with_optimized_params(
-        json_path=initial_guess_path,
-        observed_data=observed_data,
-        config=config_spt_100,
-        ion_velocity_weight=2.0,
-        iterations=200
-    )
+    # Run MCMC sampling
+    try:
+        print("MCMC sampling...")
+        run_mcmc_with_optimized_params(
+            json_path=initial_guess_path,
+            observed_data=ground_truth_data,
+            config=config_spt_100,
+            ion_velocity_weight=ion_velocity_weight,
+            iterations=iterations,
+            initial_cov=initial_cov
+        )
+        print("MCMC sampling completed successfully.")
+    except Exception as e:
+        print(f"Error during MCMC sampling: {e}")
+        return
 
 if __name__ == "__main__":
     main()
-
-
-
 

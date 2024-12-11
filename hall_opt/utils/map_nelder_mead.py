@@ -1,6 +1,7 @@
 import juliacall
 import tempfile
 import json
+import math
 import os
 import time
 import numpy as np
@@ -115,7 +116,6 @@ def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, sub
         print(f"Failed to save the results: {e}")
 
 def run_simulation(config):
-
     print("Starting simulation...")
     
     # Start the timer
@@ -150,15 +150,12 @@ def run_simulation(config):
 def handle_nan_values(data, placeholder="NaN"): 
     """
     Recursively replace NaN, None, or invalid values in the data with a specified placeholder.
-
     Parameters:
         data: The data to process (dict, list, array, or scalar).
         placeholder: The value to replace NaN, None, or invalid values with.
-
     Returns:
         The cleaned data with invalid values replaced by the placeholder.
     """
-    import math
     if isinstance(data, dict):
         return {key: handle_nan_values(value, placeholder) for key, value in data.items()}
     elif isinstance(data, list):
@@ -241,8 +238,6 @@ def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=T
     else:
         print("Simulation succeeded.")
     
-
-
     # Initialize a dictionary to store ground truth data (both spatial and non-spatial metrics)
     ground_truth_data = {}
 
@@ -277,7 +272,7 @@ def run_multilogbohm_simulation(config, ion_velocity_weight, use_time_averaged=T
 # -----------------------------
 # 4. Prior and likelihood
 # -----------------------------
-#old version changed in greatlakesuser
+
 def prior_logpdf(v1_log, alpha_log):
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
     prior2 = 0  # log(1) for a uniform distribution in valid range
@@ -412,8 +407,6 @@ def run_map_single_initial_guess(observed_data, config, ion_velocity_weight=2.0,
         v2_opt = alpha_opt * v1_opt
         loss = result.fun
 
-        print(f"MAP estimates: v1 = {v1_opt:.6f}, v2 = {v2_opt:.6f}, loss = {loss:.6f}")
-
         best_result = result
         best_v1, best_v2 = v1_opt, v2_opt
 
@@ -422,15 +415,6 @@ def run_map_single_initial_guess(observed_data, config, ion_velocity_weight=2.0,
             use_time_averaged=True,
             save_every_n_grid_points=None
         )
-
-    else:
-        print(f"MAP optimization failed: {result.message}")
-
-    weight_str = str(ion_velocity_weight).replace('.', '_')
-    loss_filename = f'nm_loss_values_w_{weight_str}.json'
-    with open(loss_filename, 'w') as f:
-        json.dump(loss_history, f, indent=4)
-    print(f"Loss values saved to {loss_filename}")
 
     if best_result:
         best_initial_guess = {
@@ -474,9 +458,6 @@ def save_map_iteration(v_log, iteration, filename):
     
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
-
-
-
 
 def save_iteration_metrics(metrics, v_log, iteration, filename):
     """Save the simulation metrics along with v1, v2 for each iteration."""
@@ -522,53 +503,15 @@ def main():
     # List of ion_velocity_weights
     #ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0, 1e-10]
     ion_velocity_weights = [2.0]
-
-
     for ion_velocity_weight in ion_velocity_weights:
         print(f"\nRunning simulations with ion_velocity_weight = {ion_velocity_weight}...\n")
 
         ground_truth_data = run_multilogbohm_simulation(config_multilogbohm, ion_velocity_weight)
         save_results_to_json(ground_truth_data, f'nm_w_{ion_velocity_weight}_observed_data_map.json', save_every_n_grid_points=10)
 		
-        print(f"Ground truth data for ion_velocity_weight {ion_velocity_weight} saved.")
-
-        # Step 2:the best initial guess by running the simulation for each initial guess and selecting the best one
-        print("Running simulations with multiple initial guesses...")
-        initial_guesses = [[-2, 0.5]]
-        best_initial_result = None
-        best_v1, best_v2 = None, None
-        lowest_loss = None
-
-        for idx, initial_guess in enumerate(initial_guesses):
-            v1_initial = np.exp(initial_guess[0])
-            alpha_initial = np.exp(initial_guess[1])
-            v2_initial = alpha_initial * v1_initial
-
-            print(f"Running simulation for initial guess {idx + 1}: v1 = {v1_initial}, v2 = {v2_initial}...")
-            
-            initial_result = hallthruster_jl_wrapper(
-                v1_initial, v2_initial, 
-                config_spt_100, 
-                use_time_averaged=True, 
-                save_every_n_grid_points=10
-            )
-
-            # compute the loss (negative log-posterior) for the initial guess
-            current_loss = compute_neg_log_posterior([np.log(v1_initial), np.log(alpha_initial)], ground_truth_data, config_spt_100, ion_velocity_weight)
-            print(f"Initial guess {idx + 1}: v1 = {v1_initial}, v2 = {v2_initial}, loss = {current_loss:.6f}")
-
-            if lowest_loss is None or current_loss < lowest_loss:
-                lowest_loss = current_loss
-                best_initial_result = initial_result
-                best_v1, best_v2 = v1_initial, v2_initial
-
-        # Step 3: saving the results of the best initial guess
-        print(f"Best initial guess found: v1 = {best_v1}, v2 = {best_v2}, with the lowest loss = {lowest_loss:.6f}")
-        save_results_to_json(best_initial_result, f'nm_w_{ion_velocity_weight}_best_initial_guess_result.json', save_every_n_grid_points=10)
-        print(f"Best initial guess results for ion_velocity_weight {ion_velocity_weight} saved.")
-
-        # Step 4: map optimization with a single initial guess (starting from the best initial guess)
-        print("Running MAP optimization with multiple initial guesses...")
+        print(f"Ground truth data for ion_velocity_weight {ion_velocity_weight} saved.")           
+        # Step 4: map optimization with a single initial guess (starting from chosen initial guess)
+        print("Running simulations with single initial guess...")
         v1_opt, v2_opt = run_map_single_initial_guess(
             ground_truth_data, 
             config_spt_100, 

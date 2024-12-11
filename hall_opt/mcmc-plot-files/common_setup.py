@@ -3,8 +3,8 @@ import pandas as pd
 import json
 
 # Paths
-base_results_dir = os.path.join("..", "results/mcmc-results-11") #Update is required for each sampling.
-plots_dir = os.path.join(base_results_dir, "plots-mcmc-11") #Will create a new dir that includes mcmc plots. Update is required after sampling.
+base_results_dir = os.path.join("..", "results/mcmc-results") #Update is required for each sampling.
+plots_dir = os.path.join(base_results_dir, "plots-mcmc") #Will create a new dir that includes mcmc plots. Update is required after sampling.
 metrics_dir = os.path.join(base_results_dir, "iteration_metrics")
 os.makedirs(plots_dir, exist_ok=True)
 

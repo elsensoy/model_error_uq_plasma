@@ -53,14 +53,14 @@ def save_initial_guesses(ion_velocity_weight, v1, v2):
     print(f"Initial guesses for ion_velocity_weight {ion_velocity_weight} saved to {filename}.")
 
 def test_initial_guesses():
-    # Define the list of ion_velocity_weights you want to test
+    # Define the list of ion_velocity_weights to test
     ion_velocity_weights = [0.1, 1.0, 2.0, 3.0, 5.0, 10.0]
 
     # Run the test for each ion velocity weight
     for ion_velocity_weight in ion_velocity_weights:
         print(f"\nTesting initial guesses for ion_velocity_weight = {ion_velocity_weight}...\n")
 
-        # Step 1: Run the MultiLogBohm simulation to generate the ground truth (using your function)
+        # Step 1: Run the MultiLogBohm simulation to generate the ground truth
         ground_truth_data = run_multilogbohm_simulation(config_multilogbohm, ion_velocity_weight)
 
         # Save the ground truth data to a file

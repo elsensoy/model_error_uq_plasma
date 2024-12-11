@@ -4,7 +4,7 @@ import subprocess
 plot_scripts = [
     "visualization.py",
     "delta_plots.py",
-    "mcmc_across_200_plots.py"
+    "mcmc_iter_plots.py"
 ]
 
 
