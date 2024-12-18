@@ -5,7 +5,6 @@ import os
 import time
 import sys
 import numpy as np
-from scipy.optimize import minimize
 from scipy.stats import norm
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

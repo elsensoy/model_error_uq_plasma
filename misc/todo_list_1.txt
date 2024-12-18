@@ -1,40 +1,6 @@
-mcmc-results-8(so far):
-
-ISSUE:
-Optimized initial guess parameters are invalid! 
-{
-    "v1": 2.0124301397620146,
-    "v2": 2.0028894367014445
-} v2 < v1.
--no validation checks implemented for MAP. Prior requirements 
-wasn't taken into account during optimization--possibly deviated from an ideal result.
--The initial guess is always rejected in mcmc. Acceptance rate is affected.
-
-ISSUE:
-Debugging needed for samplers.py:
-/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/MCMCIterators/samplers.py:279: RuntimeWarning: divide by zero encountered in log
-  np.log(1 - min(1, np.exp(accept_reject)))
-  
-OBSERVATION 
--3.5699  -- 0.12 acceptance rate. 
-When set to 1000 iterations, it went down(0.009?)
--the results show some variance compared to the earlier results with larger initial_cov.
--samples remained constant in mid section for about 50 iterations, then a slightly fluctuates. Nothing promising.
-but occuring change after the constant period means sampling doesn't necessarily stop prematurely. Sampling continues if conditions are met.
--reasons for the poor sampling --what leads to constant sections for long durations? 
-
-OBSERVATION
--acceptance rate is 0.085 with covariance scaled down to initial_cov = np.array([[0.15, 0], [0, 0.015]])
-- compare to covariance set to np.array([[0.2, 0], [0, 0.02]]), for which acceptance rate was 0.11. 
-But the sampled parameters for second half of the process showed no variance (0.2,0.02).
-
-TODO:(resolved.)  
-(also refer to delta plots)
--ion velocity iteration plot needs revision on legend.(!)
-
-TODO:(resolved.)  
-different covariances. possibly track the simulation failures? does all the failures get penalized?.
-Compare iteration 1000 vs 200 for different setups.
-
-TODO:(resolved.)  
-Load confi from json.(mcmc_config.jspn.)
+setup hallthruster.jl
+get rid of wrapper.jl
+run posterior plot to visualize the function
+organize directory
+seperate map_ and mcmc
+install MCMCIterators

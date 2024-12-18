@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:943ef1fa419b51b3e0ca7006cb4f2976fc75f6c82ad52f5189428bf4fb1a2574"
+content_hash = "sha256:fe73824694528f2dd4e3834f749cffb66f44135409368ab5f243340b48217a6a"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -246,6 +246,14 @@ files = [
     {file = "matplotlib-3.9.2-cp311-cp311-win_amd64.whl", hash = "sha256:ae82a14dab96fbfad7965403c643cafe6515e386de723e498cf3eeb1e0b70cc7"},
     {file = "matplotlib-3.9.2.tar.gz", hash = "sha256:96ab43906269ca64a6366934106fa01534454a69e471b7bf3d79083981aaab92"},
 ]
+
+[[package]]
+name = "mcmciterators"
+version = "0.0.0"
+git = "https://github.com/goroda/MCMCIterators.git"
+revision = "030e01c1a082913113e1d853ec0bd6d80088082f"
+summary = "Markov Chain Monte Carlo Iterators"
+groups = ["default"]
 
 [[package]]
 name = "nolds"
