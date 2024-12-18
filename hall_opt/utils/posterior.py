@@ -3,11 +3,17 @@ import tempfile
 import json
 import math
 import os
+import sys
 import time
 import numpy as np
 from scipy.optimize import minimize
 from scipy.stats import norm
 
+hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
+
+import hallthruster as het
 # -----------------------------
 # 2. Prior and Posterior
 # -----------------------------
@@ -21,6 +27,7 @@ def prior_logpdf(v1_log, alpha_log):
         return -np.inf  # Reject invalid samples
 
     return prior1 + prior2
+
 
 #     return log_likelihood_value
 def log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_velocity_weight=2.0):
@@ -51,6 +58,7 @@ def log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_v
         print(f"Warning: Ion velocity data not found in simulation or observed data.")
 
     return log_likelihood_value
+
 
 
 def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):

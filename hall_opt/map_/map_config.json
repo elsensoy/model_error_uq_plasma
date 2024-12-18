@@ -1,7 +1,0 @@
-{
-    "initial_guess": [-2, 0.5],
-    "ion_velocity_weight": 2.0,
-    "iterations": 200,
-    "results_dir": "map_/results-map",
-    "initial_guess_path": "../results/best_initial_guess_w_2_0.json"
-}

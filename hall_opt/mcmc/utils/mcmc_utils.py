@@ -64,12 +64,6 @@ def save_metadata(metadata, filename="mcmc_metadata.json", directory="results"):
         json.dump(metadata, f, indent=4)
     print(f"Metadata saved to {filepath}")
 
-def subsample_data(data, step=10):
-    """Subsample the data by taking every nth element."""
-    if isinstance(data, list):
-        return data[::step]  # Every nth element from the list
-    return data 
-
 def save_results_to_json(result_dict, filename="mcmc_results.json", directory="results", save_every_n_grid_points=10, subsample_for_saving=True):
     """
     Save the results as a JSON file, ensuring the directory exists.

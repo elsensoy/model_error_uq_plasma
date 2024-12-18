@@ -13,21 +13,20 @@ def load_config(config_path):
         return json.load(file)
 
 def subsample_data(data, step=10):
-    """
-    Subsample the data by taking every nth element (spatial subsampling).
-    Handles 1D or 2D data.
-    """
     if isinstance(data, list):
         if isinstance(data[0], list):  # 2D data (e.g., ion velocity)
             return [row[::step] for row in data]  # Subsample spatially (columns)
         return data[::step]  # Subsample spatially for 1D list
     return data  # Return as-is if not a list
 
+def update_twozonebohm_config(config, v1, v2):                
+    config_copy = config.copy()  # Ensure the original config is not mutated
+    config_copy["anom_model"] = {"type": "TwoZoneBohm", "c1": v1, "c2": v2}
+    return config_copy
+
+
 def save_results_to_json(result_dict, filename, save_every_n_grid_points=10, subsample_for_saving=True):
-    """
-    Save selected results (thrust, discharge current, ion_velocity, z_normalized) to JSON.
-    Subsample spatial data if required.
-    """
+ 
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
 
@@ -57,34 +56,18 @@ def load_json_data(filename):
     except FileNotFoundError:
         print(f"File not found: {filename}")
         return None
-def save_iteration_metrics(metrics, v_log, iteration, filename):
-    """Save simulation metrics along with v1, v2 for each iteration."""
-    v1 = float(np.exp(v_log[0]))
-    alpha = float(np.exp(v_log[1]))
-    v2 = alpha * v1
 
-    iteration_metrics = {
-        "iteration": iteration,
-        "v1": v1,
-        "v2": v2,
-        "metrics": metrics or {}  # Use an empty dictionary if metrics is None
-    }
 
-    try:
-        with open(filename, 'r') as f:
-            data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        data = []
-
-    # Add or update iteration metrics
-    for i, entry in enumerate(data):
-        if entry.get("iteration") == iteration:
-            data[i] = iteration_metrics
-            break
+def save_parameters(iteration, v1, v2, filename="parameter_log.json"):
+    data = {"iteration": iteration, "v1": v1, "v2": v2}
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            log = json.load(file)
     else:
-        data.append(iteration_metrics)
+        log = []
 
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4)
+    log.append(data)
 
-    print(f"Iteration {iteration} metrics saved to {filename}")
+    with open(filename, 'w') as file:
+        json.dump(log, file, indent=4)
+    print(f"Iteration {iteration}: Saved v1 = {v1:.4f}, v2 = {v2:.4f} to {filename}")

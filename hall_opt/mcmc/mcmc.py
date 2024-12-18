@@ -6,8 +6,9 @@ import logging
 from scipy.stats import norm
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis 
-from map_optimization.simulation import hallthruster_jl_wrapper, config_multilogbohm, config_spt_100, run_simulation, run_multilogbohm_simulation
-from utils.mcmc_utils import load_json_data, load_mcmc_config, load_optimized_params, get_next_filename, save_metadata, subsample_data, save_results_to_json, get_next_results_dir
+from map_.simulation import config_multilogbohm, config_spt_100, run_simulation, run_multilogbohm_simulation
+from utils import load_json_data, subsample_data, save_results_to_json, save_parameters
+from utils.mcmc_utils import load_json_data, load_mcmc_config, load_optimized_params, get_next_filename, save_metadata, save_results_to_json, get_next_results_dir
 from posterior import log_likelihood, prior_logpdf, log_posterior
 results_dir = get_next_results_dir(base_dir="..", base_name="results/mcmc-results")
 

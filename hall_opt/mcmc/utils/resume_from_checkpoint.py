@@ -2,8 +2,8 @@ import pickle
 import os
 import numpy as np
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from neldermead.mcmc_utils import save_checkpoint, load_checkpoint, save_metadata
-from neldermead.map_nelder_mead import create_config  # Import  config function
+from utils import save_checkpoint, load_checkpoint, save_metadata
+from utils import create_config  # Import  config function
 
 
 def resume_from_checkpoint(
@@ -15,28 +15,7 @@ def resume_from_checkpoint(
     metadata_filename="resumed_mcmc_metadata.json",
     config=None
 ):
-    """
-    Resume ( draft ) MCMC from a saved checkpoint and save results, metadata, and final sampling.
 
-    Parameters:
-        logpdf: Callable
-            Log-posterior function.
-        checkpoint_path: str
-            Path to the saved checkpoint file.
-        additional_iterations: int
-            Number of additional iterations to run.
-        save_interval: int
-            Interval for saving checkpoints.
-        base_path: str
-            Directory for saving results.
-        metadata_filename: str
-            Name of the metadata file to save.
-        config: dict
-            Configuration dictionary for creating metadata.
-
-    Returns:
-        np.ndarray, float: The samples and final acceptance rate.
-    """
     # Load the checkpoint
     checkpoint = load_checkpoint(checkpoint_path)
     start_iteration = checkpoint["iteration"]
