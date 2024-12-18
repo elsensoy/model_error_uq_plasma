@@ -59,12 +59,67 @@ def log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_v
 
     return log_likelihood_value
 
-
-
 def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
     """
     Compute the log-posterior using simulation results and observed data.
     """
+    v1_log, alpha_log = v_log
+    v1 = float(np.exp(v_log[0]))
+    alpha = float(np.exp(v_log[1]))
+    v2 = alpha * v1
+
+    # Enforce physical constraint
+    if v2 < v1:
+        return -np.inf
+
+    try:
+        # Update the anomaly model in the configuration
+        config["anom_model"]["c1"] = v1
+        config["anom_model"]["c2"] = v2
+
+        # Prepare input data for the simulation
+        input_data = {"config": config, "simulation": simulation, "postprocess": postprocess}
+
+        # Run the simulation
+        solution = het.run_simulation(input_data)
+
+        # Check simulation success
+        if solution["output"]["retcode"] != "success":
+            print(f"Simulation failed with retcode: {solution['output']['retcode']}")
+            return -np.inf
+
+        # Extract time-averaged metrics from the simulation output
+        metrics = solution["output"].get("average", None)
+        if not metrics:
+            print("No 'average' key found in simulation output.")
+            return -np.inf
+
+        # Prepare simulated data for likelihood calculation
+        simulated_data = {
+            "thrust": metrics.get("thrust", 0),
+            "discharge_current": metrics.get("discharge_current", 0),
+            "ion_velocity": metrics.get("ui", [])
+        }
+
+        # Validate ion velocity shapes
+        if "ion_velocity" in observed_data and simulated_data["ion_velocity"]:
+            simulated_ion_velocity = np.array(simulated_data["ion_velocity"])
+            observed_ion_velocity = np.array(observed_data["ion_velocity"])
+            if simulated_ion_velocity.shape != observed_ion_velocity.shape:
+                print(f"Shape mismatch: simulated {simulated_ion_velocity.shape}, observed {observed_ion_velocity.shape}")
+                return -np.inf
+
+        # Compute log-posterior
+        log_prior_value = prior_logpdf(v1_log, alpha_log)
+        log_likelihood_value = log_likelihood(simulated_data, observed_data, postprocess, ion_velocity_weight)
+        log_posterior_value = log_prior_value + log_likelihood_value
+
+        return log_posterior_value
+
+    except Exception as e:
+        print(f"Error during log-posterior calculation: {e}")
+        return -np.inf
+
     v1_log, alpha_log = v_log
     v1 = float(np.exp(v_log[0]))
     alpha = float(np.exp(v_log[1]))
@@ -100,7 +155,7 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
         simulated_data = {
             "thrust": metrics.get("thrust", 0),
             "discharge_current": metrics.get("discharge_current", 0),
-            "ion_velocity": metrics.get("ui", [])  # Ensure this key aligns with your simulation output
+            "ion_velocity": averaged_metrics["ui"][0]  
         }
 
         # Validate shapes of ion_velocity if present
