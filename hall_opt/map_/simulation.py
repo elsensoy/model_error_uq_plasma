@@ -72,7 +72,7 @@ simulation = {
 }
 
 postprocess = {
-    "output_file": "output_twozonebohm.json",
+    "output_file": "map_/results-map/output_twozonebohm.json",
     "save_time_resolved": False,
     "average_start_time": 0.4 * 1e-3
 }
@@ -97,7 +97,7 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
         print(f"Error during simulation with {config_type}: {e}")
         return None
 
-        
+
 def update_twozonebohm_config(config, v1, v2):
 
     config_copy = config.copy()  # Ensure the original config is not mutated

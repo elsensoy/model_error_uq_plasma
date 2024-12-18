@@ -59,6 +59,7 @@ def load_json_data(filename):
 
 
 def save_parameters(iteration, v1, v2, filename="parameter_log.json"):
+    """Save optimization parameters to a JSON file."""
     data = {"iteration": iteration, "v1": v1, "v2": v2}
     if os.path.exists(filename):
         with open(filename, 'r') as file:

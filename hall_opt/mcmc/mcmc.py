@@ -6,12 +6,25 @@ import logging
 from scipy.stats import norm
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis 
-from map_.simulation import config_multilogbohm, config_spt_100, run_simulation, run_multilogbohm_simulation
-from utils import load_json_data, subsample_data, save_results_to_json, save_parameters
-from utils.mcmc_utils import load_json_data, load_mcmc_config, load_optimized_params, get_next_filename, save_metadata, save_results_to_json, get_next_results_dir
-from posterior import log_likelihood, prior_logpdf, log_posterior
-results_dir = get_next_results_dir(base_dir="..", base_name="results/mcmc-results")
+from map_.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
+from utils.save_data import load_json_data, subsample_data, save_results_to_jso
+from iter_methods import load_optimized_params, get_next_filename, save_metadata, get_next_results_dir
+from statistics import log_likelihood, prior_logpdf, log_posterior
 
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)  # Ensures hall_opt is at the top of the search path
+
+# Add HallThruster Python API to sys.path
+hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
+
+print("Updated sys.path:", sys.path)
+
+import hallthruster as het
+
+results_dir = get_next_results_dir(base_dir="..", base_name="results/mcmc-results")
 
 def setup_logger():
     logging.basicConfig(
@@ -22,63 +35,56 @@ def setup_logger():
             logging.FileHandler("mcmc.log")  # File output
         ]
     )
-def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interval=10, results_dir=results_dir):
-    """
-    Run MCMC sampling using DRAM, run simulations for each sample, and save the simulator output.
-    """
-    # Initialize directories and logging
-    setup_logger()
-    logging.debug(f"Initial covariance matrix:\n{initial_cov}")
-    initial_sample = np.array(initial_sample)
-    # Initialize DRAM sampler
+def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interval=10, results_dir="results"):
+
+    os.makedirs(results_dir, exist_ok=True)
+    metrics_dir = os.path.join(results_dir, "iteration_metrics")
+    os.makedirs(metrics_dir, exist_ok=True)
+    final_samples_file = os.path.join(results_dir, "final_samples.csv")
+
+    # Initialize sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
-        logpdf, initial_sample, initial_cov, adapt_start=10, eps=1e-6,
+        logpdf, np.array(initial_sample), initial_cov, adapt_start=10, eps=1e-6,
         sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
     )
 
-     # Prepare directories and file paths
-    metrics_dir = os.path.join(results_dir, "iteration_metrics")
-    os.makedirs(metrics_dir, exist_ok=True)
-    final_samples_file = get_next_filename("final_samples", directory=results_dir, extension=".csv")
-
-    # Initialize storage for samples
     all_samples = []
 
-    # Run MCMC sampling
+    # MCMC Iterations
     for iteration in range(iterations):
         try:
-            # Get the next sample from the sampler
+            # Get the next sample
             proposed_sample, log_posterior, accepted = next(sampler)
-            logging.debug(f"Iteration {iteration + 1}: Sample={proposed_sample}, Log Posterior={log_posterior}, Accepted={accepted}")
-
-            # Store the sample
-            all_samples.append(proposed_sample)
-
-            # Transform MCMC sample to simulation inputs
             v1_log, alpha_log = proposed_sample
             v1, alpha = 10 ** v1_log, 10 ** alpha_log
             v2 = alpha * v1
-            logging.debug(f"Transformed parameters for simulation: v1={v1}, v2={v2}")
 
-            # Run the simulation
-            simulation_result = hallthruster_jl_wrapper(v1, v2, config_spt_100)
-            if simulation_result is not None:
-                # Save simulator output (iteration metrics) as a JSON file
+            print(f"Iteration {iteration + 1}: v1={v1:.4f}, v2={v2:.4f}, Log Posterior={log_posterior:.4f}, Accepted={accepted}")
+            all_samples.append(proposed_sample)
+
+            # Run simulation
+            updated_config = update_twozonebohm_config(config_spt_100, v1, v2)
+            simulation_result = run_simulation_with_config(updated_config, simulation, postprocess, "TwoZoneBohm")
+
+            # Save simulation output
+            if simulation_result:
                 metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
                 save_results_to_json(simulation_result, metrics_filename)
-                logging.info(f"Iteration metrics saved for iteration {iteration + 1} to {metrics_filename}")
-            else:
-                logging.warning(f"Simulation failed for iteration {iteration + 1}. No metrics saved.")
+                print(f"Metrics saved for iteration {iteration + 1} to {metrics_filename}")
+
+            # Save samples at intervals
+            if (iteration + 1) % save_interval == 0:
+                np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
+                print(f"Saved samples to {final_samples_file} (iteration {iteration + 1})")
 
         except Exception as e:
-            logging.error(f"Error during iteration {iteration + 1}: {e}")
-            raise  # Stop execution on error instead of continuing
+            print(f"Error at iteration {iteration + 1}: {e}")
+            break
 
-    # Save final results
+    # Save final samples
     np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
-    # Return all samples and the acceptance rate
+    print(f"Final samples saved to {final_samples_file}")
     return np.array(all_samples), sampler.accept_ratio()
-
 
 def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight, iterations, initial_cov, results_dir=results_dir):
     # Load optimized parameters as the initial guess
@@ -107,7 +113,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     print(f"Final MCMC samples saved to {final_samples_file}")
 
     metadata = {
-        "timestamp": datetime.now().isoformat(),  # Added timestamp in ISO format
+        "timestamp": datetime.now().isoformat(), 
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
         "initial_cov": initial_cov.tolist(),
         "v_log_initial": v_log_initial,
