@@ -23,7 +23,7 @@ from utils.save_data import load_json_data, subsample_data, save_results_to_json
 from map_.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
 from utils.statistics import log_likelihood, prior_logpdf, log_posterior
 
-def run_map_single_initial_guess(observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
+def run_map(observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
 
     initial_guess = [-2, 0.5]  # log(v1), log(alpha)
     iteration_counter = [0]  # Tracks iterations
@@ -102,7 +102,7 @@ def main():
     save_file = "results-map/parameter_evolution.json"  # File to save sampled parameters -dir will be updated 
 
     # Step 2: Run MAP optimization
-    v1_opt, v2_opt = run_map_single_initial_guess(
+    v1_opt, v2_opt = run_map(
         observed_data, config_spt_100, simulation, postprocess, save_file
     )
 

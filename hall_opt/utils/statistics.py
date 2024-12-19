@@ -20,7 +20,7 @@ def prior_logpdf(v1_log, alpha_log):
     """Gaussian prior on log10(c1) and uniform prior on log10(alpha)."""
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
     prior2 = 0 
-    if 0 < alpha_log <= 2 
+    # if 0 < alpha_log <= 2 
     # else -np.inf  # Uniform prior on log10(alpha)
     return prior1 + prior2
 # -----------------------------
@@ -59,7 +59,7 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
     alpha = np.exp(alpha_log)
     v2 = alpha * v1
 
-    Enforce physical constraint
+    #Enforce physical constraint
     if v2 < v1:
         return -np.inf
 
