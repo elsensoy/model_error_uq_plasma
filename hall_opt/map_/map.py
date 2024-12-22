@@ -20,17 +20,20 @@ print("Updated sys.path:", sys.path)
 
 import hallthruster as het
 from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_parameters
-from map_.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
+from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
 from utils.statistics import log_likelihood, prior_logpdf, log_posterior
 
-def run_map(observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
+results_dir = "map_/results"
 
+def run_map(observed_data, config, simulation, postprocess, results_dir, final_params_file="final_parameters.json", ion_velocity_weight=2.0):
+    """
+    Perform MAP optimization and save parameter evolution and final parameters.
+    """
     initial_guess = [-2, 0.5]  # log(v1), log(alpha)
     iteration_counter = [0]  # Tracks iterations
 
     print(f"Running MAP optimization with initial guess: {initial_guess}")
 
-    # Bounds penalty to ensure parameters remain within feasible ranges
     def bounds_penalty(v_log):
         penalty = 0
         if not (-5 <= v_log[0] <= 0):  # log(v1) bounds
@@ -39,14 +42,12 @@ def run_map(observed_data, config, simulation, postprocess, ion_velocity_weight=
             penalty += (v_log[1] - max(0, min(v_log[1], 3))) ** 2
         return penalty
 
-    # Combine the log posterior with the bounds penalty
     def neg_log_posterior_with_penalty(v_log):
         log_posterior_value = log_posterior(
             v_log, observed_data, config.copy(), simulation, postprocess.copy(), ion_velocity_weight
         )
         return -log_posterior_value + bounds_penalty(v_log)
 
-    # Callback to print and save optimization parameters at each iteration
     def iteration_callback(v_log):
         iteration_counter[0] += 1
         v1 = float(np.exp(v_log[0]))
@@ -54,7 +55,7 @@ def run_map(observed_data, config, simulation, postprocess, ion_velocity_weight=
         v2 = alpha * v1
 
         print(f"Iteration {iteration_counter[0]}: v1 = {v1:.4f}, alpha = {alpha:.4f}, v2 = {v2:.4f}")
-        save_parameters(iteration_counter[0], v1, v2)  # Save the parameters
+        save_parameters(iteration_counter[0], v1, v2, results_dir=results_dir)
 
     # Perform MAP optimization
     result = minimize(
@@ -69,13 +70,22 @@ def run_map(observed_data, config, simulation, postprocess, ion_velocity_weight=
         v1_opt, alpha_opt = np.exp(result.x[0]), np.exp(result.x[1])
         v2_opt = alpha_opt * v1_opt
         print(f"Optimization succeeded: v1 = {v1_opt:.4f}, alpha = {alpha_opt:.4f}, v2 = {v2_opt:.4f}")
+
+        # Save final parameters
+        final_params_path = os.path.join(results_dir, final_params_file)
+        final_params = {"v1": v1_opt, "v2": v2_opt}
+        with open(final_params_path, 'w') as f:
+            json.dump(final_params, f, indent=4)
+        print(f"Final parameters saved to {final_params_path}")
+
         return v1_opt, v2_opt
     else:
         print("MAP optimization failed.")
         return None, None
 
 def main():
-
+    # Create results directory
+    os.makedirs(results_dir, exist_ok=True)
     # Step 1: Run ground truth simulation
     print("Running ground truth simulation (MultiLogBohm)...")
     ground_truth_postprocess = postprocess.copy()
@@ -99,7 +109,6 @@ def main():
     }
 
     print("Starting MAP optimization and saving parameter evolution...")
-    save_file = "results-map/parameter_evolution.json"  # File to save sampled parameters -dir will be updated 
 
     # Step 2: Run MAP optimization
     v1_opt, v2_opt = run_map(

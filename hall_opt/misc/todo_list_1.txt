@@ -1,0 +1,6 @@
+#add test cases for sim and config functions
+#revise readme file. include saving logic and ensure detail explanation of dir. 
+#a main file that includes both mcmc and map? 
+#Nan values are still appearing. handle them. 
+#mcmc seems to get stuck pretty often and map is also struggling with variance. Prior change or validated posterior.
+#test the impacts on the validation checks on posterior 

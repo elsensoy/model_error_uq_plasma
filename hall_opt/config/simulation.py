@@ -8,7 +8,7 @@ from scipy.stats import norm
 from utils.save_data import load_json_data, subsample_data, save_results_to_json
 
 # Add HallThruster Python API to the system path
-sys.path.append("/path/to/HallThruster/python")  # Replace with the correct path
+sys.path.append("/path/to/HallThruster/python") 
 import hallthruster as het
 
 # -----------------------------
@@ -23,7 +23,7 @@ config_multilogbohm = {
             "outer_radius": 0.05,
         },
         "magnetic_field": {
-            "file": os.path.join("assets/bfield_spt100.csv"),
+            "file": os.path.join("config/bfield_spt100.csv"),
         }
     },
     "discharge_voltage": 300.0,
@@ -46,7 +46,7 @@ config_spt_100 = {
             "outer_radius": 0.05,
         },
         "magnetic_field": {
-            "file": "assets/bfield_spt100.csv"
+            "file": "config/bfield_spt100.csv"
         }
     },
     "discharge_voltage": 300.0,
@@ -81,25 +81,43 @@ postprocess = {
 # -----------------------------
 # Helper Functions
 # -----------------------------
+
+
+# todo : check if the failure aligns with the expected behaviour after -neginf.
 def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm"):
- 
-    config_copy = config.copy()  # Ensure the original config is not mutated
+    """
+    Run the simulation and handle cases where the simulation fails,
+    including `retcode: error` or `failure`.
+    """
+    config_copy = config.copy() 
     input_data = {"config": config_copy, "simulation": simulation, "postprocess": postprocess}
 
     print(f"Running simulation with {config_type} configuration...")
     try:
+        # Run the simulation
         solution = het.run_simulation(input_data)
-        if solution["output"]["retcode"] != "success":
-            print(f"Simulation failed with retcode: {solution['output']['retcode']}")
-            return None
+
+        # Check if the simulation failed
+        retcode = solution["output"].get("retcode")
+        if retcode != "success":
+            print(f"Simulation failed with retcode: {retcode}")
+            if retcode in {"failure", "error"}:
+                print("Simulation detected NaN, Inf, or some other error state. Penalizing with -np.inf.")
+            return -np.inf  # Penalize failure or error cases
+
+        # Return the valid solution
         return solution
+
+    except KeyError as e:
+        print(f"KeyError during simulation: {e}. Penalizing with -np.inf.")
+        return -np.inf
     except Exception as e:
-        print(f"Error during simulation with {config_type}: {e}")
-        return None
+        print(f"Unexpected error during simulation: {e}. Penalizing with -np.inf.")
+        return -np.inf  # Penalize unexpected errors
 
-
+#tested
 def update_twozonebohm_config(config, v1, v2):
 
-    config_copy = config.copy()  # Ensure the original config is not mutated
+    config_copy = config.copy()
     config_copy["anom_model"] = {"type": "TwoZoneBohm", "c1": v1, "c2": v2}
     return config_copy

@@ -3,5 +3,5 @@
     "ion_velocity_weight": 2.0,
     "iterations": 200,
     "results_dir": "results/mcmc-results",
-    "initial_guess_path": "../results/best_initial_guess_w_2_0.json"
+    "initial_guess_path": "mcmc/results/best_initial_guess_w_2_0.json"
 }

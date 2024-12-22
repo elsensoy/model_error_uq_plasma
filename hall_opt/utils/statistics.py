@@ -12,17 +12,17 @@ if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
 import hallthruster as het
-
+from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
 # -----------------------------
 # 1. Prior
 # -----------------------------
 def prior_logpdf(v1_log, alpha_log):
-    """Gaussian prior on log10(c1) and uniform prior on log10(alpha)."""
-    prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
-    prior2 = 0 
-    # if 0 < alpha_log <= 2 
-    # else -np.inf  # Uniform prior on log10(alpha)
+    prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))  # Gaussian prior
+    prior2 = 0  # Uniform prior for alpha_log
+    if alpha_log <= 0 or alpha_log > 2:
+        return -np.inf  # Reject invalid samples
     return prior1 + prior2
+
 # -----------------------------
 # 2. Likelihood
 # -----------------------------
@@ -50,36 +50,76 @@ def log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_v
 
 # -----------------------------
 # 3. Posterior
-# -----------------------------
+# -----------------------------\
 def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
-    """Compute the log-posterior using simulation results and observed data."""
-    ion_velocity_weight=2.0
+    """
+    Compute the log-posterior while respecting the MCMC process by calculating the prior first.
+    Penalize invalid outputs or failed simulations separately.
+    """
     v1_log, alpha_log = v_log
-    v1 = np.exp(v1_log)
-    alpha = np.exp(alpha_log)
+    v1 = float(np.exp(v1_log))
+    alpha = float(np.exp(alpha_log))
     v2 = alpha * v1
 
-    #Enforce physical constraint
-    if v2 < v1:
+    # Prior calculation and validation
+    log_prior_value = prior_logpdf(v1_log, alpha_log)
+    if not np.isfinite(log_prior_value):
+        print(f"Prior is invalid for v1_log={v1_log:.4f}, alpha_log={alpha_log:.4f}. Penalizing with -np.inf.")
         return -np.inf
 
-    # Update configuration and run simulation
-    config["anom_model"]["c1"], config["anom_model"]["c2"] = v1, v2
-    input_data = {"config": config, "simulation": simulation, "postprocess": postprocess}
-    solution = het.run_simulation(input_data)
+    # Check physical constraint
+    if v2 < v1:
+        print(f"Constraint violated: v2={v2:.4f} < v1={v1:.4f}. Penalizing with -np.inf.")
+        return -np.inf
 
-    # if solution["output"]["retcode"] != "success":
-    #     return -np.inf
+    # Update configuration with v1 and v2
+    updated_config = update_twozonebohm_config(config, v1, v2)
 
-    # Extract metrics
-    metrics = solution["output"].get("average", {})
-    simulated_data = {
-        "thrust": metrics.get("thrust", 0),
-        "discharge_current": metrics.get("discharge_current", 0),
-        "ui": metrics.get("ui", [[0]])  # Default to empty ui array
-    }
+    # Run simulation
+    solution = run_simulation_with_config(updated_config, simulation, postprocess, config_type="TwoZoneBohm")
 
-    # Compute posterior
-    log_prior_value = prior_logpdf(v1_log, alpha_log)
-    log_likelihood_value = log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_velocity_weight=ion_velocity_weight)
-    return log_prior_value + log_likelihood_value
+    # Penalize simulation failure
+    if solution is None:
+        print("Simulation failed or detected invalid values. Penalizing with -np.inf.")
+        return -np.inf
+
+    try:
+        # Extract metrics from simulation output
+        metrics = solution["output"].get("average", {})
+        if not metrics:
+            print("No metrics found in simulation output. Penalizing with -np.inf.")
+            return -np.inf
+
+        # Check for NaN or Inf in metrics
+        if any(
+            not np.isfinite(value)
+            for key, value in metrics.items()
+            if isinstance(value, (float, int))
+        ):
+            print("Metrics contain NaN or Inf. Penalizing with -np.inf.")
+            return -np.inf
+
+        # Prepare simulated data
+        simulated_data = {
+            "thrust": metrics.get("thrust", 0),
+            "discharge_current": metrics.get("discharge_current", 0),
+            "ui": metrics.get("ui", []),
+        }
+
+        # Compute log-likelihood
+        log_likelihood_value = log_likelihood(simulated_data, observed_data, postprocess, ion_velocity_weight)
+
+        # Penalize invalid log-likelihood values
+        if not np.isfinite(log_likelihood_value):
+            print("Log-likelihood computation returned an invalid value. Penalizing with -np.inf.")
+            return -np.inf
+
+        print(f"v1={v1:.4f}, v2={v2:.4f}, Log Prior={log_prior_value:.4f}, Log Likelihood={log_likelihood_value:.4f}")
+        return log_prior_value + log_likelihood_value
+
+    except KeyError as e:
+        print(f"KeyError during log-posterior calculation: {e}. Penalizing with -np.inf.")
+        return -np.inf
+    except Exception as e:
+        print(f"Unexpected error during log-posterior calculation: {e}. Penalizing with -np.inf.")
+        return -np.inf
