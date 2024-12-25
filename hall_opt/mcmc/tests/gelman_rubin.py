@@ -5,9 +5,6 @@ from common_setup import load_data
 # Base directory for results
 base_results_dir = os.path.join("..", "results", "mcmc-results-1")
 
-# Load data from the directory
-# Assume load_data reads the MCMC chains into a 2D numpy array
-# Shape: (num_iterations, num_parameters)
 data = load_data(base_results_dir)
 
 # Define number of chains
@@ -26,7 +23,7 @@ def gelman_rubin(chains):
     m, n = chains.shape[0], chains.shape[1]  # Number of chains and samples per chain
 
     chain_means = np.mean(chains, axis=1)  # Mean of each chain
-    overall_mean = np.mean(chain_means)    # Overall mean of all chains
+    overall_mean = np.mean(chain_means)    
 
     B = n * np.var(chain_means, ddof=1)   # Between-chain variance
     W = np.mean(np.var(chains, axis=1, ddof=1))  # Within-chain variance
