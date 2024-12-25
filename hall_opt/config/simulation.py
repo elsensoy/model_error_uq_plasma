@@ -82,14 +82,12 @@ postprocess = {
 # Helper Functions
 # -----------------------------
 
-
-# todo : check if the failure aligns with the expected behaviour after -neginf.
 def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm"):
     """
-    Run the simulation and handle cases where the simulation fails,
-    including `retcode: error` or `failure`.
+    Run the simulation with the given configuration and handle cases where the simulation fails,
+    including `retcode: failure` or `retcode: error`.
     """
-    config_copy = config.copy() 
+    config_copy = config.copy()  # Ensure the original config is not mutated
     input_data = {"config": config_copy, "simulation": simulation, "postprocess": postprocess}
 
     print(f"Running simulation with {config_type} configuration...")
@@ -98,26 +96,25 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
         solution = het.run_simulation(input_data)
 
         # Check if the simulation failed
-        retcode = solution["output"].get("retcode")
+        retcode = solution["output"].get("retcode", "unknown")  # Default to "unknown" if retcode is missing
         if retcode != "success":
             print(f"Simulation failed with retcode: {retcode}")
             if retcode in {"failure", "error"}:
-                print("Simulation detected NaN, Inf, or some other error state. Penalizing with -np.inf.")
-            return -np.inf  # Penalize failure or error cases
+                print("Simulation detected NaN, Inf, or another error state. Returning None to indicate failure.")
+            return None  # Return None to indicate a failed simulation
 
         # Return the valid solution
         return solution
 
     except KeyError as e:
-        print(f"KeyError during simulation: {e}. Penalizing with -np.inf.")
-        return -np.inf
+        print(f"KeyError during simulation: {e}. Returning None to indicate failure.")
+        return None  # Return None to indicate failure due to invalid result structure
+
     except Exception as e:
-        print(f"Unexpected error during simulation: {e}. Penalizing with -np.inf.")
-        return -np.inf  # Penalize unexpected errors
+        print(f"Unexpected error during simulation: {e}. Returning None to indicate failure.")
+        return None  # Return None to indicate unexpected errors
 
-#tested
 def update_twozonebohm_config(config, v1, v2):
-
-    config_copy = config.copy()
+    config_copy = config.copy()  #  the original config should not mutated.
     config_copy["anom_model"] = {"type": "TwoZoneBohm", "c1": v1, "c2": v2}
     return config_copy

@@ -32,9 +32,7 @@ def load_optimized_params(json_path):
 
 
 def get_next_filename(base_filename, directory, extension=".csv"):
-    """
-    Generate the next available filename incremented in the directory.
-    """
+
     i = 1
     full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
     while os.path.exists(full_path):
@@ -56,7 +54,7 @@ def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc/resul
         
 def load_mcmc_config(json_path):
     
-    #Load MCMC configuration from a JSON file.../config/mcmc_config.json
+    #Load MCMC configuration from a JSON file../config/mcmc_config.json
  
     if not os.path.exists(json_path):
         raise FileNotFoundError(f"Configuration file not found: {json_path}")

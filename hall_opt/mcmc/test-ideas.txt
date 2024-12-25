@@ -1,0 +1,8 @@
+a) Test the Priors
+Run the MCMC without the likelihood (sampling from the prior only). This helps verify:
+
+If the priors are implemented correctly.
+Whether the bounds and penalty are functioning as expected. 
+b) turn off the validation and penalty for prior/posterior. keep simulation penalty only. track the chain behavior. 
+c)gelman_rubin:
+Diagnostic metric used to assess the convergence of MCMC chains. It compares the variance within each chain to the variance between multiple chains. If the chains are well-mixed and converged, R^ will approach 1.might be helpful to see what's going on.

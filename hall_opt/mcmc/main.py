@@ -36,15 +36,18 @@ def setup_logger():
             logging.FileHandler("mcmc.log")  # File output
         ]
     )
+
 def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interval=10, results_dir=results_dir):
     """
-    Run MCMC inference and save results to a dynamically created directory.
+    Run MCMC inference and save results in both log-space and linear-space.
     """
     # Create a new results directory for this MCMC run
     run_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
     metrics_dir = os.path.join(run_dir, "iteration_metrics")
     os.makedirs(metrics_dir, exist_ok=True)  # Directory for iteration metrics
-    final_samples_file = os.path.join(run_dir, "final_samples.csv")  # Path for saving final samples
+
+    final_samples_log_file = os.path.join(run_dir, "final_samples_log.csv")  # Log-space samples
+    final_samples_linear_file = os.path.join(run_dir, "final_samples_linear.csv")  # Linear-space samples
 
     # Initialize sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
@@ -52,7 +55,8 @@ def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interva
         sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
     )
 
-    all_samples = []
+    all_samples = []  # Log-space samples
+    all_samples_linear = []  # Linear-space samples
 
     # MCMC Iterations
     for iteration in range(iterations):
@@ -60,11 +64,16 @@ def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interva
             # Get the next sample
             proposed_sample, log_posterior, accepted = next(sampler)
             v1_log, alpha_log = proposed_sample
+
+            # Transform to linear-space
             v1, alpha = 10 ** v1_log, 10 ** alpha_log
             v2 = alpha * v1
 
             print(f"Iteration {iteration + 1}: v1={v1:.4f}, v2={v2:.4f}, Log Posterior={log_posterior:.4f}, Accepted={accepted}")
+            
+            # Append log-space and linear-space values
             all_samples.append(proposed_sample)
+            all_samples_linear.append([v1, alpha])
 
             # Run simulation for current iteration
             updated_config = update_twozonebohm_config(config_spt_100, v1, v2)
@@ -86,17 +95,19 @@ def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interva
 
             # Save samples at intervals
             if (iteration + 1) % save_interval == 0:
-                np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
-                print(f"Saved samples to {final_samples_file} (iteration {iteration + 1})")
+                np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=',')
+                np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=',')
+                print(f"Saved samples to {final_samples_log_file} and {final_samples_linear_file} (iteration {iteration + 1})")
 
         except Exception as e:
             print(f"Error at iteration {iteration + 1}: {e}")
             break
 
     # Save final samples
-    np.savetxt(final_samples_file, np.array(all_samples), delimiter=',')
-    print(f"Final samples saved to {final_samples_file}")
-    return np.array(all_samples), sampler.accept_ratio()
+    np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=',')
+    np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=',')
+    print(f"Final samples saved to {final_samples_log_file} (log-space) and {final_samples_linear_file} (linear-space)")
+    return np.array(all_samples), np.array(all_samples_linear), sampler.accept_ratio()
 
 def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight, iterations, initial_cov, results_dir="mcmc/results"):
     """
@@ -106,10 +117,11 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     v1_opt, v2_opt = load_optimized_params(json_path)
     if v1_opt is None or v2_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
-
-    # Convert v1 and alpha to log10 space
-    v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
-    print(f"Initial log parameters: {v_log_initial}")
+    
+    initial_sample = [v1_opt, v2_opt]
+    # # Convert v1 and alpha to log10 space ----no need for this updated version already saves map results in log space 
+    # v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
+    # print(f"Initial log parameters: {v_log_initial}")
 
     # Create a new results directory for this MCMC run
     run_results_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
@@ -117,7 +129,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     # Run MCMC sampling
     samples, acceptance_rate = mcmc_inference(
         lambda v_log: log_posterior(v_log, observed_data, config, simulation, postprocess),
-        v_log_initial,
+        initial_sample,
         initial_cov=initial_cov,
         iterations=iterations,
         save_interval=10,
@@ -129,7 +141,7 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
         "timestamp": datetime.now().isoformat(),
         "initial_guess": {"v1": v1_opt, "v2": v2_opt},
         "initial_cov": initial_cov.tolist(),
-        "v_log_initial": v_log_initial,
+        "initial sample": v_log_initial,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate
     }
@@ -179,8 +191,8 @@ def main():
         return
 
     # Convert initial guess to log-space
-    v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
-    print(f"Initial guess in log-space: {v_log_initial}")
+    # v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
+    # print(f"Initial guess in log-space: {v_log_initial}")
 
     # Step 4: Run Initial Simulation for Validation
     print(f"Validating initial simulation with v1: {v1_opt}, v2: {v2_opt}")

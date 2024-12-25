@@ -1,7 +1,7 @@
 {
-    "initial_cov": [[0.15, 0], [0, 0.015]],
+    "initial_cov": [[1.0, -0.5], [-0.5, 1.0]],
     "ion_velocity_weight": 2.0,
     "iterations": 200,
     "results_dir": "results/mcmc-results",
-    "initial_guess_path": "mcmc/results/best_initial_guess_w_2_0.json"
+    "initial_guess_path": "mcmc/results/initial_map_log.json"
 }

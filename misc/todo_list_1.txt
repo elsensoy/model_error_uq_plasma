@@ -1,6 +1,0 @@
-setup hallthruster.jl
-get rid of wrapper.jl
-run posterior plot to visualize the function
-organize directory
-seperate map_ and mcmc
-install MCMCIterators

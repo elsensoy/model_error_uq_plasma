@@ -66,11 +66,11 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
     if not np.isfinite(log_prior_value):
         print(f"Prior is invalid for v1_log={v1_log:.4f}, alpha_log={alpha_log:.4f}. Penalizing with -np.inf.")
         return -np.inf
-
+ 
     # Check physical constraint
-    if v2 < v1:
-        print(f"Constraint violated: v2={v2:.4f} < v1={v1:.4f}. Penalizing with -np.inf.")
-        return -np.inf
+    # if v2 < v1:
+    #     print(f"Constraint violated: v2={v2:.4f} < v1={v1:.4f}. Penalizing with -np.inf.")
+    #     return -np.inf
 
     # Update configuration with v1 and v2
     updated_config = update_twozonebohm_config(config, v1, v2)
@@ -86,9 +86,9 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
     try:
         # Extract metrics from simulation output
         metrics = solution["output"].get("average", {})
-        if not metrics:
-            print("No metrics found in simulation output. Penalizing with -np.inf.")
-            return -np.inf
+        # if not metrics:
+        #     print("No metrics found in simulation output. Penalizing with -np.inf.")
+        #     return -np.inf
 
         # Check for NaN or Inf in metrics
         if any(
@@ -109,7 +109,7 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
         # Compute log-likelihood
         log_likelihood_value = log_likelihood(simulated_data, observed_data, postprocess, ion_velocity_weight)
 
-        # Penalize invalid log-likelihood values
+        # # Penalize invalid log-likelihood values
         if not np.isfinite(log_likelihood_value):
             print("Log-likelihood computation returned an invalid value. Penalizing with -np.inf.")
             return -np.inf
