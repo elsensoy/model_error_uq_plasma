@@ -3,9 +3,9 @@ import pandas as pd
 import json
 
 # Paths
-base_results_dir = os.path.join("..","results", "mcmc_results_prior_only") #Update is required for each sampling.
+base_results_dir = os.path.join("..","results", "mcmc-results-8") #Update is required for each sampling.
 plots_dir = os.path.join(base_results_dir, "plots-mcmc") #Will create a new dir that includes mcmc plots. Update is required after sampling.
-metrics_dir = os.path.join(base_results_dir, "iteration_metrics")
+metrics_dir = os.path.join(base_results_dir, "mcmc-results-1/iteration_metrics")
 os.makedirs(plots_dir, exist_ok=True)
 
 # Helper function: Check file existence
@@ -17,7 +17,7 @@ def check_file_exists(file_path):
 def load_data(base_results_dir=base_results_dir):
     """Loads MCMC samples, truth data, and initial parameter guess."""
     # File paths
-    samples_path = os.path.join(base_results_dir, "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_results_prior_only/prior_only_samples.csv") #no need to change
+    samples_path = os.path.join(base_results_dir, "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc-results-8/mcmc-results-1/final_samples_linear.csv") #no need to change
     truth_data_path = os.path.join(base_results_dir, "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_observed_data_map.json")
     pre_mcmc_data_path = os.path.join(base_results_dir, "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_pre_mcmc_initial.json")
     initial_params_path = os.path.join(base_results_dir, "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/initial_map_log.json")

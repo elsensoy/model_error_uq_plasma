@@ -13,6 +13,7 @@ if hallthruster_path not in sys.path:
 
 import hallthruster as het
 from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
+
 # -----------------------------
 # 1. Prior
 # -----------------------------
@@ -52,10 +53,6 @@ def log_likelihood(simulated_data, observed_data, postprocess, sigma=0.08, ion_v
 # 3. Posterior
 # -----------------------------\
 def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_velocity_weight=2.0):
-    """
-    Compute the log-posterior while respecting the MCMC process by calculating the prior first.
-    Penalize invalid outputs or failed simulations separately.
-    """
     v1_log, alpha_log = v_log
     v1 = float(np.exp(v1_log))
     alpha = float(np.exp(alpha_log))
@@ -66,11 +63,6 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
     if not np.isfinite(log_prior_value):
         print(f"Prior is invalid for v1_log={v1_log:.4f}, alpha_log={alpha_log:.4f}. Penalizing with -np.inf.")
         return -np.inf
- 
-    # Check physical constraint
-    # if v2 < v1:
-    #     print(f"Constraint violated: v2={v2:.4f} < v1={v1:.4f}. Penalizing with -np.inf.")
-    #     return -np.inf
 
     # Update configuration with v1 and v2
     updated_config = update_twozonebohm_config(config, v1, v2)
@@ -86,9 +78,9 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
     try:
         # Extract metrics from simulation output
         metrics = solution["output"].get("average", {})
-        # if not metrics:
-        #     print("No metrics found in simulation output. Penalizing with -np.inf.")
-        #     return -np.inf
+        if not metrics:
+            print("No metrics found in simulation output. Penalizing with -np.inf.")
+            return -np.inf
 
         # Check for NaN or Inf in metrics
         if any(

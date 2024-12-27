@@ -19,20 +19,20 @@ if hallthruster_path not in sys.path:
 print("Updated sys.path:", sys.path)
 
 import hallthruster as het
-from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_parameters
+from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_parameters_linear, save_parameters_log
 from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
 from utils.statistics import log_likelihood, prior_logpdf, log_posterior
 
-results_dir = "map_/results"
+results_dir = "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map"
 
 def run_map(observed_data, config, simulation, postprocess, results_dir, final_params_file="final_parameters.json", ion_velocity_weight=2.0):
     """
-    Perform MAP optimization and save parameter evolution and final parameters.
+    Perform MAP optimization using v1 and alpha, and save parameter evolution.
     """
-    initial_guess = [-2, 0.5]  # log(v1), log(alpha)
+    initial_guess = [-2, 0.5]  # Log-space initial guess for v1 and alpha
     iteration_counter = [0]  # Tracks iterations
 
-    print(f"Running MAP optimization with initial guess: {initial_guess}")
+    print(f"Running MAP optimization with initial guess (log-space): {initial_guess}")
 
     def bounds_penalty(v_log):
         penalty = 0
@@ -43,19 +43,46 @@ def run_map(observed_data, config, simulation, postprocess, results_dir, final_p
         return penalty
 
     def neg_log_posterior_with_penalty(v_log):
+        """
+        Compute the negative log-posterior with bounds penalties.
+        """
         log_posterior_value = log_posterior(
             v_log, observed_data, config.copy(), simulation, postprocess.copy(), ion_velocity_weight
         )
         return -log_posterior_value + bounds_penalty(v_log)
 
     def iteration_callback(v_log):
+        """
+        Callback function for each iteration during optimization.
+        Saves parameters in both linear and log space to separate files.
+        """
         iteration_counter[0] += 1
-        v1 = float(np.exp(v_log[0]))
-        alpha = float(np.exp(v_log[1]))
-        v2 = alpha * v1
 
-        print(f"Iteration {iteration_counter[0]}: v1 = {v1:.4f}, alpha = {alpha:.4f}, v2 = {v2:.4f}")
-        save_parameters(iteration_counter[0], v1, v2, results_dir=results_dir)
+        # Convert log-space values to linear space
+        v1_linear = float(np.exp(v_log[0]))
+        alpha_linear = float(np.exp(v_log[1]))
+
+        # Save parameters in linear space
+        save_parameters_linear(
+            iteration=iteration_counter[0],
+            v1=v1_linear,
+            alpha=alpha_linear,
+            results_dir=results_dir,
+            filename="parameters_linear.json"
+        )
+
+        # Save parameters in log space
+        save_parameters_log(
+            iteration=iteration_counter[0],
+            v1_log=v_log[0],
+            alpha_log=v_log[1],
+            results_dir=results_dir,
+            filename="parameters_log.json"
+        )
+
+        # Print status
+        print(f"Iteration {iteration_counter[0]}: v1 = {v1_linear:.4f} (log: {v_log[0]:.4f}), "
+              f"alpha = {alpha_linear:.4f} (log: {v_log[1]:.4f})")
 
     # Perform MAP optimization
     result = minimize(
@@ -67,29 +94,27 @@ def run_map(observed_data, config, simulation, postprocess, results_dir, final_p
     )
 
     if result.success:
-        v1_opt, alpha_opt = np.exp(result.x[0]), np.exp(result.x[1])
-        v2_opt = alpha_opt * v1_opt
-        print(f"Optimization succeeded: v1 = {v1_opt:.4f}, alpha = {alpha_opt:.4f}, v2 = {v2_opt:.4f}")
+        v1_opt = np.exp(result.x[0])
+        alpha_opt = np.exp(result.x[1])
+        print(f"Optimization succeeded: v1 = {v1_opt:.4f}, alpha = {alpha_opt:.4f}")
 
         # Save final parameters
         final_params_path = os.path.join(results_dir, final_params_file)
-        final_params = {"v1": v1_opt, "v2": v2_opt}
+        final_params = {"v1": v1_opt, "alpha": alpha_opt}
         with open(final_params_path, 'w') as f:
             json.dump(final_params, f, indent=4)
         print(f"Final parameters saved to {final_params_path}")
 
-        return v1_opt, v2_opt
+        return v1_opt, alpha_opt
     else:
         print("MAP optimization failed.")
         return None, None
-
+             
 def main():
-    # Create results directory
-    os.makedirs(results_dir, exist_ok=True)
     # Step 1: Run ground truth simulation
     print("Running ground truth simulation (MultiLogBohm)...")
     ground_truth_postprocess = postprocess.copy()
-    ground_truth_postprocess["output_file"] = "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/ground_truth.json"
+    ground_truth_postprocess["output_file"] = os.path.join(results_dir, "ground_truth.json")
 
     ground_truth_solution = run_simulation_with_config(
         config_multilogbohm, simulation, ground_truth_postprocess, config_type="MultiLogBohm"
@@ -111,13 +136,15 @@ def main():
     print("Starting MAP optimization and saving parameter evolution...")
 
     # Step 2: Run MAP optimization
-    v1_opt, v2_opt = run_map(
-        observed_data, config_spt_100, simulation, postprocess, save_file
+    v1_opt, alpha_opt = run_map(
+        observed_data, config_spt_100, simulation, postprocess, results_dir
     )
 
-    if v1_opt is not None and v2_opt is not None:
-        print(f"Final optimized parameters: v1 = {v1_opt:.4f}, v2 = {v2_opt:.4f}")
-    else:
-        print("Optimization failed.")
+    if v1_opt is None or alpha_opt is None:
+        print("Optimization failed. Exiting.")
+        return  # Exit if optimization fails
+
+    print(f"Final optimized parameters: v1 = {v1_opt:.4f}, alpha = {alpha_opt:.4f}")
+
 if __name__ == "__main__":
     main()

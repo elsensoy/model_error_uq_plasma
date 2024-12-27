@@ -6,3 +6,113 @@ Whether the bounds and penalty are functioning as expected.
 b) turn off the validation and penalty for prior/posterior. keep simulation penalty only. track the chain behavior. 
 c)gelman_rubin:
 Diagnostic metric used to assess the convergence of MCMC chains. It compares the variance within each chain to the variance between multiple chains. If the chains are well-mixed and converged, R^ will approach 1.might be helpful to see what's going on.
+
+based on this how can i adjust my mcmc function? the thing is mcmc needs to be in log space but for when we run simulations v1 and v2 should be used and they should be in linear space 
+def mcmc_inference(logpdf, initial_sample, initial_cov, iterations, save_interval=10, results_dir=results_dir):
+    """
+    Run MCMC inference and save results in both log-space and linear-space.
+    """
+    # Create a new results directory for this MCMC run
+    run_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
+    metrics_dir = os.path.join(run_dir, "iteration_metrics")
+    os.makedirs(metrics_dir, exist_ok=True)  # Directory for iteration metrics
+
+    final_samples_log_file = os.path.join(run_dir, "final_samples_log.csv")  # Log-space samples
+    final_samples_linear_file = os.path.join(run_dir, "final_samples_linear.csv")  # Linear-space samples
+
+    # Initialize sampler
+    sampler = DelayedRejectionAdaptiveMetropolis(
+        logpdf, np.array(initial_sample), initial_cov, adapt_start=10, eps=1e-6,
+        sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
+    )
+
+    all_samples = []  # Log-space samples
+    all_samples_linear = []  # Linear-space samples
+
+    # MCMC Iterations
+    for iteration in range(iterations):
+        try:
+            # Get the next sample
+            proposed_sample, log_posterior, accepted = next(sampler)
+            v1_log, alpha_log = proposed_sample
+
+            # Transform to linear-space
+            v1, alpha = 10 ** v1_log, 10 ** alpha_log
+            v2 = alpha * v1
+
+            print(f"Iteration {iteration + 1}: v1={v1:.4f}, v2={v2:.4f}, Log Posterior={log_posterior:.4f}, Accepted={accepted}")
+            
+            # Append log-space and linear-space values
+            all_samples.append(proposed_sample)
+            all_samples_linear.append([v1, alpha])
+
+            # Run simulation for current iteration
+            updated_config = update_twozonebohm_config(config_spt_100, v1, v2)
+            simulation_result = run_simulation_with_config(updated_config, simulation, postprocess, "TwoZoneBohm")
+
+            if simulation_result:
+                # Extract metrics similar to observed and initial data
+                averaged_metrics = simulation_result["output"]["average"]
+                iteration_metrics = {
+                    "thrust": averaged_metrics["thrust"],
+                    "discharge_current": averaged_metrics["discharge_current"],
+                    "ion_velocity": averaged_metrics["ui"][0],
+                    "z_normalized": averaged_metrics["z"]
+                }
+                # Save iteration metrics
+                metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
+                save_results_to_json(iteration_metrics, metrics_filename, results_dir=metrics_dir)
+                print(f"Metrics saved for iteration {iteration + 1} to {metrics_filename}")
+
+            # Save samples at intervals
+            if (iteration + 1) % save_interval == 0:
+                np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=',')
+                np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=',')
+                print(f"Saved samples to {final_samples_log_file} and {final_samples_linear_file} (iteration {iteration + 1})")
+
+        except Exception as e:
+            print(f"Error at iteration {iteration + 1}: {e}")
+            break
+
+    # Save final samples
+    np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=',')
+    np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=',')
+    print(f"Final samples saved to {final_samples_log_file} (log-space) and {final_samples_linear_file} (linear-space)")
+    return np.array(all_samples), np.array(all_samples_linear), sampler.accept_ratio()
+
+def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocity_weight, iterations, initial_cov, results_dir="mcmc/results"):
+    """
+    Run MCMC with optimized parameters and save results to a dynamic results directory.
+    """
+    # Load optimized parameters as the initial guess
+    v1_opt, alpha = load_optimized_params(json_path)
+    if v1_opt is None or alpha is None:
+        raise ValueError("Failed to load initial guess parameters.")
+    v2_opt = alpha * v1_opt
+    initial_sample = [v1_opt, alpha]
+
+    # Create a new results directory for this MCMC run
+    run_results_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
+
+    # Run MCMC sampling
+    samples, acceptance_rate = mcmc_inference(
+        lambda v_log: log_posterior(v_log, observed_data, config, simulation, postprocess),
+        initial_sample,
+        initial_cov=initial_cov,
+        iterations=iterations,
+        save_interval=10,
+        results_dir=run_results_dir
+    )
+
+    # Save metadata
+    metadata = {
+        "timestamp": datetime.now().isoformat(),
+        "initial_guess": {"v1": v1_opt, "v2": v2_opt},
+        "initial_cov": initial_cov.tolist(),
+        "initial sample": v_log_initial,
+        "iterations": iterations,
+        "acceptance_rate": acceptance_rate
+    }
+    save_metadata(metadata, filename="mcmc_metadata.json", directory=run_results_dir)
+
+def main():

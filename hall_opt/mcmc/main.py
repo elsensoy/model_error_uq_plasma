@@ -114,20 +114,16 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     Run MCMC with optimized parameters and save results to a dynamic results directory.
     """
     # Load optimized parameters as the initial guess
-    v1_opt, v2_opt = load_optimized_params(json_path)
-    if v1_opt is None or v2_opt is None:
+    v1_opt, alpha_opt = load_optimized_params(json_path)
+    if v1_opt is None or alpha_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
-    
-    initial_sample = [v1_opt, v2_opt]
-    # # Convert v1 and alpha to log10 space ----no need for this updated version already saves map results in log space 
-    # v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
-    # print(f"Initial log parameters: {v_log_initial}")
+    initial_sample = [v1_opt, alpha_opt]
 
     # Create a new results directory for this MCMC run
     run_results_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
 
     # Run MCMC sampling
-    samples, acceptance_rate = mcmc_inference(
+    samples, samples_linear, acceptance_rate = mcmc_inference(
         lambda v_log: log_posterior(v_log, observed_data, config, simulation, postprocess),
         initial_sample,
         initial_cov=initial_cov,
@@ -139,9 +135,8 @@ def run_mcmc_with_optimized_params(json_path, observed_data, config, ion_velocit
     # Save metadata
     metadata = {
         "timestamp": datetime.now().isoformat(),
-        "initial_guess": {"v1": v1_opt, "v2": v2_opt},
         "initial_cov": initial_cov.tolist(),
-        "initial sample": v_log_initial,
+        "initial sample": initial_sample,
         "iterations": iterations,
         "acceptance_rate": acceptance_rate
     }
@@ -185,15 +180,12 @@ def main():
     print("Observed data extracted and saved.")
 
     # Step 3: Load Initial Guess Parameters
-    v1_opt, v2_opt = load_optimized_params(initial_guess_path)
-    if v1_opt is None or v2_opt is None:
+    v1_opt, alpha_opt = load_optimized_params(initial_guess_path)
+    if v1_opt is None or alpha_opt is None:
         print("Failed to load initial guess parameters. Exiting.")
         return
-
-    # Convert initial guess to log-space
-    # v_log_initial = [np.log10(v1_opt), np.log10(v2_opt / v1_opt)]
-    # print(f"Initial guess in log-space: {v_log_initial}")
-
+    
+    v2_opt = v1_opt * alpha_opt
     # Step 4: Run Initial Simulation for Validation
     print(f"Validating initial simulation with v1: {v1_opt}, v2: {v2_opt}")
     initial_config = update_twozonebohm_config(config_spt_100, v1_opt, v2_opt)

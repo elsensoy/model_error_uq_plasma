@@ -66,24 +66,45 @@ def load_json_data(filename):
         print(f"Error decoding JSON: {e}")
         return None
 
-def save_parameters(iteration, v1, v2, filename="parameter.json", results_dir="results"):
-    # Ensure results directory exists
-    os.makedirs(results_dir, exist_ok=True)
-
-    # Prepare file path
+        
+def save_parameters_linear(iteration, v1, alpha, results_dir, filename="parameters_linear.json"):
     filepath = os.path.join(results_dir, filename)
+    data = {"iteration": iteration, "v1": v1, "alpha": alpha}
 
-    # Load existing log if it exists
+    # Initialize log as an empty list if the file is empty or doesn't exist
+    if os.path.exists(filepath):
+        if os.path.getsize(filepath) > 0:  # Check if the file is non-empty
+            with open(filepath, 'r') as file:
+                try:
+                    log = json.load(file)
+                except json.JSONDecodeError:
+                    print(f"Warning: {filename} is corrupted or empty. Initializing new log.")
+                    log = []
+        else:
+            print(f"Warning: {filename} is empty. Initializing new log.")
+            log = []
+    else:
+        log = []
+
+    log.append(data)
+
+    with open(filepath, 'w') as file:
+        json.dump(log, file, indent=4)
+    print(f"Iteration {iteration}: Saved linear parameters to {filename}")
+
+
+def save_parameters_log(iteration, v1_log, alpha_log, results_dir, filename="parameters_log.json"):
+    filepath = os.path.join(results_dir, filename)
+    data = {"iteration": iteration, "v1_log": v1_log, "alpha_log": alpha_log}
+
     if os.path.exists(filepath):
         with open(filepath, 'r') as file:
             log = json.load(file)
     else:
         log = []
 
-    # Append the current iteration's data
-    log.append({"iteration": iteration, "v1": v1, "v2": v2})
+    log.append(data)
 
-    # Save back to the file
     with open(filepath, 'w') as file:
         json.dump(log, file, indent=4)
-    print(f"Iteration {iteration}: Saved v1 = {v1:.4f}, v2 = {v2:.4f} to {filepath}")
+    print(f"Iteration {iteration}: Saved log-space parameters to {filename}")

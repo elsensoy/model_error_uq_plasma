@@ -71,3 +71,5 @@ if __name__ == "__main__":
     plt.xlabel("Log10 Parameters")
     plt.ylabel("Frequency")
     plt.show()
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_dir, 'prior_only.png'))

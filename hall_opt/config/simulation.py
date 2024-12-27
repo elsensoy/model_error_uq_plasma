@@ -72,7 +72,7 @@ simulation = {
 }
 
 postprocess = {
-    "output_file": "map_/results-map/output_twozonebohm.json",
+    "output_file": "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/output_twozonebohm.json",
     "save_time_resolved": False,
     "average_start_time": 0.4 * 1e-3
 }
