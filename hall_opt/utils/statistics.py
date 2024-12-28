@@ -21,8 +21,17 @@ def prior_logpdf(v1_log, alpha_log):
     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))  # Gaussian prior
     prior2 = 0  # Uniform prior for alpha_log
     if alpha_log <= 0 or alpha_log > 2:
-        return -np.inf  # Reject invalid samples
+        return -np.inf
     return prior1 + prior2
+
+
+"""prior function for testing with Gaussian log-prior"""
+# def prior_logpdf(v1_log, alpha_log):
+#     prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
+#     prior2 = norm.logpdf(alpha_log, loc=np.log10(1/16), scale=np.sqrt(2))
+#     #    if alpha_log <= 0 or alpha_log > 2:
+#     #     return -np.inf
+#     return prior1 + prior2
 
 # -----------------------------
 # 2. Likelihood

@@ -15,3 +15,5 @@ Iteration 151: v1=83.7009, v2=6341.4539, Log Posterior=-384797531.4734, Accepted
 Running simulation with TwoZoneBohm configuration...
 ┌ Warning: Error detected in solution: BoundsError: attempt to access 256-element Vector{Float64} at index [-9223372036854775807]
 │ Stacktrace:
+
+
