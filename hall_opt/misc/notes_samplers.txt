@@ -1,0 +1,74 @@
+
+---
+samplers.py--
+DRAM returns the log-posterior for each proposed sample
+For an accepted sample: The log-posterior of the accepted sample.
+For a rejected sample: The log-posterior of the retained (previous) sample.
+The MH ratio is only used internally to decide whether to accept or reject the proposed sample. 
+---
+note:
+gaussian randomwalk:('mcmciterators/randomwalkgauss class')
+The first proposal in each iteration is based on a Gaussian random walk. (x_proposed = x_current + \epsilon)
+ where epsilon is multivariate gaussian with mean 0 and covariance \Sigma.
+where it is implemented--
+    def propose(self):
+        return sample_gauss(self.current_sample, self.cov_chol)
+---
+self.current_sample: is the current state of the parameter space.
+self.cov_chol :cholesky decomposition of the covariance matrix, defining the
+spread of the gaussian Distribution.
+==
+sample gauss generates a new sample:
+    def sample_gauss(mean, cov_chol):
+        return mean + np.dot(cov_chol, np.random.randn(mean.shape[0]))
+
+this generates a multivariate gaussian distributed centered at mean with 
+covariance defined by cov_chol.
+/////////////////////////////////////////////////////////////////////////////////////
+note:
+Dram adds two key features to the random walk. delayed rejection and adaptive covariance.
++ DR: if the first proposal rejected, second proposal generated from a scaled covariance matrix(gamma),
+which explores a smaller neighborhood around the current state. (why smaller?)
+--------------
+from samplers.py 
+    def propose(self, level):
+        if level == 0:
+            return super().propose()
+        else:
+            return sample_gauss(self.current_sample,
+                                np.sqrt(self.gamma) * self.cov_chol)
+----------------------
++Adaptive covariance:
+The covariance matrix of the proposal distribution is updated over time based on the chain's history.
+This is implemented in the AdaptiveMetropolisGauss class:
+------------------------------------
+    def update_cov_and_mean(self, new_pt):
+        next_mean = self.compute_update_mean(new_pt)
+        t1 = self.k * np.outer(self.mean, self.mean) - \
+            (self.k + 1) * np.outer(next_mean, next_mean) + \
+            np.outer(new_pt, new_pt) + self.epsI
+        t1 *= self.sd / self.k
+        self.S = (self.k - 1) / self.k * self.S + t1
+        self.mean = next_mean
+--------------------------------------
+--> the covariance is updated after interval steps. here: 
+if self.k > self.adapt_start and self.k % self.interval == 0:
+    self.cov = self.S
+    self.cov_chol = np.linalg.cholesky(self.S)
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+Summary
+Proposal Mechanism: The sampler uses a Gaussian random walk for generating proposals.
+
+Gaussian Random Walk:
+
+Centered at the current state (self.current_sample).
+With a covariance matrix (self.cov), adapted during sampling.
+DRAM Features:
+
+Delayed Rejection: Generates secondary proposals with smaller steps if the primary proposal is rejected.
+Adaptive Covariance: Updates the proposal covariance matrix over time to improve sampling efficiency.
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
++Delayed Rejection Scaling (gamma): tune level_scale to control the step size for secondary proposals.

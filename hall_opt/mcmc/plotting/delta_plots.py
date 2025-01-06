@@ -30,6 +30,7 @@ mean_thrust = np.mean(thrust_values)
 last_thrust = thrust_values[-1]
 mean_discharge = np.mean(discharge_values)
 last_discharge = discharge_values[-1]
+
 def plot_ion_velocity_deltas_all(z_normalized, observed_ion_velocity, initial_ion_velocity, ion_velocity_values, save_path):
     """
     Plot the delta (difference from observed ion velocity) for all MCMC iterations and the initial guess.

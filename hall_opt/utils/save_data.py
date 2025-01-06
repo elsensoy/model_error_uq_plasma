@@ -108,3 +108,20 @@ def save_parameters_log(iteration, v1_log, alpha_log, results_dir, filename="par
     with open(filepath, 'w') as file:
         json.dump(log, file, indent=4)
     print(f"Iteration {iteration}: Saved log-space parameters to {filename}")
+
+def save_failing_samples_to_file(file_path):
+    """
+    Save the failing samples to a JSON file, ensuring the file is created even if there are no samples.
+    """
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    if failing_samples:
+        with open(file_path, "w") as f:
+            json.dump(failing_samples, f, indent=4)
+        print(f"Failing samples saved to {file_path}")
+    else:
+        # Write an empty JSON array if no samples
+        with open(file_path, "w") as f:
+            json.dump([], f, indent=4)
+        print(f"No failing samples to save. Empty file created at {file_path}.")
+

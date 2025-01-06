@@ -1,0 +1,83 @@
+#SAMPLING METHOD AND ANALYSIS (needs update)
+--------------------------------------------
+
+##Initial Guess
+-------------
+- Initial guess values obtained from MAP. 
+    v1_opt, v2_opt = load_optimized_params(json_path)
+    initial_sample = [v1_opt, v2_opt]
+
+##MCMC Sampling
+-------------
+- MCMC Sampling uses the `DelayedRejectionAdaptiveMetropolis` sampler:
+    sampler = DelayedRejectionAdaptiveMetropolis(
+        logpdf, np.array(initial_sample), initial_cov, adapt_start=10, eps=1e-6,
+        sd=2.4**2 / len(initial_sample), interval=10, level_scale=1e-1
+  )
+###Sampler Output
+--------------
+- The sampler produces:
+  proposed_sample, log_posterior, accepted = next(sampler)
+
+- `proposed_sample` is sampled directly in log space.
+
+###Post-Sampling Transformation
+-----------------------------
+- After sampling, parameters are transformed to linear space for further analysis:
+    v1 = 10 ** v1_log
+    alpha = 10 ** alpha_log
+    v2 = alpha * v1
+
+##Saved Results
+-------------
+###Log-Space Samples
+-----------------
+- Saved directly from:
+    all_samples.append(proposed_sample)
+
+- File: final_samples_log.csv
+
+####Structure:
+v1_log, alpha_log
+
+Example:
+  '''
+  1.715694141286884522e-01, 2.982810393318328923e-02
+  -1.339047425017383941e-02, -3.909545115556554706e-01
+  -3.063508874261127168e-01, -2.638742125142167771e-01
+  ...'''
+
+###Linear-Space Samples
+--------------------
+- Derived from the log-space samples:
+    '''
+    v1, alpha, v2 = np.exp(v1_log), np.exp(alpha_log), np.exp(v1_log + alpha_log)
+
+    '''
+- File: final_samples_linear.csv
+
+####Structure:
+v1, alpha, v2
+
+Example:
+1.484463125722567556e+00, 1.071095276117069783e+00, 1.590001441531421866e+00
+9.696377737052679358e-01, 4.064859026811402654e-01, 3.941440857183170499e-01
+4.939114708731324188e-01, 5.446603834661066790e-01, 2.690140111240690857e-01
+...
+
+###Key Notes
+---------
+1. Initial Sampling:
+   - The MCMC process operates entirely in log space.
+   - Initial guesses and all MCMC proposals are expressed as log10-transformed values.
+
+2. Transformed Outputs:
+   - Linear-space values are computed post-sampling for physical interpretation and analysis.
+
+3. Files:
+   - final_samples_log.csv: Raw MCMC output in log space.
+   - final_samples_linear.csv: Transformed output in linear space for simulation and analysis.
+   - failing_samples: Logs the failed model parameters during sampling.
+   - mcmc_metadata: Post-processing information for each run: timestamp, initial covariance scaling, number of iterations, final acceptance rate, results directories, and additional model configuration information.
+   - iteration_metrics : Metrics like thrust, ion velocity, and discharge current.
+iteration_metrics/iteration_1_metrics.json, iteration_2_metrics.json...

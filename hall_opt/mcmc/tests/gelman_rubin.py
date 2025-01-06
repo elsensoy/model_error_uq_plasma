@@ -8,7 +8,7 @@ base_results_dir = os.path.join("..", "results", "mcmc-results-1")
 data = load_data(base_results_dir)
 
 # Define number of chains
-num_chains = 4  # Ensure this divides the number of iterations evenly
+num_chains = 4  # this divides the number of iterations evenly
 num_iterations = data.shape[0]
 assert num_iterations % num_chains == 0, "Number of rows must be divisible by num_chains."
 

@@ -1,109 +1,153 @@
-# hall-opt
-
 ## Project Overview
-This project uses the HallThruster.jl Julia package, integrated with Python through Juliacall, to simulate and optimize the behavior of a Hall Thruster.
+This project aims to optimize the behavior of a Hall Thruster using the HallThruster.jl Julia package, integrated with Python through Juliacall. The project involves parameter estimation using MCMC sampling and MAP optimization, providing tools for comparison between simulated and observed data. It employs Bayesian inference techniques to refine the parameters of the **TwoZoneBohm** and **MultiLogBohm** models.
 
-# Key Features:
-- MultiLogBohm Simulation: Simulates Hall Thruster behavior using the MultiLogBohm model.
-- TwoZoneBohm Simulation: Uses MAP (Maximum A Posteriori) parameter optimization to simulate Hall Thruster behavior.
-- MAP Estimation: Optimizes key model parameters using MAP.
-- Result Comparison: Visualize and compare simulation results against observed data.
+Please refer to:
+- [HallThruster.jl (v0.18)](https://um-pepl.github.io/HallThruster.jl/dev/)
+- [Simulation Tutorial](https://um-pepl.github.io/HallThruster.jl/dev/tutorials/simulation/)
+- [Running Simulations from JSON](https://um-pepl.github.io/HallThruster.jl/dev/howto/json/)
+- [Using HallThruster with Python](https://um-pepl.github.io/HallThruster.jl/dev/howto/python/)
 
-## Step 1: Install PDM
-If PDM is not installed, install it via pip:
-    #pip install pdm
 
-## Step 2: Install Project Dependencies
-Once PDM is installed, clone the repository and install the dependencies:
+## Key Features
 
-# Clone the repository
-    git clone https://github.com/elsensoy/HallOpt.git
-    cd hall-opt
+- **MultiLogBohm Simulation**: Models Hall Thruster behavior using the MultiLogBohm framework.
+- **TwoZoneBohm Simulation**: Uses MAP optimization and MCMC sampling to refine Hall Thruster parameters.
+- **MAP Estimation**: Provides optimized initial guesses for key parameters using the Nelder-Mead optimization method.
+- **MCMC Sampling**:
+  - **Proposal Mechanism**: Gaussian random walk with adaptive scaling.
+  - **DRAM Features**:
+    - *Delayed Rejection*: Generates smaller-step secondary proposals upon rejection.
+    - *Adaptive Covariance*: Updates proposal covariance for efficiency.
+  - The **MCMCIterators** package is used for flexible and customizable MCMC implementation. Clone it via:
+    ```
+    git clone https://github.com/goroda/MCMCIterators.git
+    ```
+- **Comparison with Observed Data**: Simulates ion velocity, thrust, and discharge current and compares them with ground truth data.
+- **Result Visualization**: Includes trace plots, posterior distributions, autocorrelation plots, and parameter-pair plots.
 
-# Install Python dependencies with PDM
+---
+
+## Installation
+
+### Step 1: Install PDM
+If you don't already have PDM installed, you can install it using `pip`:
+```
+    pip install pdm
+```
+
+### Step 2: Clone the Repository
+```
+    git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
+    cd model_error_uq_plasma
+```
+
+### Step 3: Install Dependencies
+Install the necessary dependencies with PDM:
+```
     pdm install
-PDM will create a virtual environment and install all necessary dependencies, including matplotlib, scipy, and juliacall.
+```
+This will create a virtual environment and install Python packages such as `matplotlib`, `scipy`, and `juliacall`.
 
-    # Activate the PDM virtual environment:
-    pdm venv activate
+Activate the environment:
+```
+pdm venv activate
+```
 
-<!-- Julia Installation -->
-Ensure Julia is installed. Also the following Julia packages:
-    import Pkg
+### Step 4: Install MCMCIterators
+Clone and install the **MCMCIterators** package for advanced MCMC sampling:
+```
+    git clone https://github.com/goroda/MCMCIterators.git
+    cd MCMCIterators
+    python setup.py install
+```
+
+### Step 5: Configure HallThruster.jl
+Make sure HallThruster.jl is installed. It can be installed from Julia's package manager (`Pkg`):
+```julia
+    using Pkg
     Pkg.add("HallThruster")
-    Pkg.add("JSON3")
+```
 
-    #Install HallThrusterPEM manually if needed
-     git clone https://github.com/JANUS-Institute/HallThrusterPEM.git
-     cd HallThrusterPEM
-     pdm install
+---
 
+## Running the Project
 
-## Step 3: Running the Project
-Once the dependencies are installed, you can run the main simulation script.
+### Step 1: Pre-MCMC MAP Optimization
+Run the MAP optimization script to generate the initial parameter guesses:
+```
+    pdm run python map.py
+```
 
-    cd hall_opt
+### Step 2: Run MCMC Sampling
+Start the MCMC sampling process using the optimized parameters from MAP:
+```
     pdm run python mcmc.py
+```
 
-# The script include the following tasks:
-MCMC sampling to estimate parameters for the TwoZoneBohm model using initial guesses from an optimizated initial state(nelder mead result for ion velocity =[2.0]) and multilogbohm model as ground truth. The main steps involve setting up configurations, defining prior and likelihood functions, running MCMC sampling with checkpointing, and saving results along with metadata.
-# Expected Outputs
-Results are saved in results/mcmc-results/ directories in JSON format. Key outputs include:
-Ground Truth Data: Results from the initial MultiLogBohm simulation.(mcmc_observed_data_map.json)
-Optimized Parameters: Best-fit parameters from MAP estimation.
-(mcmc_pre_mcmc_initial.json)
-Performance Metrics: Metrics like thrust, ion velocity, and discharge current.
-iteration_metrics/iteration_1_metrics.json, iteration_2_metrics.json...
-Checkpoint file: Includes every 10th sample results. Generated for tracking the results and for resuming MCMC if needed. 
-checkpoint_1.csv
-Final results: Includes simulation parameter values (c1, c2) for the mcmc chain. final_samples_1.csv
-Metadata: Post-processing information for each run: Optimized initial point(map results), timestamp, initial covariance scaling, number of iterations, final acceptance rate, results directories, and additional model configuration information.
-## Step 4: Visualizing Results
-To visualize the results, you can use the plotting scripts in mcmc-plot-files. For example, you can generate trace plots by running:
-    pdm run python visualization.py
-This script will generate autocorrelation, trace, posterior, and pair plots, comparing samples with observed and pre-mcmc(optimized initial guess), saving the plots in ../results/mcmc-results-{the respected results dir increment.}/plots.
+This will:
+- Estimate parameters (\(c_1\), \(c_2\)) using Bayesian inference.
+- Save intermediate and final results in the `results/` directory.
 
-# Dependencies
-The Python dependencies are listed in the pyproject.toml. The main dependencies include:
+---
 
-    matplotlib
-    juliacall
-    scipy
+## Expected Outputs
 
+   - final_samples_log.csv: Raw MCMC output in log space.
+   - final_samples_linear.csv: Transformed output in linear space for simulation and analysis.
+   - failing_samples: Logs the failed model parameters during sampling.
+   - mcmc_metadata: Post-processing information for each run: timestamp, initial covariance scaling, number of iterations, final acceptance rate, results directories, and additional model configuration information.
+   - iteration_metrics : Metrics like thrust, ion velocity, and discharge current for each sample.
 
-# Project Structure
+## Visualizing Results
 
-    model_error_uq_plasma/
-    ├── .gitignore
-    ├── .pdm-python
-    ├── .venv/                  # Python virtual environment
-    ├── HallThrusterPEM/        # Core module for Hall thruster modeling
-    ├── Manifest.toml           # Dependency tracking for Julia packages
-    ├── MCMCIterators/          # MCMC iterator implementations
-    ├── Project.toml            # Julia project configuration
-    ├── README.md               # Project overview
-    ├── bfield_spt100.csv       # Magnetic field data for SPT-100 thruster
-    ├── extract_metrics.jl      # Julia script for extracting key metrics
-    ├── hall_opt/               # Optimization routines for thruster parameters
-    │   ├── Manifest.toml            # Dependency tracking for Python or Julia packages
-    │   ├── Project.toml             # Project configuration
-    │   ├── README.md                # Subdirectory-specific overview
-    │   ├── mcmc.log                 # Log file for MCMC runs
-    │   ├── mcmc.py                  # Python script for MCMC methods
-    │   ├── mcmc_utils.py            # Utility functions for MCMC processing
-    │   ├── map.py       # Nelder-Mead optimization script
-    │   ├── resume_from_checkpoint.py # Resume MCMC runs from a saved state
-    │   ├── mcmc-plot-files/         # Directory for plots generated by MCMC runs
-    │   ├── results/                 # Directory for storing MCMC results
-    │   └── __pycache__/             # Python cache directory
-    ├── misc/                   # Miscellaneous utilities and files
-    ├── pdm.lock                # Python dependency lock file
-    ├── pyproject.toml          # Python project configuration
-    ├── requirements.txt        # Python dependencies
-    ├── results-Nelder-Mead/    # Results from Nelder-Mead optimization
-    ├── setup.jl                # Julia setup script
-    ├── tests/                  # Unit and integration tests
-    └── venv/                   # Python virtual environment (duplicate of .venv)
+You can visualize MCMC sampling results using the `run_all_plots.py` script:
+```
+    pdm run python run_all_plots.py
+```
 
+This will generate:
+- Trace plots of parameters over iterations.
+- Posterior distribution plots.
+- Pair plots showing parameter correlations.
 
-    Feel free to contact me at elsensoy@umich.edu!
+Plots are saved in the `plots/` subdirectory of the respective MCMC results folder.
+
+# Project Structure 
+```
+    ├── Manifest.toml
+    ├── Project.toml
+    ├── __init__.py
+    ├── config
+    │   ├── bfield_spt100.csv
+    │   ├── mcmc_config.json
+    │   └── simulation.py
+    ├── map_
+    │   ├── map.py
+    │   ├── plotting
+    │   ├── results-map
+    │   │   ├── plots-map
+    │   │   └── pre_mcmc_initial.json
+    │   └── tests
+    ├── mcmc
+    │   ├── mcmc.py
+    │   ├── plotting
+    │   │   ├── common_setup.py
+    │   │   ├── run_all_plots.py
+    │   │   └── visualization.py #example plotting script
+    │   ├── results
+    │   └── tests
+    ├── mcmc.log
+    ├── misc
+    │   ├── checklist.txt
+    │   ├── mcmc_table.py
+    │   ├── notes.txt
+    │   └── todo_list_.txt
+    └── utils
+        ├── iter_methods.py
+        ├── save_data.py
+        └── statistics.py
+```
+ **Additional Information**
+
+- MCMCIterators: This package provides the tools for implementing Delayed Rejection Adaptive Metropolis (DRAM) sampling. [Learn more about MCMCIterators](https://github.com/goroda/MCMCIterators).
+- **HallThruster.jl**: A Julia package for Hall Thruster simulations, providing core functionality for the MultiLogBohm and TwoZoneBohm models. See [HallThruster.jl documentation](https://um-pepl.github.io/HallThruster.jl/dev/).

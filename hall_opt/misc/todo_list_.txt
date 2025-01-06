@@ -1,0 +1,52 @@
+a) Test the Priors
+Run the MCMC without the likelihood (sampling from the prior only) to verify:
+
+If the priors are implemented correctly.
+Whether the bounds and penalty are functioning as expected. 
+b) turn off the validation and penalty for prior/posterior. keep simulation penalty only. track the chain behavior. Check log scale consistency.
+c)gelman_rubin:
+Diagnostic metric used to assess the convergence of MCMC chains. compares the variance within each chain to the variance between multiple chains. 
+If the chains are well-mixed and converged, R^ will approach 1.
+12/27
+d) run with no prior check (---the issue isn't prior function.confirmed. could it be posterior?)
+e) replace log prior function for testing with Gaussian log-prior
+
+def prior_logpdf(v1_log, alpha_log):
+    prior1 = norm.logpdf(v1_log, loc=np.log10(1/160), scale=np.sqrt(2))
+    prior2 = norm.logpdf(alpha_log, loc=np.log10(1/16), scale=np.sqrt(2))
+    return prior1 + prior2
+f) plotting for map ion velocity value evaluation, meaning i need to add simulation to the driver code for each iteration -_-
+g) should i hit N number of iteration mark for metric extraction despite the simulation errors?
+h) add burn in period and run it for longer. (KA)
+
+12/28
+-running mcmc with a less harsh penalty. e-16 instead of -np.inf.
+-running mcmc with when prior 0.
+ 
+12/30
+Run MAP optimization or MCMC with the posterior evaluated on fixed points:
+Track simulation failures. Log retcode samples to failing_samples.json. 
+
+1/4
+Evaluate log posterior values for fixed points.
+Compare with prior-only results.
+might help isolate whether the posterior calculation or the simulation integration is causing the issue.
+roll back individual changes in the posterior calculation and failure checks.
+Test each rollback to identify which change introduced the issue.
+
+1/5
+possible fixes list:
+Reset Stuck Sampler:
+Force a reset if failures persist for many iterations. 
+Randomization? in addition to randomwalkgauss for stuck model samples? (KA)
+Penalize Failure Zones in the Prior:
+Modify the prior to avoid problematic regions. This would require additional bounds. (Plan C.)
+Test and Refine Parameter Ranges:
+Test the simulation outside of MCMC to identify valid parameter ranges.
+
+ 1/6
+Interval was set too high? it could be a contributor to the failing mechanism. decreased interval from 10 to 1. 
+In mcmc, set the scaling factor, sd to None. to rely on the sampler's default scaling logic. 
+ (switch back to the scaling heuristic after testing, '2.4**2 / len(initial_sample)')
+-Focus the posterior function on validating inputs (like priors) and computing the posterior value(Plan A)
+Update README. (+)

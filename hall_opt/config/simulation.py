@@ -5,7 +5,7 @@ import os
 import time
 import numpy as np
 from scipy.stats import norm
-from utils.save_data import load_json_data, subsample_data, save_results_to_json
+from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_failing_samples_to_file
 
 # Add HallThruster Python API to the system path
 sys.path.append("/path/to/HallThruster/python") 
@@ -81,16 +81,19 @@ postprocess = {
 # -----------------------------
 # Helper Functions
 # -----------------------------
+failing_samples = []  
 
-def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm"):
+def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm", iteration=None, v1=None, v2=None):
     """
     Run the simulation with the given configuration and handle cases where the simulation fails,
     including `retcode: failure` or `retcode: error`.
+    Tracks failing samples and logs them.
     """
-    config_copy = config.copy()  # Ensure the original config is not mutated
+    config_copy = config.copy() 
     input_data = {"config": config_copy, "simulation": simulation, "postprocess": postprocess}
 
     print(f"Running simulation with {config_type} configuration...")
+
     try:
         # Run the simulation
         solution = het.run_simulation(input_data)
@@ -99,22 +102,58 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
         retcode = solution["output"].get("retcode", "unknown")  # Default to "unknown" if retcode is missing
         if retcode != "success":
             print(f"Simulation failed with retcode: {retcode}")
-            if retcode in {"failure", "error"}:
-                print("Simulation detected NaN, Inf, or another error state. Returning None to indicate failure.")
-            return None  # Return None to indicate a failed simulation
+            failing_samples.append({
+                "iteration": iteration,
+                "v1": v1,
+                "v2": v2,
+                "config_type": config_type,
+                "retcode": retcode,
+                "reason": "Simulation failure",
+                "config": config_copy  #  the failing config for debugging
+            })
+            return None  # Indicate failure
+
+        # Validate simulation output
+        metrics = solution["output"].get("average", {})
+        if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
+            print("Metrics are missing or invalid. Logging failure.")
+            failing_samples.append({
+                "iteration": iteration,
+                "v1": v1,
+                "v2": v2,
+                "config_type": config_type,
+                "reason": "Invalid metrics",
+                "config": config_copy
+            })
+            return None  # Indicate failure
 
         # Return the valid solution
         return solution
 
     except KeyError as e:
-        print(f"KeyError during simulation: {e}. Returning None to indicate failure.")
-        return None  # Return None to indicate failure due to invalid result structure
+        print(f"KeyError during simulation: {e}. Logging failure.")
+        failing_samples.append({
+            "iteration": iteration,
+            "v1": v1,
+            "v2": v2,
+            "config_type": config_type,
+            "reason": f"KeyError: {str(e)}"
+        })
+        return None
 
     except Exception as e:
-        print(f"Unexpected error during simulation: {e}. Returning None to indicate failure.")
-        return None  # Return None to indicate unexpected errors
+        print(f"Unexpected error during simulation: {e}. Logging failure.")
+        failing_samples.append({
+            "iteration": iteration,
+            "v1": v1,
+            "v2": v2,
+            "config_type": config_type,
+            "reason": f"Unexpected error: {str(e)}"
+        })
+        return None
 
 def update_twozonebohm_config(config, v1, v2):
     config_copy = config.copy()  #  the original config should not mutated.
     config_copy["anom_model"] = {"type": "TwoZoneBohm", "c1": v1, "c2": v2}
     return config_copy
+

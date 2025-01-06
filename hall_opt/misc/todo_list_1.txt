@@ -1,3 +1,0 @@
-#plots for map ion velocity weight comparison
-#test the posterior function. try the old posterior function to see if it makes any difference in convergance. 
-#changes made in the log prior could be the problem. 
