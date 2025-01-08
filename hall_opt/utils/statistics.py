@@ -91,11 +91,11 @@ def log_posterior(v_log, observed_data, config, simulation, postprocess, ion_vel
         print(f"Invalid metrics in simulation output: {metrics}. Penalizing with -np.inf.")
         return -np.inf
 
-    # Prepare simulated data (using your preferred logic)
+    # Prepare simulated data 
     simulated_data = { 
         "thrust": metrics.get("thrust", 0),
         "discharge_current": metrics.get("discharge_current", 0),
-        "ui": metrics.get("ui", []),  # Assuming "ui" is a list of velocities
+        "ui": metrics.get("ui", []),  #  "ui" is a list of velocities
         "z_coords": metrics.get("z_coords", []), #included for interpolation
     }
 
