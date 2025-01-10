@@ -18,10 +18,6 @@ Please refer to:
   - **DRAM Features**:
     - *Delayed Rejection*: Generates smaller-step secondary proposals upon rejection.
     - *Adaptive Covariance*: Updates proposal covariance for efficiency.
-  - The **MCMCIterators** package is used for flexible and customizable MCMC implementation. Clone it via:
-    ```
-    git clone https://github.com/goroda/MCMCIterators.git
-    ```
 - **Comparison with Observed Data**: Simulates ion velocity, thrust, and discharge current and compares them with ground truth data.
 - **Result Visualization**: Includes trace plots, posterior distributions, autocorrelation plots, and parameter-pair plots.
 
@@ -42,17 +38,26 @@ If you don't already have PDM installed, you can install it using `pip`:
 ```
 
 ### Step 3: Install Dependencies
-Install the necessary dependencies with PDM:
+1. Install the necessary dependencies with PDM:
 ```
     pdm install
 ```
-This will create a virtual environment and install Python packages such as `matplotlib`, `scipy`, and `juliacall`.
-
-Activate the environment:
+2. Activate the environment:
 ```
 pdm venv activate
 ```
+Alternative: Use Python's venv
+1. Alternatively, use Python's built-in venv module:
+```
+    python3 -m venv .venv
+    source .venv/bin/activate
+```
+Install Dependencies: Within the virtual environment, use pip to install the dependencies and verify:
+```
+pip install -r requirements.txt
+python -m pip list
 
+```
 ### Step 4: Install MCMCIterators
 Clone and install the **MCMCIterators** package for advanced MCMC sampling:
 ```
@@ -114,38 +119,47 @@ Plots are saved in the `plots/` subdirectory of the respective MCMC results fold
 
 # Project Structure 
 ```
-    ├── Manifest.toml
-    ├── Project.toml
-    ├── __init__.py
+    ├── main.py                # The single entry point for all tasks
     ├── config
     │   ├── bfield_spt100.csv
     │   ├── mcmc_config.json
-    │   └── simulation.py
+    │   ├── simulation.py       # Configuration or helper script
+    │   └── settings.yaml       # Example YAML input file
     ├── map_
+    │   ├── __init__.py
     │   ├── map.py
     │   ├── plotting
+    │   │   ├── __init__.py
+    │   │   └── plot_script.py
     │   ├── results-map
     │   │   ├── plots-map
     │   │   └── pre_mcmc_initial.json
     │   └── tests
     ├── mcmc
+    │   ├── __init__.py
     │   ├── mcmc.py
     │   ├── plotting
+    │   │   ├── __init__.py
     │   │   ├── common_setup.py
     │   │   ├── run_all_plots.py
-    │   │   └── visualization.py #example plotting script
+    │   │   └── visualization.py
     │   ├── results
     │   └── tests
-    ├── mcmc.log
     ├── misc
     │   ├── checklist.txt
     │   ├── mcmc_table.py
     │   ├── notes.txt
     │   └── todo_list_.txt
-    └── utils
-        ├── iter_methods.py
-        ├── save_data.py
-        └── statistics.py
+    ├── utils
+    │   ├── __init__.py
+    │   ├── iter_methods.py
+    │   ├── save_data.py
+    │   └── statistics.py
+    ├── requirements.txt       # Python dependencies
+    ├── README.md              # Project documentation
+    ├── Project.toml           # Julia dependencies
+    └── Manifest.toml          # Julia dependencies
+
 ```
  **Additional Information**
 

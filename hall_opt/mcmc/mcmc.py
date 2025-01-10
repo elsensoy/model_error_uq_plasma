@@ -188,7 +188,7 @@ def main():
 
     print("Running ground truth simulation (MultiLogBohm)...")
     ground_truth_postprocess = postprocess.copy()
-    ground_truth_postprocess["output_file"] = "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/ground_truth.json"
+    ground_truth_postprocess["output_file"] = "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/ground_truth.json"
 
     ground_truth_solution = run_simulation_with_config(
         config_multilogbohm, simulation, ground_truth_postprocess, config_type="MultiLogBohm"

@@ -22,8 +22,7 @@ import hallthruster as het
 from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_parameters_linear, save_parameters_log
 from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
 from utils.statistics import log_likelihood, prior_logpdf, log_posterior
-
-results_dir = "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map"
+results_dir = "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map"
 
 def run_map(observed_data, config, simulation, postprocess, results_dir, final_params_file="final_parameters.json", ion_velocity_weight=2.0):
     """

@@ -1,0 +1,11 @@
+data_dir: "./results"
+gen_data: true
+run_map: false
+run_mcmc: true
+ion_velocity_weight: 2.0
+plotting: true
+initial_guess_path: "./config/initial_guess.json"
+iterations: 1000
+initial_cov:
+  - [0.1, -0.5]
+  - [-0.5, 0.1]

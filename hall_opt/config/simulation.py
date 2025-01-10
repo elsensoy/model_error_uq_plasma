@@ -7,9 +7,11 @@ import numpy as np
 from scipy.stats import norm
 from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_failing_samples_to_file
 
-# Add HallThruster Python API to the system path
-sys.path.append("/path/to/HallThruster/python") 
+hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
 import hallthruster as het
+print("Updated sys.path:", sys.path)
 
 # -----------------------------
 # 1. MultiLogBohm Configuration (Ground Truth)
@@ -72,7 +74,7 @@ simulation = {
 }
 
 postprocess = {
-    "output_file": "/mnt/c/Users/MRover/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/output_twozonebohm.json",
+    "output_file": "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/output_twozonebohm.json",
     "save_time_resolved": False,
     "average_start_time": 0.4 * 1e-3
 }
