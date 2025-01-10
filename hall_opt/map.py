@@ -1,33 +1,22 @@
-import sys
-import json
-import math
 import os
-import time
+import json
 import numpy as np
 from scipy.optimize import minimize
-from scipy.stats import norm
 
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)  # Ensures hall_opt is at the top of the search path
+from utils.save_data import save_parameters_linear, save_parameters_log
+from config.simulation import update_twozonebohm_config, run_simulation_with_config
+from utils.statistics import log_posterior
 
-# Add HallThruster Python API to sys.path
-hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-print("Updated sys.path:", sys.path)
-
-import hallthruster as het
-from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_parameters_linear, save_parameters_log
-from config.simulation import simulation, config_spt_100, postprocess, config_multilogbohm, update_twozonebohm_config, run_simulation_with_config
-from utils.statistics import log_likelihood, prior_logpdf, log_posterior
-results_dir = "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map"
-
-def run_map(observed_data, config, simulation, postprocess, results_dir, final_params_file="final_parameters.json", ion_velocity_weight=2.0):
-    """
-    Perform MAP optimization using v1 and alpha, and save parameter evolution.
-    """
+def run_map_workflow(
+    observed_data,
+    config,
+    simulation,
+    postprocess,
+    results_dir,
+    final_params_file="final_parameters.json",
+    ion_velocity_weight=2.0,
+):
+    
     initial_guess = [-2, 0.5]  # Log-space initial guess for v1 and alpha
     iteration_counter = [0]  # Tracks iterations
 
@@ -52,7 +41,7 @@ def run_map(observed_data, config, simulation, postprocess, results_dir, final_p
 
     def iteration_callback(v_log):
         """
-        Callback function for each iteration during optimization.
+        Callback function.
         Saves parameters in both linear and log space to separate files.
         """
         iteration_counter[0] += 1
@@ -108,42 +97,3 @@ def run_map(observed_data, config, simulation, postprocess, results_dir, final_p
     else:
         print("MAP optimization failed.")
         return None, None
-             
-def main():
-    # Step 1: Run ground truth simulation
-    print("Running ground truth simulation (MultiLogBohm)...")
-    ground_truth_postprocess = postprocess.copy()
-    ground_truth_postprocess["output_file"] = os.path.join(results_dir, "ground_truth.json")
-
-    ground_truth_solution = run_simulation_with_config(
-        config_multilogbohm, simulation, ground_truth_postprocess, config_type="MultiLogBohm"
-    )
-
-    if not ground_truth_solution:
-        print("Ground truth simulation failed. Exiting.")
-        return
-
-    # Extract observed data
-    averaged_metrics = ground_truth_solution["output"]["average"]
-    observed_data = {
-        "thrust": averaged_metrics["thrust"],
-        "discharge_current": averaged_metrics["discharge_current"],
-        "ion_velocity": averaged_metrics["ui"][0],
-        "z_normalized": averaged_metrics["z"]
-    }
-
-    print("Starting MAP optimization and saving parameter evolution...")
-
-    # Step 2: Run MAP optimization
-    v1_opt, alpha_opt = run_map(
-        observed_data, config_spt_100, simulation, postprocess, results_dir
-    )
-
-    if v1_opt is None or alpha_opt is None:
-        print("Optimization failed. Exiting.")
-        return  # Exit if optimization fails
-
-    print(f"Final optimized parameters: v1 = {v1_opt:.4f}, alpha = {alpha_opt:.4f}")
-
-if __name__ == "__main__":
-    main()

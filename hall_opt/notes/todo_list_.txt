@@ -1,0 +1,17 @@
+1/10
+test the main file. 
+integrate mcmc and map with main file's setup. 
+
+include the run_all_plots logic
+
+Make the script modular: Separate concerns into distinct functions and ensure reusability.
+Parameterize file paths and configurations: Allow flexibility in specifying inputs/outputs.
+Improve error handling: Add clear messages and fallback mechanisms.
+Add logging: For better tracking of operations.
+Refactor constants: Move constants like ion velocity to configuration files or reusable module
+
+Encapsulation: Split the main logic into smaller functions (run_map_workflow, run_mcmc_workflow, generate_plots).
+Error Handling: Add proper exception handling in critical steps.
+Configuration Management: Retain the use of YAML and pydantic for configuration validation.
+Flexibility: Ensure paths and directories are dynamically generated based on the configuration.
+Logging: Use logging for better traceability of progress and errors.

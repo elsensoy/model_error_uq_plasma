@@ -177,3 +177,5 @@ cython_debug/
 # .idea/ is ignored for PyCharm projects
 .idea/
 >>>>>>> b33446aaa01c3a7ebc508031719542e18dd514e8
+# Ignore results directory
+results/

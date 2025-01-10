@@ -1,7 +1,7 @@
 data_dir: "./results"
 gen_data: true
-run_map: false
-run_mcmc: true
+run_map: true
+run_mcmc: false
 ion_velocity_weight: 2.0
 plotting: true
 initial_guess_path: "./config/initial_guess.json"

@@ -119,46 +119,41 @@ Plots are saved in the `plots/` subdirectory of the respective MCMC results fold
 
 # Project Structure 
 ```
-    ├── main.py                # The single entry point for all tasks
-    ├── config
-    │   ├── bfield_spt100.csv
-    │   ├── mcmc_config.json
-    │   ├── simulation.py       # Configuration or helper script
-    │   └── settings.yaml       # Example YAML input file
-    ├── map_
-    │   ├── __init__.py
-    │   ├── map.py
-    │   ├── plotting
-    │   │   ├── __init__.py
-    │   │   └── plot_script.py
-    │   ├── results-map
-    │   │   ├── plots-map
-    │   │   └── pre_mcmc_initial.json
-    │   └── tests
-    ├── mcmc
-    │   ├── __init__.py
-    │   ├── mcmc.py
-    │   ├── plotting
-    │   │   ├── __init__.py
-    │   │   ├── common_setup.py
-    │   │   ├── run_all_plots.py
-    │   │   └── visualization.py
-    │   ├── results
-    │   └── tests
-    ├── misc
-    │   ├── checklist.txt
-    │   ├── mcmc_table.py
-    │   ├── notes.txt
-    │   └── todo_list_.txt
-    ├── utils
-    │   ├── __init__.py
-    │   ├── iter_methods.py
-    │   ├── save_data.py
-    │   └── statistics.py
-    ├── requirements.txt       # Python dependencies
-    ├── README.md              # Project documentation
-    ├── Project.toml           # Julia dependencies
-    └── Manifest.toml          # Julia dependencies
+.
+├── Manifest.toml
+├── Project.toml
+├── __init__.py
+├── config
+│   ├── bfield_spt100.csv
+│   ├── plotting.yaml
+│   ├── settings.yaml
+│   └── simulation.py
+├── debug
+│   ├── gelman_rubin.py
+│   ├── prior_only_test.py
+│   ├── test_fixed_points.py
+│   ├── test_sim_1.py
+│   └── test_sim_2.py
+├── main.py
+├── map.py
+├── mcmc.py
+├── misc
+│   └── todo_list_.txt
+├── plotting
+│   ├── 2d_plot_kde.py
+│   ├── common_setup.py
+│   ├── delta_plots.py
+│   ├── mcmc_iter_plots.py
+│   ├── posterior_plots.py
+│   └── run_all_plots.py
+├── results
+│   ├── map
+│   └── mcmc
+└── utils
+    ├── __init__.py
+    ├── iter_methods.py
+    ├── save_data.py
+    └── statistics.py
 
 ```
  **Additional Information**
