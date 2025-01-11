@@ -15,3 +15,12 @@ Error Handling: Add proper exception handling in critical steps.
 Configuration Management: Retain the use of YAML and pydantic for configuration validation.
 Flexibility: Ensure paths and directories are dynamically generated based on the configuration.
 Logging: Use logging for better traceability of progress and errors.
+
+
+
+#positional 
+python -m hall_opt.main hall_opt/config/settings.yaml
+
+
+1/11
+simplify simulation config. spt_100 would suffice then update the anomolous based on configuration.

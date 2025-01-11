@@ -20,6 +20,7 @@ dependencies = [
     "MCMCIterators @ git+https://github.com/goroda/MCMCIterators.git",
     "pydantic>=2.10.5",
     "pyyaml>=6.0.2",
+    "logger>=1.4",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

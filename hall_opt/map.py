@@ -1,28 +1,47 @@
 import os
 import json
 import numpy as np
+import pathlib
+import argparse
 from scipy.optimize import minimize
-
+from config.settings_loader import Settings, load_yml_settings
 from utils.save_data import save_parameters_linear, save_parameters_log
 from config.simulation import update_twozonebohm_config, run_simulation_with_config
-from utils.statistics import log_posterior
+from utils.statistics import log_posterior 
+
 
 def run_map_workflow(
     observed_data,
-    config,
+    settings,
+    config_spt_100,
     simulation,
     postprocess,
     results_dir,
     final_params_file="final_parameters.json",
-    ion_velocity_weight=2.0,
 ):
-    
-    initial_guess = [-2, 0.5]  # Log-space initial guess for v1 and alpha
+    """
+    Run MAP estimation workflow for TwoZoneBohm.
+    """
+    initial_guess_path = settings.initial_guess_path
+    try:
+        with open(initial_guess_path, 'r') as f:
+            initial_guess = json.load(f)  # [-2.0, 0.5]
+    except Exception as e:
+        print(f"Error loading initial guess from {initial_guess_path}: {e}")
+        return None, None
+
+    if not isinstance(initial_guess, list) or len(initial_guess) != 2:
+        print(f"Invalid initial guess format in {initial_guess_path}. Expected a list of two values.")
+        return None, None
+
     iteration_counter = [0]  # Tracks iterations
 
     print(f"Running MAP optimization with initial guess (log-space): {initial_guess}")
 
     def bounds_penalty(v_log):
+        """
+        Apply penalties for parameters outside bounds.
+        """
         penalty = 0
         if not (-5 <= v_log[0] <= 0):  # log(v1) bounds
             penalty += (v_log[0] - max(-5, min(v_log[0], 0))) ** 2
@@ -35,14 +54,13 @@ def run_map_workflow(
         Compute the negative log-posterior with bounds penalties.
         """
         log_posterior_value = log_posterior(
-            v_log, observed_data, config.copy(), simulation, postprocess.copy(), ion_velocity_weight
+            v_log, observed_data,settings=settings
         )
         return -log_posterior_value + bounds_penalty(v_log)
 
     def iteration_callback(v_log):
         """
-        Callback function.
-        Saves parameters in both linear and log space to separate files.
+        Callback function to save parameters at each iteration.
         """
         iteration_counter[0] += 1
 

@@ -179,3 +179,4 @@ cython_debug/
 >>>>>>> b33446aaa01c3a7ebc508031719542e18dd514e8
 # Ignore results directory
 results/
+hallthruster_tutorial/

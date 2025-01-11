@@ -4,14 +4,8 @@ import numpy as np
 import logging
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from config.simulation import (
-    simulation, 
-    config_spt_100, 
-    postprocess, 
-    config_multilogbohm, 
-    update_twozonebohm_config, 
-    run_simulation_with_config
-)
+from hall_opt.config.settings_loader import Settings, load_yml_settings
+from config.simulation import update_twozonebohm_config, run_simulation_with_config
 from utils.save_data import save_results_to_json, save_metadata
 from utils.iter_methods import load_optimized_params, get_next_results_dir
 from utils.statistics import log_posterior

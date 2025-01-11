@@ -123,37 +123,18 @@ Plots are saved in the `plots/` subdirectory of the respective MCMC results fold
 ├── Manifest.toml
 ├── Project.toml
 ├── __init__.py
-├── config
-│   ├── bfield_spt100.csv
-│   ├── plotting.yaml
-│   ├── settings.yaml
-│   └── simulation.py
-├── debug
-│   ├── gelman_rubin.py
-│   ├── prior_only_test.py
-│   ├── test_fixed_points.py
-│   ├── test_sim_1.py
-│   └── test_sim_2.py
+hall_opt/
+├── config/
+│   ├── __init__.py
+│   ├── simulation.py
+│   └── settings.yaml
+├── config_loader.py  # NEW: Contains the Config class
 ├── main.py
 ├── map.py
 ├── mcmc.py
-├── misc
-│   └── todo_list_.txt
-├── plotting
-│   ├── 2d_plot_kde.py
-│   ├── common_setup.py
-│   ├── delta_plots.py
-│   ├── mcmc_iter_plots.py
-│   ├── posterior_plots.py
-│   └── run_all_plots.py
-├── results
-│   ├── map
-│   └── mcmc
-└── utils
+└── utils/
     ├── __init__.py
-    ├── iter_methods.py
-    ├── save_data.py
-    └── statistics.py
+    └── save_data.py
 
 ```
  **Additional Information**

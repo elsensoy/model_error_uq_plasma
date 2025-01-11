@@ -1,97 +1,29 @@
+import os
 import sys
 import json
-import math
-import os
-import time
 import numpy as np
-from scipy.stats import norm
-from utils.save_data import load_json_data, subsample_data, save_results_to_json, save_failing_samples_to_file
+from pathlib import Path
+from hall_opt.utils.save_data import load_json_data, save_failing_samples_to_file
+from hall_opt.config.settings_loader import Settings
 
-hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
+# HallThruster Path Setup
+hallthruster_path = "/home/elidasensoy/.julia/packages/HallThruster/tHQQa/python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
+
 import hallthruster as het
-print("Updated sys.path:", sys.path)
-
-# -----------------------------
-# 1. MultiLogBohm Configuration (Ground Truth)
-# -----------------------------
-config_multilogbohm = {
-    "thruster": {
-        "name": "SPT-100",
-        "geometry": {
-            "channel_length": 0.025,
-            "inner_radius": 0.0345,
-            "outer_radius": 0.05,
-        },
-        "magnetic_field": {
-            "file": os.path.join("config/bfield_spt100.csv"),
-        }
-    },
-    "discharge_voltage": 300.0,
-    "anode_mass_flow_rate": 1e-5,
-    "domain": (0.0, 0.08),
-    "anom_model": {
-        "type": "MultiLogBohm",
-        "zs": [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07],
-        "cs": [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
-    },
-    "ncharge": 3,
-}
-
-config_spt_100 = {
-    "thruster": {
-        "name": "SPT-100",
-        "geometry": {
-            "channel_length": 0.025,
-            "inner_radius": 0.0345,
-            "outer_radius": 0.05,
-        },
-        "magnetic_field": {
-            "file": "config/bfield_spt100.csv"
-        }
-    },
-    "discharge_voltage": 300.0,
-    "anode_mass_flow_rate": 5e-6,
-    "domain": (0.0, 0.08),
-    "anom_model": {
-        "type": "TwoZoneBohm",
-        "c1": -2.0,
-        "c2": 0.5,
-    },
-    "ncharge": 3
-}
-
-simulation = {
-    "dt": 1e-6,
-    "adaptive": True,
-    "grid": {
-        "type": "EvenGrid",
-        "num_cells": 100,
-    },
-    "num_save": 100,
-    "duration": 1e-3,
-}
-
-postprocess = {
-    "output_file": "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/map_/results-map/output_twozonebohm.json",
-    "save_time_resolved": False,
-    "average_start_time": 0.4 * 1e-3
-}
-
 
 # -----------------------------
 # Helper Functions
 # -----------------------------
-failing_samples = []  
 
-def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm", iteration=None, v1=None, v2=None):
+def run_simulation_with_config(config, simulation, postprocess, config_type="MultiLogBohm", iteration=None, v1=None, v2=None, failing_samples=None):
     """
-    Run the simulation with the given configuration and handle cases where the simulation fails,
-    including `retcode: failure` or `retcode: error`.
-    Tracks failing samples and logs them.
+    Run the simulation with the given configuration and handle cases where the simulation fails.
+    Logs failures to `failing_samples` if provided.
     """
-    config_copy = config.copy() 
+    failing_samples = failing_samples or []  # Initialize if None
+    config_copy = config.copy()  # Avoid mutating the original config
     input_data = {"config": config_copy, "simulation": simulation, "postprocess": postprocess}
 
     print(f"Running simulation with {config_type} configuration...")
@@ -111,7 +43,7 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
                 "config_type": config_type,
                 "retcode": retcode,
                 "reason": "Simulation failure",
-                "config": config_copy  #  the failing config for debugging
+                "config": config_copy,  # Save the failing config for debugging
             })
             return None  # Indicate failure
 
@@ -125,7 +57,7 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
                 "v2": v2,
                 "config_type": config_type,
                 "reason": "Invalid metrics",
-                "config": config_copy
+                "config": config_copy,
             })
             return None  # Indicate failure
 
@@ -139,7 +71,7 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
             "v1": v1,
             "v2": v2,
             "config_type": config_type,
-            "reason": f"KeyError: {str(e)}"
+            "reason": f"KeyError: {str(e)}",
         })
         return None
 
@@ -150,12 +82,26 @@ def run_simulation_with_config(config, simulation, postprocess, config_type="Mul
             "v1": v1,
             "v2": v2,
             "config_type": config_type,
-            "reason": f"Unexpected error: {str(e)}"
+            "reason": f"Unexpected error: {str(e)}",
         })
         return None
 
+
 def update_twozonebohm_config(config, v1, v2):
-    config_copy = config.copy()  #  the original config should not mutated.
+    """
+    Update the TwoZoneBohm configuration with new v1 and v2 values.
+    """
+    config_copy = config.copy()  # Avoid mutating the original config
     config_copy["anom_model"] = {"type": "TwoZoneBohm", "c1": v1, "c2": v2}
     return config_copy
 
+
+def load_config_from_settings(settings: Settings):
+    """
+    Load the simulation configuration from a `Settings` object.
+    """
+    config_multilogbohm = settings.config_multilogbohm
+    config_spt_100 = settings.config_spt_100
+    simulation = settings.simulation
+    postprocess = settings.postprocess
+    return config_multilogbohm, config_spt_100, simulation, postprocess

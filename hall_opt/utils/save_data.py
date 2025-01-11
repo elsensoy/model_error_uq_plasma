@@ -66,7 +66,16 @@ def load_json_data(filename):
         print(f"Error decoding JSON: {e}")
         return None
 
-        
+def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc/results"):
+
+    os.makedirs(directory, exist_ok=True)  
+    filepath = os.path.join(directory, filename)
+    
+    with open(filepath, 'w') as f:
+        json.dump(metadata, f, indent=4)
+    print(f"Metadata saved to {filepath}")
+
+   
 def save_parameters_linear(iteration, v1, alpha, results_dir, filename="parameters_linear.json"):
     filepath = os.path.join(results_dir, filename)
     data = {"iteration": iteration, "v1": v1, "alpha": alpha}
