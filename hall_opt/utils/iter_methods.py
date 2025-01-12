@@ -28,7 +28,7 @@ def get_next_results_dir(base_dir="mcmc/results", base_name="mcmc-results"):
 def load_optimized_params(json_path):
     with open(json_path, 'r') as f:
         data = json.load(f)
-    return data.get("v1"), data.get("alpha")
+    return data.get("c1"), data.get("alpha")
 
 
 def get_next_filename(base_filename, directory, extension=".csv"):

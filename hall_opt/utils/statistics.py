@@ -5,9 +5,8 @@ import pathlib
 import sys
 from scipy.optimize import minimize
 from scipy.stats import norm
-
 from hall_opt.config.settings_loader import Settings, load_yml_settings
-from hall_opt.config.simulation import run_simulation_with_config, update_twozonebohm_config
+from hall_opt.config.run_model import run_simulation_with_config
 
 # HallThruster Path Setup
 hallthruster_path = "/root/.julia/packages/HallThruster/J4Grt/python"
@@ -18,24 +17,59 @@ import hallthruster as het
 
 # Global Settings (loaded once and shared)
 settings = None
-
 # -----------------------------
 # 1. Prior
 # -----------------------------
-def prior_logpdf(v1_log, alpha_log):
-    prior1 = norm.logpdf(v1_log, loc=np.log10(1 / 160), scale=np.sqrt(2))  # Gaussian prior
-    prior2 = 0  # Uniform prior for alpha_log
-    if alpha_log <= 0 or alpha_log > 2:
+def prior_logpdf(c1_log, c2_log):
+    """
+    Compute the prior probability for the given c1_log and c2_log values.
+    """
+    prior1 = norm.logpdf(c1_log, loc=np.log10(1 / 160), scale=np.sqrt(2))  # Gaussian prior
+    prior2 = 0  # Uniform prior for c2_log
+    if c2_log <= 0 or c2_log > 2:
         return -np.inf
     return prior1 + prior2
 
 # -----------------------------
 # 2. Likelihood
 # -----------------------------
-def log_likelihood(simulated_data, observed_data, sigma=0.08):
+def log_likelihood(c_log, observed_data, settings, sigma=0.08):
     """
-    Compute the log-likelihood of the observed data given the simulated data.
+    Run simulation and compute the log-likelihood of the observed data given the simulated data.
     """
+    c1_log, c2_log = c_log
+    c1, c2 = np.exp(c1_log), np.exp(c2_log)
+
+    # Update the TwoZoneBohm configuration with the new parameters
+    twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
+    twozonebohm_config["anom_model"].update({"c1": c1, "c2": c2})
+
+    # Run simulation
+    solution = run_simulation_with_config(
+        config=twozonebohm_config,
+        simulation=settings.simulation,
+        postprocess=settings.postprocess,
+        config_type="TwoZoneBohm",
+    )
+    if solution is None:
+        print("Simulation failed. Penalizing with -np.inf.")
+        return -np.inf
+
+    # Extract metrics from simulation results
+    metrics = solution["output"].get("average", {})
+    if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
+        print("Invalid or missing metrics in simulation output.")
+        return -np.inf
+
+    # Prepare simulated data
+    simulated_data = {
+        "thrust": metrics.get("thrust", 0),
+        "discharge_current": metrics.get("discharge_current", 0),
+        "ui": metrics.get("ui", []),
+        "z_coords": metrics.get("z_coords", []),
+    }
+
+    # Compute log-likelihood
     ion_velocity_weight = settings.ion_velocity_weight
     log_likelihood_value = 0.0
 
@@ -62,34 +96,20 @@ def log_likelihood(simulated_data, observed_data, sigma=0.08):
 # -----------------------------
 # 3. Posterior
 # -----------------------------
+def log_posterior(c_log, observed_data, settings):
+    """
+    Compute the posterior value by combining prior and likelihood.
+    """
+    c1_log, c2_log = c_log
 
-
-def log_posterior(v_log, observed_data, settings):
-    v1_log, alpha_log = v_log
-    v1, alpha, v2 = np.exp(v1_log), np.exp(alpha_log), np.exp(v1_log + alpha_log)
-
-    log_prior_value = prior_logpdf(v1_log, alpha_log)
+    # Compute prior
+    log_prior_value = prior_logpdf(c1_log, c2_log)
     if not np.isfinite(log_prior_value):
         return -np.inf
 
-    solution = run_simulation_with_config(
-        update_twozonebohm_config(settings.config_spt_100, v1, v2),
-        settings.simulation,
-        settings.postprocess,
-        config_type="TwoZoneBohm"
-    )
-    if solution is None:
+    # Compute likelihood
+    log_likelihood_value = log_likelihood(c_log, observed_data, settings)
+    if not np.isfinite(log_likelihood_value):
         return -np.inf
 
-    metrics = solution["output"].get("average", {})
-    if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
-        return -np.inf
-
-    simulated_data = {
-        "thrust": metrics.get("thrust", 0),
-        "discharge_current": metrics.get("discharge_current", 0),
-        "ui": metrics.get("ui", []),
-        "z_coords": metrics.get("z_coords", []),
-    }
-
-    return log_prior_value + log_likelihood(simulated_data, observed_data, sigma=0.08)
+    return log_prior_value + log_likelihood_value

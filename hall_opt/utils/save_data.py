@@ -76,9 +76,9 @@ def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc/resul
     print(f"Metadata saved to {filepath}")
 
    
-def save_parameters_linear(iteration, v1, alpha, results_dir, filename="parameters_linear.json"):
+def save_parameters_linear(iteration, c1, alpha, results_dir, filename="parameters_linear.json"):
     filepath = os.path.join(results_dir, filename)
-    data = {"iteration": iteration, "v1": v1, "alpha": alpha}
+    data = {"iteration": iteration, "c1": c1, "alpha": alpha}
 
     # Initialize log as an empty list if the file is empty or doesn't exist
     if os.path.exists(filepath):
@@ -102,9 +102,9 @@ def save_parameters_linear(iteration, v1, alpha, results_dir, filename="paramete
     print(f"Iteration {iteration}: Saved linear parameters to {filename}")
 
 
-def save_parameters_log(iteration, v1_log, alpha_log, results_dir, filename="parameters_log.json"):
+def save_parameters_log(iteration, c1_log, alpha_log, results_dir, filename="parameters_log.json"):
     filepath = os.path.join(results_dir, filename)
-    data = {"iteration": iteration, "v1_log": v1_log, "alpha_log": alpha_log}
+    data = {"iteration": iteration, "c1_log": c1_log, "alpha_log": alpha_log}
 
     if os.path.exists(filepath):
         with open(filepath, 'r') as file:

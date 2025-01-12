@@ -24,3 +24,14 @@ python -m hall_opt.main hall_opt/config/settings.yaml
 
 1/11
 simplify simulation config. spt_100 would suffice then update the anomolous based on configuration.
+helper function updates
+settings.yaml file includes sim config
+update map with settings 
+1/12
++unified sim config.
++Renamed Variables:
+v1_log → c1_log
+v2_log → c2_log
+v1 → c1
+v2 → c2
++The log_likelihood function updates c1 and c2 in the TwoZoneBohm configuration before running the simulation.

@@ -4,12 +4,13 @@ import numpy as np
 import logging
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.config.settings_loader import Settings, load_yml_settings
-from config.simulation import update_twozonebohm_config, run_simulation_with_config
+from hall_opt.config.settings_loader import Settings, extract_anom_model
+from hall_opt.config.run_model import run_simulation_with_config
 from utils.save_data import save_results_to_json, save_metadata
 from utils.iter_methods import load_optimized_params, get_next_results_dir
 from utils.statistics import log_posterior
 
+# Logger setup
 def setup_logger():
     logging.basicConfig(
         level=logging.INFO,
@@ -55,20 +56,27 @@ def mcmc_inference(
     for iteration in range(iterations):
         try:
             proposed_sample, log_posterior_val, accepted = next(sampler)
-            v1_log, alpha_log = proposed_sample
-            v1, alpha = 10 ** v1_log, 10 ** alpha_log
-            v2 = alpha * v1
+            c1_log, c2_log = proposed_sample
+            c1, c2 = 10 ** c1_log, 10 ** c2_log
 
             logger.info(
-                f"Iteration {iteration + 1}: v1={v1:.4f}, v2={v2:.4f}, Log Posterior={log_posterior_val:.4f}, Accepted={accepted}"
+                f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, Log Posterior={log_posterior_val:.4f}, Accepted={accepted}"
             )
 
             all_samples.append(proposed_sample)
-            all_samples_linear.append([v1, alpha])
+            all_samples_linear.append([c1, c2])
 
-            updated_config = update_twozonebohm_config(config_spt_100, v1, v2)
+            # Extract updated TwoZoneBohm config
+            twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
+            twozonebohm_config["anom_model"]["c1"] = c1
+            twozonebohm_config["anom_model"]["c2"] = c2
+
+            # Run simulation
             simulation_result = run_simulation_with_config(
-                updated_config, simulation, postprocess, "TwoZoneBohm"
+                config=twozonebohm_config,
+                simulation=settings.simulation,
+                postprocess=settings.postprocess,
+                config_type="TwoZoneBohm"
             )
 
             if simulation_result:
@@ -86,10 +94,10 @@ def mcmc_inference(
                 logger.warning(f"Simulation failed at iteration {iteration + 1}.")
                 failing_samples.append({
                     "iteration": iteration + 1,
-                    "v1_log": v1_log,
-                    "alpha_log": alpha_log,
-                    "v1": v1,
-                    "v2": v2,
+                    "c1_log": c1_log,
+                    "c2_log": c2_log,
+                    "c1": c1,
+                    "c2": c2,
                 })
 
             if (iteration + 1) % save_interval == 0:
@@ -111,8 +119,7 @@ def mcmc_inference(
 def run_mcmc_with_optimized_params(
     initial_guess_path,
     observed_data,
-    config,
-    ion_velocity_weight,
+    settings,
     iterations,
     initial_cov,
     results_dir="mcmc/results"
@@ -120,14 +127,14 @@ def run_mcmc_with_optimized_params(
     """
     Run MCMC with optimized parameters.
     """
-    v1_opt, alpha_opt = load_optimized_params(initial_guess_path)
-    if v1_opt is None or alpha_opt is None:
+    c1_opt, c2_opt = load_optimized_params(initial_guess_path)
+    if c1_opt is None or c2_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
 
-    initial_sample = [np.log10(v1_opt), np.log10(alpha_opt)]
+    initial_sample = [np.log10(c1_opt), np.log10(c2_opt)]
 
     all_samples, all_samples_linear, acceptance_rate = mcmc_inference(
-        lambda v_log: log_posterior(v_log, observed_data, config),
+        lambda c_log: log_posterior(c_log, observed_data, settings=settings),
         initial_sample,
         initial_cov=initial_cov,
         iterations=iterations,

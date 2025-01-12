@@ -3,19 +3,17 @@ import os
 import argparse
 from pathlib import Path
 from hall_opt.config.settings_loader import Settings, load_yml_settings
-from hall_opt.config.simulation import run_simulation_with_config
+from hall_opt.config.run_model import run_simulation_with_config
 from map import run_map_workflow
 from mcmc import run_mcmc_with_optimized_params
-# from hall_opt.plotting import generate_all_plots
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+# Add HallThruster to the Python path
 hallthruster_path = "/home/elidasensoy/.julia/packages/HallThruster/tHQQa/python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
 import hallthruster as het
 
-# Main workflow
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run MCMC and MAP estimation workflow.")
@@ -28,27 +26,22 @@ def main():
     yml_dict = load_yml_settings(settings_path)
     settings = Settings(**yml_dict)
 
-    # Extract configurations from settings
-    config_multilogbohm = settings.config_multilogbohm
-    config_spt_100 = settings.config_spt_100
-    simulation = settings.simulation
-    postprocess = settings.postprocess
-
-    # Ensure data directory exists
+    # Ensure results directory exists
     results_dir = Path(settings.results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Data directory set to: {results_dir}")
+    print(f"Results directory set to: {results_dir}")
 
     observed_data = None
 
     # Step 1: Generate ground truth data
     if settings.gen_data:
         print("Generating ground truth data using MultiLogBohm...")
-        ground_truth_postprocess = postprocess.copy()
-        ground_truth_postprocess["output_file"] = str(results_dir / "ground_truth.json")
-
+        multilogbohm_config = extract_anom_model(settings, model_type="MultiLogBohm")
         ground_truth_solution = run_simulation_with_config(
-            config_multilogbohm, simulation, ground_truth_postprocess, config_type="MultiLogBohm"
+            config=multilogbohm_config,
+            simulation=settings.simulation,
+            postprocess=settings.postprocess,
+            config_type="MultiLogBohm",
         )
 
         if ground_truth_solution:
@@ -70,32 +63,33 @@ def main():
         map_results_dir = results_dir / "map_results"
         map_results_dir.mkdir(parents=True, exist_ok=True)
 
-        v1_opt, alpha_opt = run_map_workflow(
+        twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
+        c1_opt, alpha_opt = run_map_workflow(
             observed_data=observed_data,
             settings=settings,
-            config_spt_100=config_spt_100,
-            simulation=simulation,
-            postprocess=postprocess,
+            simulation=settings.simulation,
+            config=twozonebohm_config,  # Specify TwoZoneBohm configuration
             results_dir=str(map_results_dir),
-            final_params_file="final_parameters.json"
+            final_params_file="final_parameters.json",
         )
 
-        if v1_opt is not None and alpha_opt is not None:
-            print(f"MAP optimization completed: v1={v1_opt}, alpha={alpha_opt}")
+        if c1_opt is not None and alpha_opt is not None:
+            print(f"MAP optimization completed: c1={c1_opt}, alpha={alpha_opt}")
         else:
             print("Error: MAP optimization failed.")
 
     # Step 3: Run MCMC sampling
     if settings.run_mcmc:
         print("Running MCMC sampling using TwoZoneBohm...")
-        mcmc_results_dir = settings.results_dir / "mcmc_results"
+        mcmc_results_dir = results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
 
+        twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
         try:
             run_mcmc_with_optimized_params(
                 json_path=settings.optimized_param,
                 observed_data=observed_data,
-                config=config_spt_100,
+                config=twozonebohm_config,
                 ion_velocity_weight=settings.ion_velocity_weight,
                 iterations=settings.iterations,
                 initial_cov=settings.initial_cov,
@@ -105,8 +99,8 @@ def main():
         except Exception as e:
             print(f"Error during MCMC sampling: {e}")
 
-    # Step 4: Generate plots
-    # Uncomment if generate_all_plots function is ready to use
+    # Step 4: Generate plots (if applicable)
+    # Uncomment if generate_all_plots function is ready
     # if settings.plotting:
     #     print("Generating plots...")
     #     plots_dir = results_dir / "plots"

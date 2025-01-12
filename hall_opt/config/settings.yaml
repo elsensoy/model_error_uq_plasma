@@ -11,26 +11,8 @@ initial_cov:
   - [0.1, -0.5]
   - [-0.5, 0.1]
 
-# Simulation configurations
-config_multilogbohm:
-  thruster:
-    name: "SPT-100"
-    geometry:
-      channel_length: 0.025
-      inner_radius: 0.0345
-      outer_radius: 0.05
-    magnetic_field:
-      file: "hall_opt/config/bfield_spt100.csv"
-  discharge_voltage: 300.0
-  anode_mass_flow_rate: 1e-5
-  domain: [0.0, 0.08]
-  anom_model:
-    type: "MultiLogBohm"
-    zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
-    cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
-  ncharge: 3
-
-config_spt_100:
+# Unified simulation configuration
+simulation_config:
   thruster:
     name: "SPT-100"
     geometry:
@@ -43,9 +25,16 @@ config_spt_100:
   anode_mass_flow_rate: 5e-6
   domain: [0.0, 0.08]
   anom_model:
-    type: "TwoZoneBohm"
-    c1: -2.0
-    c2: 0.5
+    type: "TwoZoneBohm"  # Options: "TwoZoneBohm", "MultiLogBohm"
+    parameters:
+      # TwoZoneBohm-specific parameters
+      c1: -2.0
+      c2: 0.5
+      output_file: "./results/output_twozonebohm.json"
+      # MultiLogBohm-specific parameters
+      zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
+      cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
+      output_file: "./results/output_multilogbohm.json"
   ncharge: 3
 
 simulation:
@@ -58,7 +47,5 @@ simulation:
   duration: 0.001
 
 postprocess:
-  output_file: "./results/output_twozonebohm.json"
   save_time_resolved: false
   average_start_time: 0.0004
-

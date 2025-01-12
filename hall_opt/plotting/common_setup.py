@@ -27,10 +27,10 @@ def load_data(base_results_dir=base_results_dir):
         check_file_exists(path)
 
     # Load CSV data
-    samples = pd.read_csv(samples_path, header=None, names=["log_v1", "log_alpha"])
-    samples["v1"] = 10 ** samples["log_v1"]
+    samples = pd.read_csv(samples_path, header=None, names=["log_c1", "log_alpha"])
+    samples["c1"] = 10 ** samples["log_c1"]
     samples["alpha"] = 10 ** samples["log_alpha"]
-    samples["v2"] = samples["v1"] * samples["alpha"]
+    samples["c2"] = samples["c1"] * samples["alpha"]
 
     # Load JSON data
     with open(truth_data_path, 'r') as f:
