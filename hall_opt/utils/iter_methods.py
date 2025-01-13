@@ -41,28 +41,3 @@ def get_next_filename(base_filename, directory, extension=".csv"):
     return full_path
 
 
-def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc/results"):
-
-    os.makedirs(directory, exist_ok=True)  
-    filepath = os.path.join(directory, filename)
-    
-    with open(filepath, 'w') as f:
-        json.dump(metadata, f, indent=4)
-    print(f"Metadata saved to {filepath}")
-
-
-        
-def load_mcmc_config(json_path):
-    
-    #Load MCMC configuration from a JSON file../config/mcmc_config.json
- 
-    if not os.path.exists(json_path):
-        raise FileNotFoundError(f"Configuration file not found: {json_path}")
-    
-    with open(json_path, 'r') as f:
-        config = json.load(f)
-    
-    # Convert values as needed
-    config["initial_cov"] = np.array(config["initial_cov"])# Convert covariance matrix to numpy array
-    config['results_dir'] = os.path.abspath(config['results_dir']) 
-    return config

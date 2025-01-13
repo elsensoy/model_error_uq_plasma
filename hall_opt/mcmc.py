@@ -4,7 +4,7 @@ import numpy as np
 import logging
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.config.settings_loader import Settings, extract_anom_model
+from hall_opt.config.loader import Settings, extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
 from utils.save_data import save_results_to_json, save_metadata
 from utils.iter_methods import load_optimized_params, get_next_results_dir
@@ -26,10 +26,12 @@ def mcmc_inference(
     initial_cov,
     iterations,
     save_interval=10,
-    results_dir="mcmc/results"
+    checkpoint_interval=10,
+    results_dir="mcmc/results",
+    save_metadata_flag=True
 ):
     """
-    Perform MCMC inference, saving results at intervals.
+    Perform MCMC inference, saving results at intervals and creating checkpoints.
     """
     run_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
     metrics_dir = os.path.join(run_dir, "iteration_metrics")
@@ -37,6 +39,7 @@ def mcmc_inference(
 
     final_samples_log_file = os.path.join(run_dir, "final_samples_log.csv")
     final_samples_linear_file = os.path.join(run_dir, "final_samples_linear.csv")
+    checkpoint_file = os.path.join(run_dir, "checkpoint.json")
 
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf,
@@ -52,54 +55,54 @@ def mcmc_inference(
     all_samples = []
     all_samples_linear = []
     failing_samples = []
+    metadata = {
+        "iterations": iterations,
+        "save_interval": save_interval,
+        "checkpoint_interval": checkpoint_interval,
+        "initial_cov": initial_cov.tolist(),
+        "initial_sample": initial_sample,
+        "acceptance_rate": None,
+    }
 
     for iteration in range(iterations):
         try:
             proposed_sample, log_posterior_val, accepted = next(sampler)
-            c1_log, c2_log = proposed_sample
-            c1, c2 = 10 ** c1_log, 10 ** c2_log
+            c1_log, alpha_log = proposed_sample
+            c1, alpha = np.exp(c1_log), np.exp(alpha_log)
+            c2 = c1 * alpha
 
             logger.info(
-                f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, Log Posterior={log_posterior_val:.4f}, Accepted={accepted}"
+                f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, "
+                f"Log Posterior={log_posterior_val:.4f}, Accepted={accepted}"
             )
 
             all_samples.append(proposed_sample)
             all_samples_linear.append([c1, c2])
 
-            # Extract updated TwoZoneBohm config
-            twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
-            twozonebohm_config["anom_model"]["c1"] = c1
-            twozonebohm_config["anom_model"]["c2"] = c2
+            # Save metrics for this iteration
+            iteration_metrics = {
+                "iteration": iteration + 1,
+                "c1": c1,
+                "alpha": alpha,
+                "c2": c2,
+                "log_posterior": log_posterior_val,
+                "accepted": accepted,
+            }
+            metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
+            save_results_to_json(iteration_metrics, metrics_filename)
+            logger.info(f"Saved metrics for iteration {iteration + 1} to {metrics_filename}")
 
-            # Run simulation
-            simulation_result = run_simulation_with_config(
-                config=twozonebohm_config,
-                simulation=settings.simulation,
-                postprocess=settings.postprocess,
-                config_type="TwoZoneBohm"
-            )
-
-            if simulation_result:
-                averaged_metrics = simulation_result["output"]["average"]
-                iteration_metrics = {
-                    "thrust": averaged_metrics["thrust"],
-                    "discharge_current": averaged_metrics["discharge_current"],
-                    "ion_velocity": averaged_metrics["ui"][0],
-                    "z_normalized": averaged_metrics["z"],
-                }
-                metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
-                save_results_to_json(iteration_metrics, metrics_filename)
-                logger.info(f"Saved metrics for iteration {iteration + 1} to {metrics_filename}")
-            else:
-                logger.warning(f"Simulation failed at iteration {iteration + 1}.")
-                failing_samples.append({
+            # Save checkpoints at specified intervals
+            if (iteration + 1) % checkpoint_interval == 0:
+                checkpoint_data = {
                     "iteration": iteration + 1,
-                    "c1_log": c1_log,
-                    "c2_log": c2_log,
-                    "c1": c1,
-                    "c2": c2,
-                })
+                    "all_samples": all_samples,
+                    "all_samples_linear": all_samples_linear,
+                }
+                save_results_to_json(checkpoint_data, checkpoint_file)
+                logger.info(f"Saved checkpoint at iteration {iteration + 1} to {checkpoint_file}")
 
+            # Save results at regular intervals
             if (iteration + 1) % save_interval == 0:
                 np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",")
                 np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=",")
@@ -109,17 +112,26 @@ def mcmc_inference(
             logger.error(f"Error during MCMC iteration {iteration + 1}: {e}")
             break
 
+    # Save final results
     np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",")
     np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=",")
+    metadata["acceptance_rate"] = sampler.accept_ratio()
+
+    if save_metadata_flag:
+        save_results_to_json(metadata, os.path.join(run_dir, "mcmc_metadata.json"))
+        logger.info(f"Metadata saved to {os.path.join(run_dir, 'mcmc_metadata.json')}")
+
     logger.info(f"Final samples saved to {final_samples_log_file} (log-space) and {final_samples_linear_file} (linear-space)")
 
     return all_samples, all_samples_linear, sampler.accept_ratio()
 
-
 def run_mcmc_with_optimized_params(
-    initial_guess_path,
+    map_initial_guess_path,
     observed_data,
+    config,
     settings,
+    simulation,
+    ion_velocity_weight,
     iterations,
     initial_cov,
     results_dir="mcmc/results"
@@ -127,27 +139,29 @@ def run_mcmc_with_optimized_params(
     """
     Run MCMC with optimized parameters.
     """
-    c1_opt, c2_opt = load_optimized_params(initial_guess_path)
-    if c1_opt is None or c2_opt is None:
+    # Load optimized parameters
+    c1_opt, alpha_opt = load_optimized_params(map_initial_guess_path)
+    if c1_opt is None or alpha_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
 
-    initial_sample = [np.log10(c1_opt), np.log10(c2_opt)]
+    initial_sample = [np.log10(c1_opt), np.log10(alpha_opt)]
 
+    # Extract MCMC parameters from settings
+    mcmc_params = settings.mcmc_params
+    save_interval = mcmc_params.get("save_interval", 10)
+    checkpoint_interval = mcmc_params.get("checkpoint_interval", 10)
+    save_metadata_flag = mcmc_params.get("save_metadata", True)
+
+    # Perform MCMC inference
     all_samples, all_samples_linear, acceptance_rate = mcmc_inference(
         lambda c_log: log_posterior(c_log, observed_data, settings=settings),
         initial_sample,
         initial_cov=initial_cov,
         iterations=iterations,
-        results_dir=results_dir
+        save_interval=save_interval,
+        checkpoint_interval=checkpoint_interval,
+        results_dir=results_dir,
+        save_metadata_flag=save_metadata_flag
     )
-
-    metadata = {
-        "timestamp": datetime.now().isoformat(),
-        "initial_cov": initial_cov.tolist(),
-        "initial_sample": initial_sample,
-        "iterations": iterations,
-        "acceptance_rate": acceptance_rate,
-    }
-    save_metadata(metadata, filename="mcmc_metadata.json", directory=results_dir)
 
     return all_samples, all_samples_linear, acceptance_rate

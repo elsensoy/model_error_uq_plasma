@@ -1,15 +1,16 @@
-results_dir: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results"
+results_dir: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results"
 gen_data: true
 run_map: true
 run_mcmc: false
 ion_velocity_weight: 2.0
 plotting: false
+iterations: 1000
 initial_guess_path: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/initial_guess.json"
 optimized_param: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/final_parameters.json"
-iterations: 1000
 initial_cov:
   - [0.1, -0.5]
   - [-0.5, 0.1]
+
 
 # Unified simulation configuration
 simulation_config:
@@ -22,23 +23,21 @@ simulation_config:
     magnetic_field:
       file: "hall_opt/config/bfield_spt100.csv"
   discharge_voltage: 300.0
-  anode_mass_flow_rate: 5e-6
+  anode_mass_flow_rate: 0.0001
   domain: [0.0, 0.08]
   anom_model:
-    type: "TwoZoneBohm"  # Options: "TwoZoneBohm", "MultiLogBohm"
-    parameters:
-      # TwoZoneBohm-specific parameters
+    TwoZoneBohm:
       c1: -2.0
       c2: 0.5
-      output_file: "./results/output_twozonebohm.json"
-      # MultiLogBohm-specific parameters
+      
+    MultiLogBohm:
       zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
       cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
-      output_file: "./results/output_multilogbohm.json"
+      
   ncharge: 3
 
 simulation:
-  dt: 1e-6
+  dt: 0.000001
   adaptive: true
   grid:
     type: "EvenGrid"
@@ -47,5 +46,32 @@ simulation:
   duration: 0.001
 
 postprocess:
+  output_file:
+    TwoZoneBohm: "/results/output_twozonebohm.json"
+    MultiLogBohm: "/results/output_multilogbohm.json"
   save_time_resolved: false
   average_start_time: 0.0004
+
+#map parameters
+map_params:
+  method: "Nelder-Mead"
+  map_initial_guess_path: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/initial_guess.json"
+  maxfev: 5000          # Maximum number of function evaluations
+  fatol: 1e-3           # Function tolerance
+  xatol: 1e-3           # Step size tolerance
+  optimized_param: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/final_parameters.json"
+  iteration_log_file: "/results/map_iterations.json"   # File to log iterations
+
+#mcmc
+mcmc_params:
+  save_interval: 10
+  checkpoint_interval: 10
+  save_metadata: true
+  final_samples_file_log: "/results/mcmc/final_samples_log.csv"
+  final_samples_file_linear: "/results/mcmc/final_samples_linear.csv"
+  checkpoint_file: "/results/mcmc/checkpoint.json"
+  metadata_file: "/results/mcmc/mcmc_metadata.json"
+  initial_cov:
+  - [0.1, -0.5]
+  - [-0.5, 0.1]
+

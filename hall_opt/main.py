@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 from pathlib import Path
-from hall_opt.config.settings_loader import Settings, load_yml_settings
+from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
 from map import run_map_workflow
 from mcmc import run_mcmc_with_optimized_params
@@ -13,14 +13,13 @@ if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
 import hallthruster as het
-
 def main():
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Run MCMC and MAP estimation workflow.")
+    parser = argparse.ArgumentParser(description="Run MAP and MCMC estimation workflow.")
     parser.add_argument("--settings", type=str, required=True, help="Path to the YAML configuration file.")
     args = parser.parse_args()
 
-    # Load YAML configuration
+    # Load settings
     print("Loading settings...")
     settings_path = Path(args.settings)
     yml_dict = load_yml_settings(settings_path)
@@ -32,6 +31,7 @@ def main():
     print(f"Results directory set to: {results_dir}")
 
     observed_data = None
+    twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
 
     # Step 1: Generate ground truth data
     if settings.gen_data:
@@ -41,7 +41,7 @@ def main():
             config=multilogbohm_config,
             simulation=settings.simulation,
             postprocess=settings.postprocess,
-            config_type="MultiLogBohm",
+            model_type="MultiLogBohm",
         )
 
         if ground_truth_solution:
@@ -63,14 +63,11 @@ def main():
         map_results_dir = results_dir / "map_results"
         map_results_dir.mkdir(parents=True, exist_ok=True)
 
-        twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
         c1_opt, alpha_opt = run_map_workflow(
             observed_data=observed_data,
             settings=settings,
             simulation=settings.simulation,
-            config=twozonebohm_config,  # Specify TwoZoneBohm configuration
             results_dir=str(map_results_dir),
-            final_params_file="final_parameters.json",
         )
 
         if c1_opt is not None and alpha_opt is not None:
@@ -84,23 +81,23 @@ def main():
         mcmc_results_dir = results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
 
-        twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
         try:
             run_mcmc_with_optimized_params(
-                json_path=settings.optimized_param,
-                observed_data=observed_data,
-                config=twozonebohm_config,
-                ion_velocity_weight=settings.ion_velocity_weight,
-                iterations=settings.iterations,
-                initial_cov=settings.initial_cov,
-                results_dir=str(mcmc_results_dir),
+                map_initial_guess_path=settings.optimized_param,  # Path to optimized params
+                observed_data=observed_data,  # Observed data from ground truth
+                config=twozonebohm_config,  # Configuration for TwoZoneBohm
+                simulation=settings.simulation,  # Simulation parameters
+                settings=settings,
+                ion_velocity_weight=settings.ion_velocity_weight,  # Ion velocity weight
+                iterations=settings.iterations,  # Number of MCMC iterations
+                initial_cov=settings.mcmc_initial_cov,  # Initial covariance matrix
+                results_dir=str(mcmc_results_dir),  # Directory for MCMC results
             )
             print("MCMC sampling completed successfully.")
         except Exception as e:
             print(f"Error during MCMC sampling: {e}")
 
-    # Step 4: Generate plots (if applicable)
-    # Uncomment if generate_all_plots function is ready
+    # Step 4: Generate plots 
     # if settings.plotting:
     #     print("Generating plots...")
     #     plots_dir = results_dir / "plots"

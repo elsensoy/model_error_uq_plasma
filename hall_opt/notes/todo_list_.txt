@@ -35,3 +35,22 @@ v2_log → c2_log
 v1 → c1
 v2 → c2
 +The log_likelihood function updates c1 and c2 in the TwoZoneBohm configuration before running the simulation.
+remove interpolation, fix log_likelihood
+1/13
+ map params to the input file (settings.yaml)
+    # Perform MAP optimization
+    result = minimize(
+        neg_log_posterior_with_penalty,
+        initial_guess,
+        method="Nelder-Mead",
+        callback=iteration_callback,
+        options={"maxfev": 5000, "fatol": 1e-3, "xatol": 1e-3}
+    )
+
+	this section should include the initial guesses as well. 
+In the input file there should be a flag that says to run map estimate
+The input file should have a directory for the location of the data
+The input file should have a set of parameters that are needed for map estimate (optimizer choice, initial point, etc)
+Running the map estimate should also plot the standard pictures
+A file should also be written with the optimal parameters and any optimization details, in a computer loadable format.
+Demonstrate running this workflow.

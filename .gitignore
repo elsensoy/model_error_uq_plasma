@@ -180,4 +180,4 @@ cython_debug/
 # Ignore results directory
 results/
 hallthruster_tutorial/
-notes/
+hall_opt/notes/
