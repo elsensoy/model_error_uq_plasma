@@ -4,10 +4,10 @@ import numpy as np
 import logging
 from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.config.loader import Settings, extract_anom_model
+from hall_opt.config.loader import Settings,load_yml_settings, extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
 from utils.save_data import save_results_to_json, save_metadata
-from utils.iter_methods import load_optimized_params, get_next_results_dir
+from utils.iter_methods import get_next_results_dir
 from utils.statistics import log_posterior
 
 # Logger setup
@@ -125,8 +125,8 @@ def mcmc_inference(
 
     return all_samples, all_samples_linear, sampler.accept_ratio()
 
-def run_mcmc_with_optimized_params(
-    map_initial_guess_path,
+def run_mcmc_with_final_map_params(
+    mcmc_initial_guess_path,
     observed_data,
     config,
     settings,
@@ -140,7 +140,7 @@ def run_mcmc_with_optimized_params(
     Run MCMC with optimized parameters.
     """
     # Load optimized parameters
-    c1_opt, alpha_opt = load_optimized_params(map_initial_guess_path)
+    c1_opt, alpha_opt = load_final_map_params(mcmc_initial_guess_path)
     if c1_opt is None or alpha_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
 

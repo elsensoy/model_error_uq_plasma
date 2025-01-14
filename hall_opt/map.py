@@ -1,42 +1,41 @@
 import os
 import json
 import numpy as np
-import pathlib
-import argparse
 from scipy.optimize import minimize
-from hall_opt.config.loader import Settings, load_yml_settings
+from hall_opt.config.loader import Settings
 from hall_opt.config.run_model import run_simulation_with_config
 from utils.statistics import log_posterior
+
+
 def run_map_workflow(
     observed_data,
-    settings,
+    settings: Settings,
     simulation,
-    results_dir
+    results_dir: str,
 ):
     """
     Run MAP estimation workflow for TwoZoneBohm using c1 and alpha parameters.
     """
     # Load initial guess
-    initial_guess_path = settings.initial_guess_path
+    initial_guess_path = settings.map_initial_guess_path
     try:
-        with open(map_initial_guess_path, 'r') as f:
+        with open(initial_guess_path, 'r') as f:
             initial_guess = json.load(f)  # Example: [-2.0, 0.5]
     except Exception as e:
-        print(f"Error loading initial guess from {map_initial_guess_path}: {e}")
+        print(f"Error loading initial guess from {initial_guess_path}: {e}")
         return None, None
 
     if not isinstance(initial_guess, list) or len(initial_guess) != 2:
-        print(f"Invalid initial guess format in {map_initial_guess_path}. Expected a list of two values.")
+        print(f"Invalid initial guess format in {initial_guess_path}. Expected a list of two values.")
         return None, None
 
     # Extract MAP parameters from settings
-    map_params = settings.map_params
-    method = map_params.get("method", "Nelder-Mead")
-    maxfev = map_params.get("maxfev", 5000)
-    fatol = map_params.get("fatol", 1e-3)
-    xatol = map_params.get("xatol", 1e-3)
-    final_params_file = map_params.get("final_params_file", "final_parameters.json")
-    iteration_log_file = map_params.get("iteration_log_file", "map_iterations.json")
+    method = settings.map_method
+    maxfev = settings.map_maxfev
+    fatol = settings.map_fatol
+    xatol = settings.map_xatol
+    final_params_file = settings.map_final_params_file
+    iteration_log_file = settings.map_iteration_log_file
 
     iteration_counter = [0]  # Tracks iterations
     iteration_logs = []  # Store iteration logs
@@ -77,7 +76,7 @@ def run_map_workflow(
             "c1_log": c1_log,
             "alpha_log": alpha_log,
             "c1": c1,
-            "alpha": alpha
+            "alpha": alpha,
         }
         iteration_logs.append(iteration_data)
 
@@ -105,9 +104,9 @@ def run_map_workflow(
 
         # Save final parameters
         final_params_path = os.path.join(results_dir, final_params_file)
-        final_params = {"c1": c1_opt, "alpha": alpha_opt}
+        optimized_param = {"c1": c1_opt, "alpha": alpha_opt}
         with open(final_params_path, 'w') as f:
-            json.dump(final_params, f, indent=4)
+            json.dump(optimized_param, f, indent=4)
         print(f"Final parameters saved to {final_params_path}")
 
         return c1_opt, alpha_opt

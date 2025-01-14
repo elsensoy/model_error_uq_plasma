@@ -1,8 +1,9 @@
 import os
 import sys
 import yaml
+import logging
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from pathlib import Path
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 hallthruster_path = "/home/elidasensoy/.julia/packages/HallThruster/tHQQa/python"
@@ -11,42 +12,61 @@ if hallthruster_path not in sys.path:
 
 import hallthruster as het
 
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
+
 
 class Settings(BaseModel):
     # General settings
-    results_dir: str = Field(..., description="Directory to save all results.")
-    gen_data: bool = Field(..., description="Flag to generate ground truth data.")
-    run_map: bool = Field(False, description="Flag to run MAP estimation.")
-    run_mcmc: bool = Field(False, description="Flag to run MCMC sampling.")
-    initial_guess_path: str = Field(..., description="Path to initial guess parameters for MCMC.")
-    ion_velocity_weight: float = Field(2.0, description="Weight for ion velocity in MAP and MCMC.")
-    plotting: bool = Field(False, description="Enable or disable plotting.")
-    iterations: int = Field(1000, description="Number of MCMC iterations.")
+    general_settings: Dict[str, Any] = Field(
+        ...,
+        description="General settings such as results directory, flags, and iteration counts."
+    )
 
-    # Simulation-related settings
-    simulation_config: Dict[str, Any] = Field(..., description="Unified simulation configuration.")
-    simulation: Dict[str, Any] = Field(..., description="Simulation parameters.")
-    postprocess: Dict[str, Any] = Field(..., description="Postprocessing parameters.")
+    # Optimization parameters, containing both MAP and MCMC parameters
+    optimization_params: Dict[str, Dict[str, Any]] = Field(
+        ...,
+        description="Optimization parameters including MAP and MCMC settings."
+    )
 
-    # MAP-related settings
-    map_method: str = Field("Nelder-Mead", description="Optimization method for MAP.")
-    map_initial_guess_path: Optional[str] = Field(None, description="Path to initial guess parameters for MAP.")
-    map_maxfev: int = Field(5000, description="Maximum number of function evaluations for MAP.")
-    map_fatol: float = Field(1e-3, description="Function tolerance for MAP optimization.")
-    map_xatol: float = Field(1e-3, description="Step size tolerance for MAP optimization.")
-    optimized_param: str = Field(..., description="Path to optimized parameters for MCMC.")
-    map_iteration_log_file: Optional[str] = Field(None, description="File to log MAP iterations.")
-    
-    # MCMC-related settings
-    mcmc_save_interval: int = Field(10, description="Interval for saving MCMC samples.")
-    mcmc_checkpoint_interval: int = Field(10, description="Interval for saving MCMC checkpoints.")
-    mcmc_save_metadata: bool = Field(True, description="Flag to save MCMC metadata.")
-    mcmc_results_dir: Optional[str] = Field(None, description="Directory for saving MCMC results.")
-    mcmc_final_samples_file_log: Optional[str] = Field(None, description="File to save final MCMC samples in log-space.")
-    mcmc_final_samples_file_linear: Optional[str] = Field(None, description="File to save final MCMC samples in linear space.")
-    mcmc_checkpoint_file: Optional[str] = Field(None, description="File to save MCMC checkpoints.")
-    mcmc_metadata_file: Optional[str] = Field(None, description="File to save MCMC metadata.")
-    initial_cov: list = Field(..., description="Initial covariance matrix for MCMC.")
+    # Unified simulation configuration
+    simulation_config: Dict[str, Any] = Field(
+        ...,
+        description="Configuration of the simulation, including thruster properties and anomalous models."
+    )
+
+    # Simulation parameters
+    simulation: Dict[str, Any] = Field(
+        ...,
+        description="Simulation parameters like time step and grid resolution."
+    )
+
+    # Postprocessing settings
+    postprocess: Dict[str, Any] = Field(
+        ...,
+        description="Postprocessing configuration, including output files and processing flags."
+    )
+
+    # Input parameters
+    inputs: Dict[str, Any] = Field(
+        ...,
+        description="Input parameters for the simulation."
+    )
+
+    # Outputs configuration
+    outputs: List[Dict[str, Any]] = Field(
+        ...,
+        description="List of output metrics, their descriptions, and domains."
+    )
+
+# try:
+
+#     settings = Settings(**yml_dict)
+# except ValidationError as e:
+#     print("Validation Error:")
+#     print(e.errors())  # Prints a list of validation errors
+#     print(e.json())  # Prints errors in JSON format
 
 def load_yml_settings(path: Path) -> Dict[str, Any]:
     """
@@ -62,26 +82,22 @@ def load_yml_settings(path: Path) -> Dict[str, Any]:
         print("Error: Invalid YAML format.")
         raise
 
+
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
-    """
-    Extract and update the anomalous transport model configuration based on the model type.
-    """
-    config = settings.simulation_config.copy()
-    parameters = config["anom_model"].get(model_type, {})
+    try:
+        config = settings.simulation_config
+        thruster_config = config.get("thruster", {})
+        anom_model_config = thruster_config.get("anom_model", {})
+        if model_type not in anom_model_config:
+            raise KeyError(f"Anomalous model type '{model_type}' not found in configuration.")
+        model_config = anom_model_config[model_type]
 
-    if model_type == "TwoZoneBohm":
-        config["anom_model"] = {
-            "type": model_type,
-            "c1": parameters["c1"],
-            "c2": parameters["c2"],
-        }
-    elif model_type == "MultiLogBohm":
-        config["anom_model"] = {
-            "type": model_type,
-            "zs": parameters["zs"],
-            "cs": parameters["cs"],
-        }
-    else:
-        raise ValueError(f"Unsupported anomalous transport model type: {model_type}")
+        # Merge common configuration with model-specific configuration
+        base_config = {
+            "thruster": thruster_config,
 
-    return config
+        }
+        base_config["anom_model"] = {**model_config, "type": model_type}
+        return base_config
+    except KeyError as e:
+        raise KeyError(f"Configuration error: {e}")

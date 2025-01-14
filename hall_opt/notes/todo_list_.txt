@@ -54,3 +54,20 @@ The input file should have a set of parameters that are needed for map estimate 
 Running the map estimate should also plot the standard pictures
 A file should also be written with the optimal parameters and any optimization details, in a computer loadable format.
 Demonstrate running this workflow.
+
+1/14:
+integrate spt_100 with config by removing anything related to the cathode coupling model and plume model.
+removing all references to the Cathode component and its related parameters, inputs, outputs, and configuration from the YAML file.
+removed:
+- name: Cathode
+  model: !!python/name:hallmd.models.cathode.cathode_coupling
+  vectorized: true
+  inputs: ...
+  outputs: ...
+P_b (background pressure for cathode coupling)
+V_vac (coupling voltage in vacuum)
+Pstar, P_T (pressure-related parameters specific to cathode coupling
+cathode_coupling_voltage: 30  # overwritten by V_cc #cathode coupling voltage
+-update the loader..
+-update Settings class
+-plotting test file create

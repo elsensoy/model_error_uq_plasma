@@ -1,18 +1,14 @@
 import sys
 import os
 import argparse
+import logging
 from pathlib import Path
 from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
 from map import run_map_workflow
-from mcmc import run_mcmc_with_optimized_params
+from mcmc import run_mcmc_with_final_map_params
 
-# Add HallThruster to the Python path
-hallthruster_path = "/home/elidasensoy/.julia/packages/HallThruster/tHQQa/python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
 
-import hallthruster as het
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Run MAP and MCMC estimation workflow.")
@@ -20,21 +16,24 @@ def main():
     args = parser.parse_args()
 
     # Load settings
-    print("Loading settings...")
     settings_path = Path(args.settings)
+    if not settings_path.exists():
+        print(f"Error: Settings file not found at {settings_path}")
+        return
+
+    print("Loading settings...")
     yml_dict = load_yml_settings(settings_path)
     settings = Settings(**yml_dict)
 
     # Ensure results directory exists
-    results_dir = Path(settings.results_dir)
+    results_dir = Path(settings.general_settings["results_dir"])
     results_dir.mkdir(parents=True, exist_ok=True)
     print(f"Results directory set to: {results_dir}")
 
     observed_data = None
-    twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
 
     # Step 1: Generate ground truth data
-    if settings.gen_data:
+    if settings.general_settings["gen_data"]:
         print("Generating ground truth data using MultiLogBohm...")
         multilogbohm_config = extract_anom_model(settings, model_type="MultiLogBohm")
         ground_truth_solution = run_simulation_with_config(
@@ -58,7 +57,7 @@ def main():
             return
 
     # Step 2: Run MAP estimation
-    if settings.run_map:
+    if settings.general_settings["run_map"]:
         print("Running MAP estimation using TwoZoneBohm...")
         map_results_dir = results_dir / "map_results"
         map_results_dir.mkdir(parents=True, exist_ok=True)
@@ -76,26 +75,37 @@ def main():
             print("Error: MAP optimization failed.")
 
     # Step 3: Run MCMC sampling
-    if settings.run_mcmc:
+    if settings.general_settings["run_mcmc"]:
         print("Running MCMC sampling using TwoZoneBohm...")
         mcmc_results_dir = results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
 
         try:
             run_mcmc_with_optimized_params(
-                map_initial_guess_path=settings.optimized_param,  # Path to optimized params
-                observed_data=observed_data,  # Observed data from ground truth
-                config=twozonebohm_config,  # Configuration for TwoZoneBohm
-                simulation=settings.simulation,  # Simulation parameters
+                map_initial_guess_path=settings.optimization_params["map_params"]["final_map_params"],
+                observed_data=observed_data,
+                config=extract_anom_model(settings, model_type="TwoZoneBohm"),
+                simulation=settings.simulation,
                 settings=settings,
-                ion_velocity_weight=settings.ion_velocity_weight,  # Ion velocity weight
-                iterations=settings.iterations,  # Number of MCMC iterations
-                initial_cov=settings.mcmc_initial_cov,  # Initial covariance matrix
-                results_dir=str(mcmc_results_dir),  # Directory for MCMC results
+                ion_velocity_weight=settings.general_settings["ion_velocity_weight"],
+                iterations=settings.general_settings["iterations"],
+                initial_cov=settings.optimization_params["mcmc_params"]["initial_cov"],
+                results_dir=str(mcmc_results_dir),
             )
             print("MCMC sampling completed successfully.")
         except Exception as e:
             print(f"Error during MCMC sampling: {e}")
+
+    # Step 4: Generate plots (if enabled)
+    if settings.general_settings["plotting"]:
+        print("Generating plots...")
+        plots_dir = results_dir / "plots"
+        plots_dir.mkdir(parents=True, exist_ok=True)
+        # Assuming generate_all_plots is implemented
+        # generate_all_plots(input_dir=str(results_dir), output_dir=str(plots_dir))
+        print(f"All plots saved to: {plots_dir}")
+
+
 
     # Step 4: Generate plots 
     # if settings.plotting:
