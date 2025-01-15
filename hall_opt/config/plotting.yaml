@@ -2,5 +2,6 @@ enabled_plots:
   - visualization.py
   - delta_plots.py
   - mcmc_iter_plots.py
+  - map_test.py
 input_dir: "./results"
 output_dir: "./results/plots"

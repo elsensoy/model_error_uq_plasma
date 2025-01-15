@@ -109,7 +109,7 @@ def mock_mcmc_sampling():
 
 # Main Test Execution
 if __name__ == "__main__":
-    yaml_path = "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/config/settings.yaml"
+    yaml_path = "//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/config/settings.yaml"
 
     print("\nRunning test_yaml_loading...")
     test_yaml_loading(yaml_path)

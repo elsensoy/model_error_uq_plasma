@@ -1,25 +1,35 @@
 import os
 import json
+import sys
 import numpy as np
 from scipy.optimize import minimize
-from hall_opt.config.loader import Settings
-from hall_opt.config.run_model import run_simulation_with_config
-from utils.statistics import log_posterior
+from typing import Dict, Any
+from hall_opt.config.loader import Settings, extract_anom_model
+from hall_opt.utils.statistics import log_posterior
 
 
 def run_map_workflow(
-    observed_data,
+    observed_data: Dict[str, Any],
     settings: Settings,
-    simulation,
+    simulation: Dict[str, Any],
     results_dir: str,
 ):
     """
     Run MAP estimation workflow for TwoZoneBohm using c1 and alpha parameters.
+
+    Args:
+        observed_data (dict): Ground truth data for comparison.
+        settings (Settings): The loaded settings object.
+        simulation (dict): Simulation parameters.
+        results_dir (str): Directory to store MAP results.
+
+    Returns:
+        tuple: Optimized values of c1 and alpha, or (None, None) on failure.
     """
     # Load initial guess
-    initial_guess_path = settings.map_initial_guess_path
     try:
-        with open(initial_guess_path, 'r') as f:
+        initial_guess_path = settings.optimization_params["map_params"]["map_initial_guess_path"]
+        with open(initial_guess_path, "r") as f:
             initial_guess = json.load(f)  # Example: [-2.0, 0.5]
     except Exception as e:
         print(f"Error loading initial guess from {initial_guess_path}: {e}")
@@ -30,12 +40,13 @@ def run_map_workflow(
         return None, None
 
     # Extract MAP parameters from settings
-    method = settings.map_method
-    maxfev = settings.map_maxfev
-    fatol = settings.map_fatol
-    xatol = settings.map_xatol
-    final_params_file = settings.map_final_params_file
-    iteration_log_file = settings.map_iteration_log_file
+    map_params = settings.optimization_params["map_params"]
+    method = map_params["method"]
+    maxfev = map_params["maxfev"]
+    fatol = float(map_params["fatol"])
+    xatol = float(map_params["xatol"])
+    final_params_file = map_params["final_map_params"]
+    iteration_log_file = map_params["iteration_log_file"]
 
     iteration_counter = [0]  # Tracks iterations
     iteration_logs = []  # Store iteration logs
@@ -57,10 +68,14 @@ def run_map_workflow(
         """
         Compute the negative log-posterior with bounds penalties.
         """
-        log_posterior_value = log_posterior(
-            c_log, observed_data, settings=settings
-        )
-        return -log_posterior_value + bounds_penalty(c_log)
+        try:
+            log_posterior_value = log_posterior(
+                c_log, observed_data, settings=settings
+            )
+            return -log_posterior_value + bounds_penalty(c_log)
+        except Exception as e:
+            print(f"Error evaluating log-posterior: {e}")
+            return np.inf
 
     def iteration_callback(c_log):
         """
@@ -81,7 +96,7 @@ def run_map_workflow(
         iteration_logs.append(iteration_data)
 
         # Save the log file after each iteration
-        with open(iteration_log_file, 'w') as log_file:
+        with open(iteration_log_file, "w") as log_file:
             json.dump(iteration_logs, log_file, indent=4)
 
         # Print progress
@@ -89,13 +104,17 @@ def run_map_workflow(
               f"alpha = {alpha:.4f} (log: {alpha_log:.4f})")
 
     # Perform MAP optimization
-    result = minimize(
-        neg_log_posterior_with_penalty,
-        initial_guess,
-        method=method,
-        callback=iteration_callback,
-        options={"maxfev": maxfev, "fatol": fatol, "xatol": xatol}
-    )
+    try:
+        result = minimize(
+            neg_log_posterior_with_penalty,
+            initial_guess,
+            method=method,
+            callback=iteration_callback,
+            options={"maxfev": maxfev, "fatol": fatol, "xatol": xatol}
+        )
+    except Exception as e:
+        print(f"Error during optimization: {e}")
+        return None, None
 
     if result.success:
         c1_opt = np.exp(result.x[0])
@@ -105,7 +124,7 @@ def run_map_workflow(
         # Save final parameters
         final_params_path = os.path.join(results_dir, final_params_file)
         optimized_param = {"c1": c1_opt, "alpha": alpha_opt}
-        with open(final_params_path, 'w') as f:
+        with open(final_params_path, "w") as f:
             json.dump(optimized_param, f, indent=4)
         print(f"Final parameters saved to {final_params_path}")
 

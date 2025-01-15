@@ -17,10 +17,10 @@ def check_file_exists(file_path):
 def load_data(base_results_dir=base_results_dir):
     """Loads MCMC samples, truth data, and initial parameter guess."""
     # File paths
-    samples_path = os.path.join(base_results_dir, "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc-results-3/mcmc-results-1/final_samples_linear.csv") # need to change
-    truth_data_path = os.path.join(base_results_dir, "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_observed_data_map.json")
-    pre_mcmc_data_path = os.path.join(base_results_dir, "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_pre_mcmc_initial.json")
-    initial_params_path = os.path.join(base_results_dir, "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/initial_map_log.json")
+    samples_path = os.path.join(base_results_dir, "//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc-results-3/mcmc-results-1/final_samples_linear.csv") # need to change
+    truth_data_path = os.path.join(base_results_dir, "//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_observed_data_map.json")
+    pre_mcmc_data_path = os.path.join(base_results_dir, "//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/mcmc_pre_mcmc_initial.json")
+    initial_params_path = os.path.join(base_results_dir, "//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/mcmc/results/initial_map_log.json")
 
     # Check paths
     for path in [samples_path, truth_data_path, pre_mcmc_data_path, initial_params_path]:

@@ -15,11 +15,11 @@ def run_all_plots(input_dir, output_dir):
     print(f"Running posterior plots...")
     posterior_plots.main(input_dir, output_dir)
 
-    print(f"Running delta plots...")
-    delta_plots.main(input_dir, output_dir)
+    # print(f"Running delta plots...")
+    # delta_plots.main(input_dir, output_dir)
 
-    print(f"Running MCMC iteration plots...")
-    mcmc_iter_plots.main(input_dir, output_dir)
+    # print(f"Running MCMC iteration plots...")
+    # mcmc_iter_plots.main(input_dir, output_dir)
 
 if __name__ == "__main__":
     input_dir = sys.argv[1]

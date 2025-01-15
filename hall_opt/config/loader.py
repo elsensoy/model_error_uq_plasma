@@ -2,102 +2,114 @@ import os
 import sys
 import yaml
 import logging
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, ValidationError
-from pathlib import Path
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
-hallthruster_path = "/home/elidasensoy/.julia/packages/HallThruster/tHQQa/python"
+
+# Ensure HallThruster Python path is included
+hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
 import hallthruster as het
 
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+
+class GeometryConfig(BaseModel):
+    channel_length: float
+    inner_radius: float
+    outer_radius: float
+
+class MagneticFieldConfig(BaseModel):
+    file: str
+
+class AnomModelConfig(BaseModel):
+    TwoZoneBohm: Dict[str, float]
+    MultiLogBohm: Dict[str, List[float]]
+
+class Config(BaseModel):
+    name: str
+    geometry: GeometryConfig
+    magnetic_field: MagneticFieldConfig
+    discharge_voltage: float
+    anode_mass_flow_rate: float
+    domain: List[float]
+    propellant: str
+    ion_wall_losses: bool
+    solve_plume: bool
+    apply_thrust_divergence_correction: bool
+    neutral_ingestion_multiplier: float
+    ncharge: int
+    transition_length: float
+    neutral_velocity: float
+    anom_model: AnomModelConfig
+
+class OptimizationParams(BaseModel):
+    map_params: Dict[str, Any]
+    mcmc_params: Dict[str, Any]  
+    map_initial_guess_path: str = Field(..., description="Path to initial guess parameters for MCMC.")
 
 
 class Settings(BaseModel):
-    # General settings
-    general_settings: Dict[str, Any] = Field(
-        ...,
-        description="General settings such as results directory, flags, and iteration counts."
-    )
+    general_settings: Dict[str, Any] = Field(..., description="General settings for the simulation.")
+    optimization_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
+    config: Dict[str, Any] = Field(..., description="Configuration for the thruster simulation.")
+    simulation: Dict[str, Any] = Field(..., description="Simulation parameters.")
+    postprocess: Dict[str, Any] = Field(..., description="Postprocessing settings.")
+    inputs: Dict[str, Any] = Field(..., description="Input values for the simulation.")
+    outputs: List[Dict[str, Any]] = Field(..., description="Expected output metrics.")
 
-    # Optimization parameters, containing both MAP and MCMC parameters
-    optimization_params: Dict[str, Dict[str, Any]] = Field(
-        ...,
-        description="Optimization parameters including MAP and MCMC settings."
-    )
-
-    # Unified simulation configuration
-    simulation_config: Dict[str, Any] = Field(
-        ...,
-        description="Configuration of the simulation, including thruster properties and anomalous models."
-    )
-
-    # Simulation parameters
-    simulation: Dict[str, Any] = Field(
-        ...,
-        description="Simulation parameters like time step and grid resolution."
-    )
-
-    # Postprocessing settings
-    postprocess: Dict[str, Any] = Field(
-        ...,
-        description="Postprocessing configuration, including output files and processing flags."
-    )
-
-    # Input parameters
-    inputs: Dict[str, Any] = Field(
-        ...,
-        description="Input parameters for the simulation."
-    )
-
-    # Outputs configuration
-    outputs: List[Dict[str, Any]] = Field(
-        ...,
-        description="List of output metrics, their descriptions, and domains."
-    )
-
-# try:
-
-#     settings = Settings(**yml_dict)
-# except ValidationError as e:
-#     print("Validation Error:")
-#     print(e.errors())  # Prints a list of validation errors
-#     print(e.json())  # Prints errors in JSON format
-
-def load_yml_settings(path: Path) -> Dict[str, Any]:
+def load_yml_settings(path: Path) -> Settings:
     """
-    Load YAML configuration from a file.
+    Load the YAML file and validate it against the `Settings` Pydantic model.
     """
     try:
-        with path.open("r") as f:
-            return yaml.safe_load(f)
-    except FileNotFoundError as error:
-        print("Error: YAML settings file not found.")
+        with path.open("r") as file:
+            yaml_data = yaml.safe_load(file)  # Load YAML into a dictionary
+        print("Loaded YAML data:", yaml_data)  # Debugging: Print raw YAML
+        return Settings(**yaml_data)  # Validate and parse with Pydantic
+    except FileNotFoundError:
+        print(f"Error: YAML file not found at {path}")
         raise
-    except yaml.YAMLError as error:
-        print("Error: Invalid YAML format.")
+    except ValidationError as e:
+        print(f"Validation error: {e.json()}")
+        print("Invalid YAML settings data:", yaml_data)  # Debugging
+        raise
+    except yaml.YAMLError as e:
+        print(f"Error: Invalid YAML format. {str(e)}")
         raise
 
 
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
+
     try:
-        config = settings.simulation_config
-        thruster_config = config.get("thruster", {})
-        anom_model_config = thruster_config.get("anom_model", {})
+        # Access the config from the settings
+        config = settings.config
+
+        # Debugging: Print the simulation configuration
+        print("Simulation Config:", config)
+
+        # Access the anomalous transport model configuration
+        anom_model_config = config["anom_model"]
+
+        # Debugging: Print the requested model type and available models
+        print("Model Type Requested:", model_type)
+        print("Available Models in Config:", anom_model_config.keys())
+
         if model_type not in anom_model_config:
             raise KeyError(f"Anomalous model type '{model_type}' not found in configuration.")
+
+        # Extract the specific model configuration
         model_config = anom_model_config[model_type]
 
-        # Merge common configuration with model-specific configuration
-        base_config = {
-            "thruster": thruster_config,
+        # Combine the simulation config with the specific model
+        base_config = config.copy()  # Create a copy of the simulation config
+        base_config["anom_model"] = {**model_config, "type": model_type}  # Update the model-specific part
 
-        }
-        base_config["anom_model"] = {**model_config, "type": model_type}
+        # Debugging: Print the final extracted configuration
+        print(f"Extracted Model Config: {base_config}")
+
         return base_config
+
     except KeyError as e:
-        raise KeyError(f"Configuration error: {e}")
+        print(f"Configuration error: {e}")
+        raise

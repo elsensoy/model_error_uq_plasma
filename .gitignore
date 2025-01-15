@@ -181,3 +181,5 @@ cython_debug/
 results/
 hallthruster_tutorial/
 hall_opt/notes/
+model_error_uq_plasma/pdm
+model_error_uq_plasma/MCMCIterators

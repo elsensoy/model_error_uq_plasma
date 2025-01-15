@@ -36,7 +36,12 @@ If you don't already have PDM installed, you can install it using `pip`:
     git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
     cd model_error_uq_plasma
 ```
+Install Dependencies: Within the virtual environment, use pip to install the dependencies and verify:
+```
+pip install -r requirements.txt
+python -m pip list
 
+```
 ### Step 3: Install Dependencies
 1. Install the necessary dependencies with PDM:
 ```
@@ -44,6 +49,7 @@ If you don't already have PDM installed, you can install it using `pip`:
 ```
 2. Activate the environment:
 ```
+
 pdm venv activate
 ```
 Alternative: Use Python's venv
@@ -52,12 +58,7 @@ Alternative: Use Python's venv
     python3 -m venv .venv
     source .venv/bin/activate
 ```
-Install Dependencies: Within the virtual environment, use pip to install the dependencies and verify:
-```
-pip install -r requirements.txt
-python -m pip list
 
-```
 ### Step 4: Install MCMCIterators
 Clone and install the **MCMCIterators** package for advanced MCMC sampling:
 ```

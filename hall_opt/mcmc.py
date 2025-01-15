@@ -1,46 +1,46 @@
 import os
 import json
+import sys
 import numpy as np
-import logging
-from datetime import datetime
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.config.loader import Settings,load_yml_settings, extract_anom_model
+from hall_opt.config.loader import Settings, load_yml_settings, extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
-from utils.save_data import save_results_to_json, save_metadata
-from utils.iter_methods import get_next_results_dir
-from utils.statistics import log_posterior
+from hall_opt.utils.save_data import save_results_to_json
+from hall_opt.utils.iter_methods import get_next_results_dir
+from hall_opt.utils.statistics import log_posterior
 
-# Logger setup
-def setup_logger():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-    return logging.getLogger("MCMC")
+# HallThruster Path Setup
+hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
 
-logger = setup_logger()
+import hallthruster as het
+
 
 def mcmc_inference(
     logpdf,
     initial_sample,
     initial_cov,
     iterations,
-    save_interval=10,
-    checkpoint_interval=10,
-    results_dir="mcmc/results",
-    save_metadata_flag=True
+    save_interval,
+    checkpoint_interval,
+    results_dir,
+    save_metadata_flag,
 ):
     """
     Perform MCMC inference, saving results at intervals and creating checkpoints.
     """
+    # Create directories for results and iteration metrics
     run_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
     metrics_dir = os.path.join(run_dir, "iteration_metrics")
     os.makedirs(metrics_dir, exist_ok=True)
 
+    # Define file paths for saving results
     final_samples_log_file = os.path.join(run_dir, "final_samples_log.csv")
     final_samples_linear_file = os.path.join(run_dir, "final_samples_linear.csv")
     checkpoint_file = os.path.join(run_dir, "checkpoint.json")
 
+    # Initialize MCMC sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf,
         np.array(initial_sample),
@@ -52,9 +52,9 @@ def mcmc_inference(
         level_scale=1e-1,
     )
 
+    # Store samples and metadata
     all_samples = []
     all_samples_linear = []
-    failing_samples = []
     metadata = {
         "iterations": iterations,
         "save_interval": save_interval,
@@ -64,6 +64,10 @@ def mcmc_inference(
         "acceptance_rate": None,
     }
 
+    print(f"Starting MCMC inference with {iterations} iterations...")
+    print(f"Results will be saved to: {run_dir}")
+
+    # Run MCMC iterations
     for iteration in range(iterations):
         try:
             proposed_sample, log_posterior_val, accepted = next(sampler)
@@ -71,7 +75,7 @@ def mcmc_inference(
             c1, alpha = np.exp(c1_log), np.exp(alpha_log)
             c2 = c1 * alpha
 
-            logger.info(
+            print(
                 f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, "
                 f"Log Posterior={log_posterior_val:.4f}, Accepted={accepted}"
             )
@@ -90,7 +94,6 @@ def mcmc_inference(
             }
             metrics_filename = os.path.join(metrics_dir, f"iteration_{iteration + 1}_metrics.json")
             save_results_to_json(iteration_metrics, metrics_filename)
-            logger.info(f"Saved metrics for iteration {iteration + 1} to {metrics_filename}")
 
             # Save checkpoints at specified intervals
             if (iteration + 1) % checkpoint_interval == 0:
@@ -100,16 +103,14 @@ def mcmc_inference(
                     "all_samples_linear": all_samples_linear,
                 }
                 save_results_to_json(checkpoint_data, checkpoint_file)
-                logger.info(f"Saved checkpoint at iteration {iteration + 1} to {checkpoint_file}")
 
             # Save results at regular intervals
             if (iteration + 1) % save_interval == 0:
                 np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",")
                 np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=",")
-                logger.info(f"Saved samples to {final_samples_log_file} and {final_samples_linear_file}")
 
         except Exception as e:
-            logger.error(f"Error during MCMC iteration {iteration + 1}: {e}")
+            print(f"Error during MCMC iteration {iteration + 1}: {e}")
             break
 
     # Save final results
@@ -119,14 +120,15 @@ def mcmc_inference(
 
     if save_metadata_flag:
         save_results_to_json(metadata, os.path.join(run_dir, "mcmc_metadata.json"))
-        logger.info(f"Metadata saved to {os.path.join(run_dir, 'mcmc_metadata.json')}")
 
-    logger.info(f"Final samples saved to {final_samples_log_file} (log-space) and {final_samples_linear_file} (linear-space)")
+    print(f"Final samples saved to {final_samples_log_file} (log-space) and {final_samples_linear_file} (linear-space)")
+    print(f"Acceptance rate: {sampler.accept_ratio():.2%}")
 
     return all_samples, all_samples_linear, sampler.accept_ratio()
 
+
 def run_mcmc_with_final_map_params(
-    mcmc_initial_guess_path,
+    final_map_params,
     observed_data,
     config,
     settings,
@@ -134,23 +136,28 @@ def run_mcmc_with_final_map_params(
     ion_velocity_weight,
     iterations,
     initial_cov,
-    results_dir="mcmc/results"
+    results_dir="mcmc/results",
 ):
     """
-    Run MCMC with optimized parameters.
+    Run MCMC with optimized parameters loaded from YAML settings.
     """
     # Load optimized parameters
-    c1_opt, alpha_opt = load_final_map_params(mcmc_initial_guess_path)
+    c1_opt, alpha_opt = load_final_map_params(final_map_params_path)
     if c1_opt is None or alpha_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
 
+    print(f"Loaded initial MAP parameters: c1_opt={c1_opt}, alpha_opt={alpha_opt}")
+
     initial_sample = [np.log10(c1_opt), np.log10(alpha_opt)]
 
-    # Extract MCMC parameters from settings
+    # Extract MCMC parameters from YAML settings
     mcmc_params = settings.mcmc_params
-    save_interval = mcmc_params.get("save_interval", 10)
-    checkpoint_interval = mcmc_params.get("checkpoint_interval", 10)
-    save_metadata_flag = mcmc_params.get("save_metadata", True)
+    save_interval = mcmc_params["save_interval"]
+    checkpoint_interval = mcmc_params["checkpoint_interval"]
+    save_metadata_flag = mcmc_params["save_metadata"]
+
+    print(f"Starting MCMC with {iterations} iterations...")
+    print(f"Results will be saved to: {results_dir}")
 
     # Perform MCMC inference
     all_samples, all_samples_linear, acceptance_rate = mcmc_inference(
@@ -161,7 +168,8 @@ def run_mcmc_with_final_map_params(
         save_interval=save_interval,
         checkpoint_interval=checkpoint_interval,
         results_dir=results_dir,
-        save_metadata_flag=save_metadata_flag
+        save_metadata_flag=save_metadata_flag,
     )
 
+    print(f"MCMC completed. Acceptance rate: {acceptance_rate:.2%}")
     return all_samples, all_samples_linear, acceptance_rate

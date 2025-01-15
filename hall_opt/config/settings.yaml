@@ -1,39 +1,37 @@
-
 general_settings:
-  results_dir: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results"
+  results_dir: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results"
   gen_data: true
-  run_map: true
-  run_mcmc: false
+  run_map: false
+  run_mcmc: true
   ion_velocity_weight: 2.0
   plotting: false
-  iterations: 1000
+  iterations: 20
 
 optimization_params:
   # MAP parameters
   map_params:
     method: "Nelder-Mead"
-    map_initial_guess_path: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/initial_guess.json"
+    map_initial_guess_path: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/initial_guess.json"
     maxfev: 5000          # Maximum number of function evaluations
-    fatol: 1e-3           # Function tolerance
-    xatol: 1e-3           # Step size tolerance
-    iteration_log_file: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results/map_iterations.json"
-    final_map_params: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/final_parameters.json"
+    fatol: 0.003           # Function tolerance
+    xatol: 0.003          # Step size tolerance
+    iteration_log_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/map_iterations.json"
+    final_map_params: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map/final_parameters.json"
 
   # MCMC parameters
   mcmc_params:
     save_interval: 10
     checkpoint_interval: 10
     save_metadata: true
-    final_samples_file_log: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results/mcmc/final_samples_log.csv"
-    final_samples_file_linear: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results/mcmc/final_samples_linear.csv"
-    checkpoint_file: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results/mcmc/checkpoint.json"
-    metadata_file: "/mnt/c/Users/elsensoy/model_error_uq_plasma/results/mcmc/mcmc_metadata.json"
+    final_samples_file_log: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/final_samples_log.csv"
+    final_samples_file_linear: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/final_samples_linear.csv"
+    checkpoint_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/checkpoint.json"
+    metadata_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/mcmc_metadata.json"
     initial_cov:
       - [0.1, -0.5]
       - [-0.5, 0.1]
 
-# Unified simulation configuration
-simulation_config:
+config:
   thruster:
     name: "SPT-100"
     geometry:
@@ -42,53 +40,51 @@ simulation_config:
       outer_radius: 0.05
     magnetic_field:
       file: "hall_opt/config/bfield_spt100.csv"
-    discharge_voltage: 300.0
-    anode_mass_flow_rate: 0.0001
-    domain: [0.0, 0.08]
-    propellant: Xenon
-    ion_wall_losses: true
-    solve_plume: false  # Plume model disabled
-    apply_thrust_divergence_correction: true
-    neutral_ingestion_multiplier: 1.0
-    ncharge: 3
-    transition_length: 0.003  # Inner to outer transition length
-    neutral_velocity: 300     # Neutral velocity in m/s
-    anom_model:
-      MultiLogBohm:
-          zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
-          cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
-      TwoZoneBohm:
-          c1: -2.0
-          c2: 0.5
+  discharge_voltage: 300
+  anode_mass_flow_rate: 0.0001
+  domain: [0, 0.08]
+  propellant: Xenon
+  ion_wall_losses: true
+  solve_plume: false
+  apply_thrust_divergence_correction: true
+  neutral_ingestion_multiplier: 1.0
+  ncharge: 3
+  transition_length: 0.003
+  neutral_velocity: 300
+  anom_model:
+    TwoZoneBohm:
+      c1: 0.00625
+      c2: 0.0625
+    MultiLogBohm:
+      zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
+      cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
 
 simulation:
-  dt: 0.000001
+  dt: 0.000000001
   adaptive: true
   grid:
     type: "EvenGrid"
     num_cells: 100
-  num_save: 1000
-  duration: 0.001
+  num_save: 100
+  duration: 0.002
 
 postprocess:
   output_file:
-    TwoZoneBohm: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/output_twozonebohm.json"
-    MultiLogBohm: "/mnt/c/Users/elsensoy/model_error_uq_plasma/hall_opt/results/output_multilogbohm.json"
+    TwoZoneBohm: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/output_twozonebohm.json"
+    MultiLogBohm: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/output_multilogbohm.json"
   save_time_resolved: false
-  average_start_time: 0.0004
+  average_start_time: 0.004
 
 inputs:
-  P_b: 1.0e-5         # Background pressure in Torr
-  mdot_a: 0.0001      # Anode mass flow rate in kg/s
-  T_e: 1.32721        # Electron temperature at cathode in eV
-  V_a: 300            # Anode voltage
-  u_n: 141.24234      # Neutral velocity in m/s
-  l_t: 0.00187915     # Transition length
-  a_1: 0.00680237     # Anomalous transport scale inside channel
-  a_2: 14.645         # Anomalous transport scale outside channel
-  dz: 0.4             # Anomalous shift displacement
-  z0: -0.03           # Upstream anomalous shift axial limit
-  p0: 56.86006e-6     # Upstream anomalous shift pressure limit
+  V_a: 300
+  mdot_a: 0.0001
+  u_n: 141.24234
+  l_t: 0.00187915
+  a_1: 0.00680237
+  a_2: 14.645
+  dz: 0.4
+  z0: -0.03
+  p0: 0.0005686006
 
 outputs:
   - name: I_B0
@@ -109,19 +105,3 @@ outputs:
   - name: eta_c
     description: Current efficiency
     domain: (0, 1)
-  - name: eta_m
-    description: Mass utilization efficiency
-    domain: (0, 1)
-  - name: eta_v
-    description: Voltage utilization efficiency
-    domain: (0, 1)
-  - name: eta_a
-    description: Anode efficiency
-    domain: (0, 1)
-  - name: u_ion
-    description: Singly-charged axial ion velocity
-    units: m/s
-    nominal: 10.0
-    compression:
-      method: svd
-      energy_tol: 0.95
