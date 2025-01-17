@@ -47,16 +47,16 @@ class OptimizationParams(BaseModel):
     map_params: Dict[str, Any]
     mcmc_params: Dict[str, Any]  
     map_initial_guess_path: str = Field(..., description="Path to initial guess parameters for MCMC.")
-
+    final_map_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
 
 class Settings(BaseModel):
     general_settings: Dict[str, Any] = Field(..., description="General settings for the simulation.")
-    optimization_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
     config: Dict[str, Any] = Field(..., description="Configuration for the thruster simulation.")
     simulation: Dict[str, Any] = Field(..., description="Simulation parameters.")
     postprocess: Dict[str, Any] = Field(..., description="Postprocessing settings.")
     inputs: Dict[str, Any] = Field(..., description="Input values for the simulation.")
     outputs: List[Dict[str, Any]] = Field(..., description="Expected output metrics.")
+    optimization_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
 
 def load_yml_settings(path: Path) -> Settings:
     """

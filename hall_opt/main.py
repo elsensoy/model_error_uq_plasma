@@ -112,7 +112,7 @@ def main():
 
         try:
             run_mcmc_with_final_map_params(
-                map_initial_guess_path= settings.optimization_params["map_params"]["map_initial_guess_path"],
+                final_map_params= settings.optimization_params["map_params"]["final_map_params"],
                 observed_data=observed_data,
                 config=extract_anom_model(settings, model_type="TwoZoneBohm"),
                 simulation=settings.simulation,

@@ -142,7 +142,7 @@ def run_mcmc_with_final_map_params(
     Run MCMC with optimized parameters loaded from YAML settings.
     """
     # Load optimized parameters
-    c1_opt, alpha_opt = load_final_map_params(final_map_params_path)
+    c1_opt, alpha_opt = settings.optimization_params(final_map_params)
     if c1_opt is None or alpha_opt is None:
         raise ValueError("Failed to load initial guess parameters.")
 
@@ -151,7 +151,7 @@ def run_mcmc_with_final_map_params(
     initial_sample = [np.log10(c1_opt), np.log10(alpha_opt)]
 
     # Extract MCMC parameters from YAML settings
-    mcmc_params = settings.mcmc_params
+    mcmc_params = settings.optimization_params["mcmc_params"]
     save_interval = mcmc_params["save_interval"]
     checkpoint_interval = mcmc_params["checkpoint_interval"]
     save_metadata_flag = mcmc_params["save_metadata"]

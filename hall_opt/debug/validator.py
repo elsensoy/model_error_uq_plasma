@@ -4,7 +4,7 @@ from pathlib import Path
 from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_model
 
 # Load YAML
-yaml_path = Path("//home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/config/settings.yaml")
+yaml_path = Path("/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/config/settings.yaml")
 yaml_data = yaml.safe_load(yaml_path.read_text())
 
 # Create Settings instance

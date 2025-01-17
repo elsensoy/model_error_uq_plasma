@@ -71,3 +71,6 @@ cathode_coupling_voltage: 30  # overwritten by V_cc #cathode coupling voltage
 -update the loader..
 -update Settings class
 -plotting test file create
+
+1/5 
+update the read me file with setup instructions.
