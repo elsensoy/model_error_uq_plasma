@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import numpy as np
 import argparse
 import logging
 import yaml
@@ -109,6 +110,7 @@ def main():
         print("Running MCMC sampling using TwoZoneBohm...")
         mcmc_results_dir = results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
+        observed_data["ion_velocity"] = np.array(observed_data["ion_velocity"], dtype=np.float64)
 
         try:
             run_mcmc_with_final_map_params(
@@ -128,12 +130,12 @@ def main():
             sys.exit(1)
 
     # Step 4: Generate plots (if enabled)
-    if settings.general_settings["plotting"]:
-        print("Generating plots...")
-        plots_dir = results_dir / "plots"
-        plots_dir.mkdir(parents=True, exist_ok=True)
-        # Assuming generate_all_plots is implemented
-        print(f"All plots saved to: {plots_dir}")
+    # if settings.general_settings["plotting"]:
+    #     print("Generating plots...")
+    #     plots_dir = results_dir / "plots"
+    #     plots_dir.mkdir(parents=True, exist_ok=True)
+    #     # Assuming generate_all_plots is implemented
+    #     print(f"All plots saved to: {plots_dir}")
 
 
 if __name__ == "__main__":

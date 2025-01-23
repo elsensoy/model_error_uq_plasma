@@ -7,7 +7,9 @@ from scipy.optimize import minimize
 from scipy.stats import norm
 from hall_opt.config.loader import Settings, load_yml_settings, extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
-
+from hall_opt.utils.iter_methods import get_next_filename
+from hall_opt.utils.save_data import save_results_to_json
+from hall_opt.utils.iter_methods import get_next_results_dir, save_metadata 
 # HallThruster Path Setup
 hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
 if hallthruster_path not in sys.path:
@@ -39,6 +41,8 @@ def log_likelihood(
     c1_log, alpha_log = c_log
     c1, alpha = np.exp(c1_log), np.exp(alpha_log)
     c2 = c1 * alpha  # Calculate c2 from c1 and alpha
+    # Ensure observed ion velocity is a numpy array
+    observed_ion_velocity = np.array(observed_data.get("ion_velocity"), dtype=np.float64)
 
     # Update the TwoZoneBohm configuration with the new parameters
     try:
@@ -52,8 +56,8 @@ def log_likelihood(
     solution = run_simulation_with_config(
         settings=settings,
         config=twozonebohm_config,  
-        simulation=settings.simulation,      # Pass general simulation settings
-        postprocess=settings.postprocess,    # Pass postprocessing settings
+        simulation=settings.simulation,     
+        postprocess=settings.postprocess,   
         model_type="TwoZoneBohm"
     )
     if solution is None:
@@ -72,33 +76,39 @@ def log_likelihood(
         "discharge_current": metrics.get("discharge_current", 0),
         "ui": metrics.get("ui", []),
     }
-
-    # Compute log-likelihood
-    ion_velocity_weight = settings.general_settings.get("ion_velocity_weight", 1.0)
-    log_likelihood_value = 0.0
-
-    # Thrust and discharge current components
-    for key in ["thrust", "discharge_current"]:
-        if key in observed_data and key in simulated_data:
-            residual = np.array(simulated_data[key]) - np.array(observed_data[key])
-            log_likelihood_value += -0.5 * np.sum((residual / sigma) ** 2)
-
-    # Ion velocity component
-    if "ui" in simulated_data and "ion_velocity" in observed_data:
-        simulated_ion_velocity = np.array(simulated_data["ui"][0], dtype=np.float64)
+    
+    # Convert observed ion velocity to NumPy array if it's a list
+    if isinstance(observed_data["ion_velocity"], list):
         observed_ion_velocity = np.array(observed_data["ion_velocity"], dtype=np.float64)
-        print(f"Shape of simulated_ion_velocity: {simulated_ion_velocity.shape}")
-        print(f"Shape of observed_ion_velocity: {observed_ion_velocity.shape}")
+    else:
+        observed_ion_velocity = observed_data["ion_velocity"]
 
-        if simulated_ion_velocity.shape == observed_ion_velocity.shape:
-            residual = simulated_ion_velocity - observed_ion_velocity
-            log_likelihood_value += -0.5 * np.sum((residual / (sigma / ion_velocity_weight)) ** 2)
-        else:
-            print("Mismatch in ion_velocity shapes. Penalizing with -np.inf.")
-            return -np.inf
+    # Ensure simulated data is in correct format
+    simulated_ion_velocity = np.array(simulated_data["ui"][0], dtype=np.float64)
+
+    print(f"Type of simulated_ion_velocity: {type(simulated_ion_velocity)}, Length: {len(simulated_ion_velocity)}")
+    print(f"Type of observed_ion_velocity: {type(observed_ion_velocity)}, Length: {len(observed_ion_velocity)}")
+    # Save iteration results
+    results_dir = settings.general_settings["results_dir"]
+    metrics_filename = get_next_filename("iteration_metrics", results_dir, ".json")
+    iteration_results = {
+        "c1": c1,
+        "c2": c2,
+        "thrust": simulated_data["thrust"],
+        "discharge_current": simulated_data["discharge_current"],
+        "ui": simulated_data["ui"][0],
+    }
+    save_results_to_json(iteration_results, metrics_filename)
+    print(f"Saved iteration results to {metrics_filename}")
+
+    if len(simulated_ion_velocity) == len(observed_ion_velocity):
+        residual = simulated_ion_velocity - observed_ion_velocity
+        log_likelihood_value = -0.5 * np.sum((residual / (sigma / settings.general_settings["ion_velocity_weight"])) ** 2)
+    else:
+        print("Mismatch in ion_velocity lengths. Penalizing with -np.inf.")
+        return -np.inf
 
     return log_likelihood_value
-
 
 # -----------------------------
 # 3. Posterior
@@ -108,6 +118,11 @@ def log_posterior(
 ) -> float:
 
     c1_log, alpha_log = c_log
+
+    # Convert observed data values to numpy arrays if they are lists
+    for key in observed_data:
+        if isinstance(observed_data[key], list):
+            observed_data[key] = np.array(observed_data[key], dtype=np.float64)
 
     # Compute prior
     log_prior_value = prior_logpdf(c1_log, alpha_log)

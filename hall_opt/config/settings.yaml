@@ -16,7 +16,7 @@ optimization_params:
     fatol: 0.003           # Function tolerance
     xatol: 0.003          # Step size tolerance
     iteration_log_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/map_iterations.json"
-    final_map_params: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map/final_parameters.json"
+    final_map_params: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/final_map_params.json"
 
   # MCMC parameters
   mcmc_params:
@@ -28,9 +28,8 @@ optimization_params:
     checkpoint_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/checkpoint.json"
     metadata_file: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/mcmc/mcmc_metadata.json"
     initial_cov:
-      - [0.1, -0.5]
-      - [-0.5, 0.1]
-
+      - [0.1, 0.05]
+      - [0.05, 0.1]  
 config:
   thruster:
     name: "SPT-100"

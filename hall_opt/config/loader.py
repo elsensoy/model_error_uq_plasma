@@ -65,7 +65,7 @@ def load_yml_settings(path: Path) -> Settings:
     try:
         with path.open("r") as file:
             yaml_data = yaml.safe_load(file)  # Load YAML into a dictionary
-        print("Loaded YAML data:", yaml_data)  # Debugging: Print raw YAML
+        # print("Loaded YAML data:", yaml_data)  # Debugging: Print raw YAML
         return Settings(**yaml_data)  # Validate and parse with Pydantic
     except FileNotFoundError:
         print(f"Error: YAML file not found at {path}")
@@ -86,7 +86,7 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
         config = settings.config
 
         # Debugging: Print the simulation configuration
-        print("Simulation Config:", config)
+        # print("Simulation Config:", config)
 
         # Access the anomalous transport model configuration
         anom_model_config = config["anom_model"]
@@ -105,8 +105,8 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
         base_config = config.copy()  # Create a copy of the simulation config
         base_config["anom_model"] = {**model_config, "type": model_type}  # Update the model-specific part
 
-        # Debugging: Print the final extracted configuration
-        print(f"Extracted Model Config: {base_config}")
+        # # Debugging: Print the final extracted configuration
+        # print(f"Extracted Model Config: {base_config}")
 
         return base_config
 

@@ -22,11 +22,11 @@ z_normalized = np.array(truth_data["z_normalized"])  # Ensure as numpy array
 observed_ion_velocity = np.array(truth_data["ion_velocity"])  # Ensure as numpy array
 
 # Validate dimensions
-if z_normalized.shape != observed_ion_velocity.shape:
-    raise ValueError(
-        f"Mismatch in dimensions: z_normalized has shape {z_normalized.shape}, "
-        f"but observed_ion_velocity has shape {observed_ion_velocity.shape}."
-    )
+# if z_normalized.shape != observed_ion_velocity.shape:
+#     raise ValueError(
+#         f"Mismatch in dimensions: z_normalized has shape {z_normalized.shape}, "
+#         f"but observed_ion_velocity has shape {observed_ion_velocity.shape}."
+#     )
 
 # Extract metrics for MCMC iteration plots
 thrust_values = [metric["thrust"] for metric in iteration_metrics]
