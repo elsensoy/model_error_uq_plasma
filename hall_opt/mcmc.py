@@ -3,20 +3,9 @@ import json
 import sys
 import numpy as np
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.config.loader import Settings, load_yml_settings, extract_anom_model
-from hall_opt.config.run_model import run_simulation_with_config
-from hall_opt.utils.save_data import save_results_to_json
+from hall_opt.utils.save_data import save_results_to_json, save_metadata
 from hall_opt.utils.iter_methods import get_next_results_dir
 from hall_opt.utils.statistics import log_posterior
-from hall_opt.utils.iter_methods import get_next_filename
-
-
-# HallThruster Path Setup
-hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
 
 
 def mcmc_inference(
@@ -30,10 +19,19 @@ def mcmc_inference(
     save_metadata_flag,
 ):
     """
-    Perform MCMC inference, saving results at intervals and creating checkpoints.
+    Perform MCMC inference, saving final results and periodic checkpoints.
     """
-    # run_dir = get_next_results_dir(base_dir=mcmc_results/results_dir, base_name="mcmc-results")
-    # os.makedirs(run_dir, exist_ok=True)
+
+    # Create a new directory for this MCMC run (mcmc-results-1, mcmc-results-2, ...)
+    run_dir = get_next_results_dir(results_dir, base_name="mcmc-results")
+    os.makedirs(run_dir, exist_ok=True)  # Ensure directory exists
+
+    print(f"Using results directory: {run_dir}")
+
+    # Define file paths for saving final results
+    final_samples_log_file = os.path.join(run_dir, "final_samples_log.csv")
+    final_samples_linear_file = os.path.join(run_dir, "final_samples_linear.csv")
+    checkpoint_file = os.path.join(run_dir, "checkpoint.json")
 
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf,
@@ -63,23 +61,30 @@ def mcmc_inference(
             all_samples.append(proposed_sample)
             all_samples_linear.append([c1, c2])
 
-            # Save checkpoints periodically
+            # Save results incrementally at regular intervals
+            if (iteration + 1) % save_interval == 0:
+                np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",", fmt="%.6f")
+                np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=",", fmt="%.6f")
+                print(f"Saved samples at iteration {iteration + 1}")
+
+            # Save checkpoint periodically
             if (iteration + 1) % checkpoint_interval == 0:
                 checkpoint_data = {
                     "iteration": iteration + 1,
                     "all_samples": all_samples,
                     "all_samples_linear": all_samples_linear,
                 }
-                save_results_to_json(checkpoint_data, os.path.join(run_dir, "checkpoint.json"))
+                save_results_to_json(checkpoint_data, checkpoint_file)
                 print(f"Checkpoint saved at iteration {iteration + 1}")
 
         except Exception as e:
             print(f"Error during MCMC iteration {iteration + 1}: {e}")
             break
 
-    # Save final samples
-    np.savetxt(os.path.join(run_dir, "final_samples_log.csv"), np.array(all_samples), delimiter=",")
-    np.savetxt(os.path.join(run_dir, "final_samples_linear.csv"), np.array(all_samples_linear), delimiter=",")
+
+    # Save final results
+    np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",")
+    np.savetxt(final_samples_linear_file, np.array(all_samples_linear), delimiter=",")
 
     # Save metadata
     acceptance_rate = sampler.accept_ratio()
@@ -99,7 +104,8 @@ def mcmc_inference(
     print(f"Acceptance rate: {acceptance_rate:.2%}")
 
     return all_samples, all_samples_linear, acceptance_rate
-    
+
+
 def run_mcmc_with_final_map_params(
     final_map_params,
     observed_data,
@@ -108,9 +114,16 @@ def run_mcmc_with_final_map_params(
     simulation,
     ion_velocity_weight,
     iterations,
-    initial_cov,
-    results_dir,
+    initial_cov
 ):
+    """
+    Run MCMC with optimized parameters loaded from YAML settings.
+    """
+
+    results_dir = settings.general_settings["results_dir"]
+    print(f"Using results directory from settings: {results_dir}")
+
+    # Load final MAP parameters from JSON
     final_map_params_path = settings.optimization_params["map_params"]["final_map_params"]
 
     if not os.path.exists(final_map_params_path):
@@ -122,8 +135,7 @@ def run_mcmc_with_final_map_params(
     if not isinstance(params, list) or len(params) != 2:
         raise ValueError("Expected a list with two values [c1_log, alpha_log]")
 
-    params = np.array(params, dtype=np.float64)
-    initial_sample = params
+    initial_sample = np.array(params, dtype=np.float64)
 
     all_samples, all_samples_linear, acceptance_rate = mcmc_inference(
         lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings),
@@ -132,7 +144,7 @@ def run_mcmc_with_final_map_params(
         iterations=iterations,
         save_interval=settings.optimization_params["mcmc_params"]["save_interval"],
         checkpoint_interval=settings.optimization_params["mcmc_params"]["checkpoint_interval"],
-        results_dir = settings.general_settings["results_dir"],
+        results_dir=results_dir,  # Use settings-based results directory
         save_metadata_flag=settings.optimization_params["mcmc_params"]["save_metadata"],
     )
 

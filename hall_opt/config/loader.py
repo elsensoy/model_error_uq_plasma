@@ -49,6 +49,12 @@ class OptimizationParams(BaseModel):
     map_initial_guess_path: str = Field(..., description="Path to initial guess parameters for MCMC.")
     final_map_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
 
+class PlottingConfig(BaseModel):
+    plots_dir: str
+    plots_subdir: str
+    metrics_subdir: str
+    enabled_plots: List[str]
+
 class Settings(BaseModel):
     general_settings: Dict[str, Any] = Field(..., description="General settings for the simulation.")
     config: Dict[str, Any] = Field(..., description="Configuration for the thruster simulation.")
@@ -57,6 +63,7 @@ class Settings(BaseModel):
     inputs: Dict[str, Any] = Field(..., description="Input values for the simulation.")
     outputs: List[Dict[str, Any]] = Field(..., description="Expected output metrics.")
     optimization_params: Dict[str, Any] = Field(..., description="MAP and MCMC optimization parameters.")
+    plotting: PlottingConfig = Field(..., description="Plotting settings for the analysis.")
 
 def load_yml_settings(path: Path) -> Settings:
     """

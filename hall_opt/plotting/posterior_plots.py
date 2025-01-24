@@ -1,87 +1,47 @@
-import os
-import json
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import arviz as az
-from common_setup import load_data, get_common_paths, load_iteration_metrics
+import argparse
+from hall_opt.plotting.common_setup import load_data, get_common_paths
 
-# Load data
-samples, truth_data, pre_mcmc_data, initial_params = load_data()
-iteration_metrics = load_iteration_metrics()
-paths = get_common_paths()
-plots_dir = paths["plots_dir"]
-
-    print("Loading settings...")
-    try:
-        # Load YAML file as dictionary
-        yml_dict = load_yml_settings(settings_path)
-        # Parse YAML dictionary into Pydantic `Settings` object
-        settings = yml_dict  # settings object returned by load_yml_settings
-       
-
-
-def plot_autocorrelation(samples):
-    """Autocorrelation plots for MCMC samples."""
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8))
-    
-    # Autocorrelation for log_v1
-    az.plot_autocorr(samples["log_v1"].values, ax=axes[0])  # Convert Series to NumPy array
+def plot_autocorrelation(samples, output_dir):
+    """Generate autocorrelation plots."""
+    fig, axes = plt.subplots(2, 1, figsize=(10, 6))
+    az.plot_autocorr(samples["log_v1"].values, ax=axes[0])
     axes[0].set_title("Autocorrelation for log(v1)")
-
-    # Autocorrelation for log_alpha
-    az.plot_autocorr(samples["log_alpha"].values, ax=axes[1])  # Convert Series to NumPy array
+    az.plot_autocorr(samples["log_alpha"].values, ax=axes[1])
     axes[1].set_title("Autocorrelation for log(alpha)")
-
+    
     plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "autocorrelation_plots.png"))
-    plt.close(fig)
-    print("Autocorrelation plots saved as 'autocorrelation_plots.png'")
+    plt.savefig(f"{output_dir}/autocorrelation_plots.png")
+    plt.close()
+    print("Saved autocorrelation plots.")
 
-
-# Plotting Functions
-def plot_trace(samples):
-    """Trace plots for MCMC samples."""
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+def plot_trace(samples, output_dir):
+    """Generate trace plots."""
+    fig, axes = plt.subplots(2, 1, figsize=(10, 6))
     axes[0].plot(samples["log_v1"], color='blue')
     axes[0].set_title("Trace Plot for log(v1)")
-
     axes[1].plot(samples["log_alpha"], color='green')
     axes[1].set_title("Trace Plot for log(alpha)")
 
     plt.xlabel("Iteration")
     plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "trace_plots.png"))
-    plt.close(fig)
-    print("Trace plots saved as 'trace_plots.png'")
+    plt.savefig(f"{output_dir}/trace_plots.png")
+    plt.close()
+    print("Saved trace plots.")
 
-def plot_posterior(samples):
-    """Posterior marginal distributions."""
+def plot_posterior(samples, output_dir):
+    """Generate posterior distributions."""
     posterior = az.from_dict(posterior={"log_v1": samples["log_v1"], "log_alpha": samples["log_alpha"]})
     az.plot_posterior(posterior)
-    plt.savefig(os.path.join(plots_dir, "posterior_marginals.png"))
+    plt.savefig(f"{output_dir}/posterior_marginals.png")
     plt.close()
-    print("Posterior marginals saved as 'posterior_marginals.png'")
+    print("Saved posterior plots.")
 
-def plot_pair(samples):
-    """Pair plot for joint distributions."""
+def plot_pair(samples, output_dir):
+    """Generate pair plots for joint distributions."""
     sns.pairplot(samples[["log_v1", "log_alpha"]], kind="scatter", diag_kind="kde", corner=True)
-    plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "pair_plot.png"))
+    plt.savefig(f"{output_dir}/pair_plot.png")
     plt.close()
-    print("Pair plot saved as 'pair_plot.png'")
-
-# Main function
-def main():
-    # Load data
-    samples, truth_data, pre_mcmc_target_data, initial_params = load_data()
-
-    # Generate plots
-    plot_autocorrelation(samples)
-    plot_trace(samples)
-    plot_posterior(samples)
-    plot_pair(samples)
-
-if __name__ == "__main__":
-    main()
+    print("Saved pair plot.")

@@ -13,10 +13,9 @@ from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_mode
 from hall_opt.config.run_model import run_simulation_with_config
 from hall_opt.map import run_map_workflow
 from hall_opt.mcmc import run_mcmc_with_final_map_params
-from hall_opt.utils.iter_methods import get_next_results_dir, get_next_filename
-
-#from hall_opt.plotting.mock_test import mock_mcmc_data
-
+#from hall_opt.utils.iter_methods import get_next_results_dir, get_next_filename
+from hall_opt.plotting.posterior_plots import plot_posterior
+from hall_opt.plotting.common_setup import load_data, get_common_paths
 
 # HallThruster Path Setup
 hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
@@ -128,35 +127,26 @@ def main():
                 ion_velocity_weight=settings.general_settings["ion_velocity_weight"],
                 iterations=settings.general_settings["iterations"],
                 initial_cov=settings.optimization_params["mcmc_params"]["initial_cov"],
-                results_dir=str(mcmc_results_dir)
-                
             )
             print("MCMC sampling completed successfully.")
         except Exception as e:
             print(f"Error during MCMC sampling: {e}")
             sys.exit(1)
 
-    # Step 4: Generate plots (if enabled)
-    # if settings.general_settings["plotting"]:
-    #     print("Generating plots...")
-    #     plots_dir = results_dir / "plots"
-    #     plots_dir.mkdir(parents=True, exist_ok=True)
-    #     # Assuming generate_all_plots is implemented
-    #     print(f"All plots saved to: {plots_dir}")
-    # Mock MCMC data instead of running a full MCMC analysis
-    # mock_samples = mock_mcmc_data()
-    # print("Mock MCMC data generated.")
+  # Step 4: Generate plots (if enabled)
+# Step 4: Generate plots (if enabled)
+    if settings.plotting.plots_dir:  # Corrected access using dot notation
+        print("Generating posterior plots...")
 
-    # if settings.general_settings["plotting"]:
-    #     print("Plotting is enabled. Generating plots...")
-    #     plot_autocorrelation(mock_samples)
-    #     plot_trace(mock_samples)
-    #     plot_posterior(mock_samples)
-    #     plot_pair(mock_samples)
-    #     print("All plots successfully generated.")
-    # else:
-    #     print("Plotting is disabled. No plots will be generated.")
+        analysis_type = "map" if settings.general_settings["run_map"] else "mcmc"
+        samples, paths = load_data(settings, analysis_type)
+        
+        print(f"Plotting directory: {settings.plotting.plots_dir}")
+
+        plot_posterior(samples, paths["plots_dir"])
+        print(f"Posterior plots saved in {paths['plots_dir']}")
 
 
 if __name__ == "__main__":
     main()
+
