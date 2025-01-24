@@ -13,6 +13,9 @@ from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_mode
 from hall_opt.config.run_model import run_simulation_with_config
 from hall_opt.map import run_map_workflow
 from hall_opt.mcmc import run_mcmc_with_final_map_params
+from hall_opt.utils.iter_methods import get_next_results_dir, get_next_filename
+
+#from hall_opt.plotting.mock_test import mock_mcmc_data
 
 
 # HallThruster Path Setup
@@ -110,6 +113,9 @@ def main():
         print("Running MCMC sampling using TwoZoneBohm...")
         mcmc_results_dir = results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
+    #     settings.general_settings["run_dir"] = get_next_results_dir(
+    #     settings.general_settings["results_dir"], base_name="mcmc-results"
+    # )
         observed_data["ion_velocity"] = np.array(observed_data["ion_velocity"], dtype=np.float64)
 
         try:
@@ -122,7 +128,8 @@ def main():
                 ion_velocity_weight=settings.general_settings["ion_velocity_weight"],
                 iterations=settings.general_settings["iterations"],
                 initial_cov=settings.optimization_params["mcmc_params"]["initial_cov"],
-                results_dir=str(mcmc_results_dir),
+                results_dir=str(mcmc_results_dir)
+                
             )
             print("MCMC sampling completed successfully.")
         except Exception as e:
@@ -136,6 +143,19 @@ def main():
     #     plots_dir.mkdir(parents=True, exist_ok=True)
     #     # Assuming generate_all_plots is implemented
     #     print(f"All plots saved to: {plots_dir}")
+    # Mock MCMC data instead of running a full MCMC analysis
+    # mock_samples = mock_mcmc_data()
+    # print("Mock MCMC data generated.")
+
+    # if settings.general_settings["plotting"]:
+    #     print("Plotting is enabled. Generating plots...")
+    #     plot_autocorrelation(mock_samples)
+    #     plot_trace(mock_samples)
+    #     plot_posterior(mock_samples)
+    #     plot_pair(mock_samples)
+    #     print("All plots successfully generated.")
+    # else:
+    #     print("Plotting is disabled. No plots will be generated.")
 
 
 if __name__ == "__main__":

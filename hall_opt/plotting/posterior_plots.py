@@ -19,7 +19,7 @@ plots_dir = paths["plots_dir"]
         yml_dict = load_yml_settings(settings_path)
         # Parse YAML dictionary into Pydantic `Settings` object
         settings = yml_dict  # settings object returned by load_yml_settings
-        
+       
 
 
 def plot_autocorrelation(samples):

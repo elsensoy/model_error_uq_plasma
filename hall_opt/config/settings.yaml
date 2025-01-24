@@ -2,7 +2,7 @@ general_settings:
   results_dir: "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results"
   gen_data: true
   run_map: false
-  run_mcmc: true
+  run_mcmc: true 
   ion_velocity_weight: 2.0
   plotting: false
   iterations: 20

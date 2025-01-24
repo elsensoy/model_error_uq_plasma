@@ -1,48 +1,75 @@
 import os
 import json
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-import arviz as az
-from common_setup import load_data, get_common_paths, load_iteration_metrics
 
-# Load data
-samples, truth_data, pre_mcmc_data, initial_params = load_data()
-iteration_metrics = load_iteration_metrics()
-paths = get_common_paths()
-plots_dir = paths["plots_dir"]
+# Path to the MAP iterations JSON file
+map_iterations_path = "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results/map_iterations.json"
 
-def plot_autocorrelation(samples):
-    """Autocorrelation plots for MCMC samples."""
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8))
-    
-    # Autocorrelation for log_v1
-    az.plot_autocorr(samples["log_v1"].values, ax=axes[0])  # Convert Series to NumPy array
-    axes[0].set_title("Autocorrelation for log(v1)")
+# Output directory for plots
+output_plot_dir = "/home/elida/Public/users/elsensoy/model_error_uq_plasma/hall_opt/results/map_results"
+os.makedirs(output_plot_dir, exist_ok=True)
 
-    # Autocorrelation for log_alpha
-    az.plot_autocorr(samples["log_alpha"].values, ax=axes[1])  # Convert Series to NumPy array
-    axes[1].set_title("Autocorrelation for log(alpha)")
+# Load the MAP iteration data
+def load_map_iterations(file_path):
+    """Load MAP optimization iteration data from JSON."""
+    try:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return None
 
-    plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "autocorrelation_plots.png"))
-    plt.close(fig)
-    print("Autocorrelation plots saved as 'autocorrelation_plots.png'")
+# Extract MAP iteration data
+map_iterations = load_map_iterations(map_iterations_path)
 
+if map_iterations is None:
+    exit()
 
-# Plotting Functions
-def plot_trace(samples):
-    """Trace plots for MCMC samples."""
-    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
-    axes[0].plot(samples["log_v1"], color='blue')
-    axes[0].set_title("Trace Plot for log(v1)")
+# Extract iteration numbers and parameter values
+iterations = []
+c1_log_values = []
+alpha_log_values = []
 
-    axes[1].plot(samples["log_alpha"], color='green')
-    axes[1].set_title("Trace Plot for log(alpha)")
+for entry in map_iterations:
+    iterations.append(entry["iteration"])
+    c1_log_values.append(entry["params"]["c1_log"])
+    alpha_log_values.append(entry["params"]["alpha_log"])
 
-    plt.xlabel("Iteration")
-    plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "trace_plots.png"))
-    plt.close(fig)
-    print("Trace plots saved as 'trace_plots.png'")
+# Convert to NumPy arrays
+iterations = np.array(iterations)
+c1_log_values = np.array(c1_log_values)
+alpha_log_values = np.array(alpha_log_values)
+
+# Create trace plots
+plt.figure(figsize=(10, 6))
+
+# Plot for c1_log
+plt.subplot(2, 1, 1)
+plt.plot(iterations, c1_log_values, label="log(c1)", color='b')
+plt.xlabel("Iteration")
+plt.ylabel("log(c1)")
+plt.title("Trace Plot for log(c1)")
+plt.grid()
+plt.legend()
+
+# Plot for alpha_log
+plt.subplot(2, 1, 2)
+plt.plot(iterations, alpha_log_values, label="log(alpha)", color='g')
+plt.xlabel("Iteration")
+plt.ylabel("log(alpha)")
+plt.title("Trace Plot for log(alpha)")
+plt.grid()
+plt.legend()
+
+# Save and display the plot
+plot_path = os.path.join(output_plot_dir, "map_traceplot.png")
+plt.tight_layout()
+plt.savefig(plot_path, dpi=300)
+plt.show()
+
+print(f"Trace plot saved to: {plot_path}")

@@ -14,18 +14,7 @@ def run_map_workflow(
     simulation: Dict[str, Any],
     results_dir: str,
 ):
-    """
-    Run MAP estimation workflow for TwoZoneBohm using c1 and alpha parameters.
 
-    Args:
-        observed_data (dict): Ground truth data for comparison.
-        settings (Settings): The loaded settings object.
-        simulation (dict): Simulation parameters.
-        results_dir (str): Directory to store MAP results.
-
-    Returns:
-        tuple: Optimized values of c1 and alpha, or (None, None) on failure.
-    """
     # Load initial guess
     try:
         initial_guess_path = settings.optimization_params["map_params"]["map_initial_guess_path"]

@@ -18,6 +18,7 @@ if hallthruster_path not in sys.path:
 
 import hallthruster as het
 
+
 def mcmc_inference(
     logpdf,
     initial_sample,
@@ -31,8 +32,8 @@ def mcmc_inference(
     """
     Perform MCMC inference, saving results at intervals and creating checkpoints.
     """
-    run_dir = get_next_results_dir(base_dir=results_dir, base_name="mcmc-results")
-    os.makedirs(run_dir, exist_ok=True)
+    # run_dir = get_next_results_dir(base_dir=mcmc_results/results_dir, base_name="mcmc-results")
+    # os.makedirs(run_dir, exist_ok=True)
 
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf,
@@ -98,6 +99,7 @@ def mcmc_inference(
     print(f"Acceptance rate: {acceptance_rate:.2%}")
 
     return all_samples, all_samples_linear, acceptance_rate
+    
 def run_mcmc_with_final_map_params(
     final_map_params,
     observed_data,
@@ -107,7 +109,7 @@ def run_mcmc_with_final_map_params(
     ion_velocity_weight,
     iterations,
     initial_cov,
-    results_dir="mcmc/results",
+    results_dir,
 ):
     final_map_params_path = settings.optimization_params["map_params"]["final_map_params"]
 
@@ -130,7 +132,7 @@ def run_mcmc_with_final_map_params(
         iterations=iterations,
         save_interval=settings.optimization_params["mcmc_params"]["save_interval"],
         checkpoint_interval=settings.optimization_params["mcmc_params"]["checkpoint_interval"],
-        results_dir=results_dir,
+        results_dir = settings.general_settings["results_dir"],
         save_metadata_flag=settings.optimization_params["mcmc_params"]["save_metadata"],
     )
 

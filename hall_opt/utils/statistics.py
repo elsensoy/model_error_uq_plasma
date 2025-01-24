@@ -9,7 +9,7 @@ from hall_opt.config.loader import Settings, load_yml_settings, extract_anom_mod
 from hall_opt.config.run_model import run_simulation_with_config
 from hall_opt.utils.iter_methods import get_next_filename
 from hall_opt.utils.save_data import save_results_to_json
-from hall_opt.utils.iter_methods import get_next_results_dir, save_metadata 
+from hall_opt.utils.iter_methods import get_next_results_dir 
 # HallThruster Path Setup
 hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
 if hallthruster_path not in sys.path:
@@ -41,10 +41,9 @@ def log_likelihood(
     c1_log, alpha_log = c_log
     c1, alpha = np.exp(c1_log), np.exp(alpha_log)
     c2 = c1 * alpha  # Calculate c2 from c1 and alpha
-    # Ensure observed ion velocity is a numpy array
+
     observed_ion_velocity = np.array(observed_data.get("ion_velocity"), dtype=np.float64)
 
-    # Update the TwoZoneBohm configuration with the new parameters
     try:
         twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
         twozonebohm_config["anom_model"].update({"c1": c1, "c2": c2})
@@ -52,7 +51,6 @@ def log_likelihood(
         print(f"Error updating TwoZoneBohm config: {e}")
         return -np.inf
 
-    # Run the simulation
     solution = run_simulation_with_config(
         settings=settings,
         config=twozonebohm_config,  
@@ -60,47 +58,46 @@ def log_likelihood(
         postprocess=settings.postprocess,   
         model_type="TwoZoneBohm"
     )
+
     if solution is None:
         print("Simulation failed. Penalizing with -np.inf.")
         return -np.inf
 
-    # Extract metrics from simulation results
     metrics = solution["output"].get("average", {})
     if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
         print("Invalid or missing metrics in simulation output.")
         return -np.inf
 
-    # Prepare simulated data
     simulated_data = {
         "thrust": metrics.get("thrust", 0),
         "discharge_current": metrics.get("discharge_current", 0),
         "ui": metrics.get("ui", []),
     }
-    
-    # Convert observed ion velocity to NumPy array if it's a list
-    if isinstance(observed_data["ion_velocity"], list):
-        observed_ion_velocity = np.array(observed_data["ion_velocity"], dtype=np.float64)
-    else:
-        observed_ion_velocity = observed_data["ion_velocity"]
 
-    # Ensure simulated data is in correct format
     simulated_ion_velocity = np.array(simulated_data["ui"][0], dtype=np.float64)
 
     print(f"Type of simulated_ion_velocity: {type(simulated_ion_velocity)}, Length: {len(simulated_ion_velocity)}")
     print(f"Type of observed_ion_velocity: {type(observed_ion_velocity)}, Length: {len(observed_ion_velocity)}")
-    # Save iteration results
-    results_dir = settings.general_settings["results_dir"]
-    metrics_filename = get_next_filename("iteration_metrics", results_dir, ".json")
+
+    # or iteration results
+    # results_base_dir = settings.general_settings["results_dir"]
+    # results_dir = get_next_results_dir(results_base_dir, base_name="mcmc-results")
+
+    # iteration_metrics_dir = os.path.join(results_dir, "iteration_metrics")
+    # os.makedirs(iteration_metrics_dir, exist_ok=True)
+    
+    # metrics_filename = get_next_filename("iteration_metrics", iteration_metrics_dir, ".json")
+
     iteration_results = {
         "c1": c1,
         "c2": c2,
         "thrust": simulated_data["thrust"],
         "discharge_current": simulated_data["discharge_current"],
-        "ui": simulated_data["ui"][0],
+        "ion_velocity": simulated_ion_velocity.tolist(),
     }
-    save_results_to_json(iteration_results, metrics_filename)
-    print(f"Saved iteration results to {metrics_filename}")
-
+    # save_results_to_json(iteration_results, metrics_filename)
+    # print(f"Saved iteration results to {metrics_filename}")
+    
     if len(simulated_ion_velocity) == len(observed_ion_velocity):
         residual = simulated_ion_velocity - observed_ion_velocity
         log_likelihood_value = -0.5 * np.sum((residual / (sigma / settings.general_settings["ion_velocity_weight"])) ** 2)

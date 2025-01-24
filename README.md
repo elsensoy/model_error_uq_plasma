@@ -177,7 +177,6 @@ To perform MCMC sampling:
    python -m hall_opt.main --settings hall_opt/config/settings.yaml
    ```
 ---
-
 ## **Visualization**
 
 - To generate the plots of MAP results:
