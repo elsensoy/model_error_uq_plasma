@@ -6,14 +6,6 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, ValidationError
 
-# Ensure HallThruster Python path is included
-hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
-
-
 class GeometryConfig(BaseModel):
     channel_length: float
     inner_radius: float

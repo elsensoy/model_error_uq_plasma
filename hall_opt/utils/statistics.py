@@ -10,12 +10,6 @@ from hall_opt.config.run_model import run_simulation_with_config
 from hall_opt.utils.iter_methods import get_next_filename
 from hall_opt.utils.save_data import save_results_to_json
 from hall_opt.utils.iter_methods import get_next_results_dir 
-# HallThruster Path Setup
-hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
 
 
 # -----------------------------

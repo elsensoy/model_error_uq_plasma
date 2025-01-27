@@ -1,3 +1,7 @@
+import hallthruster as het
+# Check if the module is loaded correctly
+print("HallThruster successfully imported!")
+
 import sys
 import os
 import json
@@ -17,12 +21,6 @@ from hall_opt.mcmc import run_mcmc_with_final_map_params
 from hall_opt.plotting.posterior_plots import plot_posterior
 from hall_opt.plotting.common_setup import load_data, get_common_paths
 
-# HallThruster Path Setup
-hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
 
 def main():
     # Parse command-line arguments

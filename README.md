@@ -44,7 +44,6 @@ To run this project, ensure the following dependencies are installed:
   - `pyyaml`
   - `MCMCIterators`
   - `arviz` *(for MCMC analysis)*
-  - Replace any occurrence of `sklearn` with `scikit-learn` to avoid installation errors.
 
 ### **Julia**
 - Julia 1.10 or later
@@ -102,10 +101,16 @@ cd model_error_uq_plasma
 Instead of using a virtual environment manually, PDM will handle it:
 
 ```bash
-python -m pdm install
+python pdm install
 ```
 
-> **Note:** If you encounter an error such as `pdm not >found`, try run `python -m pdm install` instead of `pdm >install`. 
+Verify the required packages are available in your environment.
+
+```bash
+pdm list
+```
+
+> **Note:** If you encounter an error such as `pdm not >found`, try run `python -m pdm install` instead of `pdm install`. 
 >
 > To check if any installed Python packages, including PDM, > need an update:
 > ```
@@ -169,54 +174,102 @@ Follow the instructions under [Using Python Virtual Environment](#using-python-v
     mkdir hallthruster_project && cd hallthruster_project
     julia
     ```
-2. **Install HallThruster.jl in Julia REPL:**
 
-    **Inside Julia:**
+### **HallThruster Installation and Python Integration**
 
-    -> Load the Pkg module: 
+To ensure HallThruster works correctly with Python, follow these steps to install and integrate it:
 
-    ```julia
-    import Pkg
-    ```
-    
-    -> Activate the project environment
-    ```julia
-    Pkg.activate(".")
-    ```
+---
 
-    -> Add the HallThruster package
-     ```julia
-    Pkg.add("HallThruster")
-     ```
-    -> Update all installed packages to their latest versions
-    
-     ```julia
-      Pkg.update()
-     ```
-    -> Check the installed packages and versions
-    
-    ```julia
-    Pkg.status()
-    ```
-4. **Integrate HallThruster with Python**
+#### **1. Install HallThruster.jl in Julia**
 
-   -> Find the Python script path:
+1. Open Julia and activate your project environment:
 
    ```julia
-   using HallThruster
-   HallThruster.PYTHON_PATH
+   julia
    ```
 
-   -> Add the path to Python:
+2. Activate the project and install the package:
 
-   ```python
-   import sys
-   sys.path.append("/path/to/HallThruster/python")
-
-   import hallthruster as het
+   ```julia
+   (@v1.10) pkg> activate .
+   (@v1.10) pkg> add HallThruster
    ```
 
 ---
+
+#### **2. Locate HallThruster Python Path**
+
+After installation, find the Python script path for HallThruster by running the following command in Julia:
+
+```julia
+using HallThruster
+println(pathof(HallThruster))
+```
+
+The output will contain the package installation path. Typically, it looks like:
+
+```
+C:\Users\yourname\.julia\packages\HallThruster\yxE62\python
+```
+
+---
+
+#### **3. Set the Python Path (PYTHONPATH) Permanently**
+
+To make HallThruster available to Python, you can set the `PYTHONPATH` environment variable permanently. Here are the steps:
+
+1. Open **PowerShell as Administrator**.
+2. Run the following command to add the HallThruster path permanently to the user environment variables:
+
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable("PYTHONPATH", "C:\path", [System.EnvironmentVariableTarget]::User)
+   ```
+
+3. Restart PowerShell or your system for changes to take effect.
+
+---
+
+#### **4. Verify the PYTHONPATH Variable**
+
+To verify that the path was added correctly, open PowerShell and run:
+
+```powershell
+echo $env:PYTHONPATH
+```
+
+You should see the HallThruster path listed in the output.
+
+---
+
+#### **5. Import HallThruster in Python**
+
+Once the environment variable is set, you can test the integration by running the following Python script:
+
+```python
+import hallthruster as het
+
+# Check if the module is loaded correctly
+print("HallThruster successfully imported!")
+```
+---
+#### **6. Manually Add the Path (If Needed)**
+
+If you prefer not to set the path permanently, you can add it manually in your Python scripts before importing HallThruster:
+
+```python
+import sys
+
+hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
+
+import hallthruster as het
+print("HallThruster imported successfully!")
+```
+
+---
+
 
 ## **Workflow Overview**
 
@@ -227,7 +280,7 @@ Follow the instructions under [Using Python Virtual Environment](#using-python-v
 
 ---
 
-## **Usage**
+## **Usage -- WORK IN PROGRESS**
 
 To perform MAP estimation:
 

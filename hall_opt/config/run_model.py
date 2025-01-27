@@ -1,15 +1,9 @@
+import hallthruster as het
 import sys
 import json
 import numpy as np
 from typing import Optional, List, Dict, Any
 from hall_opt.config.loader import Settings, extract_anom_model
-
-# HallThruster Path Setup
-hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
 
 
 def run_simulation_with_config(
