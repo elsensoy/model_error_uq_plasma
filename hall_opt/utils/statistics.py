@@ -5,11 +5,9 @@ import pathlib
 import sys
 from scipy.optimize import minimize
 from scipy.stats import norm
-from hall_opt.config.loader import Settings, load_yml_settings, extract_anom_model
-from hall_opt.config.run_model import run_simulation_with_config
-from hall_opt.utils.iter_methods import get_next_filename
-from hall_opt.utils.save_data import save_results_to_json
-from hall_opt.utils.iter_methods import get_next_results_dir 
+from hall_opt.config.load_settings import Settings, extract_anom_model
+from hall_opt.config.run_model import run_model
+
 
 
 # -----------------------------
@@ -45,7 +43,7 @@ def log_likelihood(
         print(f"Error updating TwoZoneBohm config: {e}")
         return -np.inf
 
-    solution = run_simulation_with_config(
+    solution = run_model(
         settings=settings,
         config=twozonebohm_config,  
         simulation=settings.simulation,     

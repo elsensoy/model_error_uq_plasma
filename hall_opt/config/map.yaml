@@ -1,0 +1,8 @@
+#map.yaml
+map_initial_guess_file: "map_results/initial_guess.json"
+iteration_log_file: "map_results/map_iterations.json"
+final_map_params_file: "map_results/final_map_params.json"
+method: "Nelder-Mead"
+maxfev: 5000
+fatol: 0.003
+xatol: 0.003

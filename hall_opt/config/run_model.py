@@ -3,10 +3,10 @@ import sys
 import json
 import numpy as np
 from typing import Optional, List, Dict, Any
-from hall_opt.config.loader import Settings, extract_anom_model
+from hall_opt.config.load_settings import Settings, extract_anom_model
 
 
-def run_simulation_with_config(
+def run_model(
     settings: Settings,
     config: Dict[str, Any],
     simulation: Dict[str, Any],

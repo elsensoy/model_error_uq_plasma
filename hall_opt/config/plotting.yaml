@@ -1,0 +1,7 @@
+plots_subdir: "plots-mcmc"
+metrics_subdir: "iteration_metrics"
+enabled_plots:
+  - "autocorrelation"
+  - "trace"
+  - "posterior"
+  - "metric_plots"

@@ -1,26 +1,16 @@
-import hallthruster as het
-# Check if the module is loaded correctly
-print("HallThruster successfully imported!")
-
+# Import necessary modules
 import sys
 import os
 import json
+import yaml
 import numpy as np
 import argparse
 import logging
-# import pyaml
-import logging
-# from typing import Optional, List, Dict, Any
-from pydantic import ValidationError
 from pathlib import Path
-from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_model
-from hall_opt.config.run_model import run_simulation_with_config
+from hall_opt.config.load_settings import extract_anom_model
+from hall_opt.config.run_model import run_model
 from hall_opt.map import run_map_workflow
-from hall_opt.mcmc import run_mcmc_with_final_map_params
-#from hall_opt.utils.iter_methods import get_next_results_dir, get_next_filename
-from hall_opt.plotting.posterior_plots import plot_posterior
-from hall_opt.plotting.common_setup import load_data, get_common_paths
-
+from hall_opt.mcmc import run_mcmc_with_final_map_paramss
 
 def main():
     # Parse command-line arguments
@@ -28,42 +18,26 @@ def main():
     parser.add_argument("--settings", type=str, required=True, help="Path to the YAML configuration file.")
     args = parser.parse_args()
 
-    # Load settings
-    settings_path = Path(args.settings)
-    if not settings_path.exists():
-        print(f"Error: Settings file not found at {settings_path}")
-        sys.exit(1)
 
-    print("Loading settings...")
-    try:
-        # Load YAML file as dictionary
-        yml_dict = load_yml_settings(settings_path)
-        # Parse YAML dictionary into Pydantic `Settings` object
-        settings = yml_dict  # settings object returned by load_yml_settings
-        
-    except ValidationError as e:
-        print(f"Validation error while loading settings: {e}")
-        sys.exit(1)
+    # Resolve base directory paths
+    base_results_dir = Path(settings["general_settings"]["results_dir"])
 
-    print("Settings loaded and validated.")
+    # Create directories if they don't exist
+    base_results_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Results directory set to: {base_results_dir}")
 
-    # Ensure results directory exists
-    results_dir = Path(settings.general_settings["results_dir"])
-    results_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Results directory set to: {results_dir}")
-    
     observed_data = None
 
     # Step 1: Generate ground truth data
-    if settings.general_settings["gen_data"]:
+    if settings["general_settings"]["gen_data"]:
         print("Generating ground truth data using MultiLogBohm...")
         try:
             multilogbohm_config = extract_anom_model(settings, model_type="MultiLogBohm")
-            ground_truth_solution = run_simulation_with_config(
+            ground_truth_solution = run_model(
                 config=multilogbohm_config,
                 settings=settings,
-                simulation=settings.simulation,      # Pass general simulation settings
-                postprocess=settings.postprocess,    # Pass postprocessing settings
+                simulation=settings["simulation"],      # Pass general simulation settings
+                postprocess=settings["postprocess"],    # Pass postprocessing settings
                 model_type="MultiLogBohm",
             )
 
@@ -84,16 +58,18 @@ def main():
             sys.exit(1)
 
     # Step 2: Run MAP estimation
-    if settings.general_settings["run_map"]:
+    if settings["general_settings"]["run_map"]:
         print("Running MAP estimation using TwoZoneBohm...")
-        map_results_dir = results_dir / "map_results"
+        map_results_dir = base_results_dir / "map_results"
         map_results_dir.mkdir(parents=True, exist_ok=True)
 
         try:
+            final_map_params_path = map_results_dir / settings["optimization_params"]["map_params"]["final_map_params_file"]
+
             c1_opt, alpha_opt = run_map_workflow(
                 observed_data=observed_data,
                 settings=settings,
-                simulation=settings.simulation,
+                simulation=settings["simulation"],
                 results_dir=str(map_results_dir),
             )
 
@@ -106,45 +82,35 @@ def main():
             sys.exit(1)
 
     # Step 3: Run MCMC sampling
-    if settings.general_settings["run_mcmc"]:
+    if settings["general_settings"]["run_mcmc"]:
         print("Running MCMC sampling using TwoZoneBohm...")
-        mcmc_results_dir = results_dir / "mcmc_results"
+        mcmc_results_dir = base_results_dir / "mcmc_results"
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)
-    #     settings.general_settings["run_dir"] = get_next_results_dir(
-    #     settings.general_settings["results_dir"], base_name="mcmc-results"
-    # )
+
         observed_data["ion_velocity"] = np.array(observed_data["ion_velocity"], dtype=np.float64)
 
         try:
             run_mcmc_with_final_map_params(
-                final_map_params= settings.optimization_params["map_params"]["final_map_params"],
+                final_map_params= final_map_params_path,
                 observed_data=observed_data,
                 config=extract_anom_model(settings, model_type="TwoZoneBohm"),
-                simulation=settings.simulation,
+                simulation=settings["simulation"],
                 settings=settings,
-                ion_velocity_weight=settings.general_settings["ion_velocity_weight"],
-                iterations=settings.general_settings["iterations"],
-                initial_cov=settings.optimization_params["mcmc_params"]["initial_cov"],
+                ion_velocity_weight=settings["general_settings"]["ion_velocity_weight"],
+                iterations=settings["general_settings"]["iterations"],
+                initial_cov=settings["optimization_params"]["mcmc_params"]["initial_cov"],
             )
             print("MCMC sampling completed successfully.")
         except Exception as e:
             print(f"Error during MCMC sampling: {e}")
             sys.exit(1)
 
-  # Step 4: Generate plots (if enabled)
-# Step 4: Generate plots (if enabled)
-    if settings.plotting.plots_dir:  # Corrected access using dot notation
-        print("Generating posterior plots...")
-
-        analysis_type = "map" if settings.general_settings["run_map"] else "mcmc"
-        samples, paths = load_data(settings, analysis_type)
-        
-        print(f"Plotting directory: {settings.plotting.plots_dir}")
-
-        plot_posterior(samples, paths["plots_dir"])
-        print(f"Posterior plots saved in {paths['plots_dir']}")
-
+    # Step 4: Generate plots (if enabled)
+    if settings["general_settings"]["plotting"]:
+        print("Generating plots...")
+        plots_dir = base_results_dir / settings["plotting"]["plots_subdir"]
+        plots_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Plots will be saved in: {plots_dir}")
 
 if __name__ == "__main__":
     main()
-

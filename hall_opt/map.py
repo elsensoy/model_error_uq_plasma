@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from scipy.optimize import minimize
 from typing import Dict, Any
-from hall_opt.config.loader import Settings, extract_anom_model
+from hall_opt.config.load_settings import Settings, extract_anom_model
 from hall_opt.utils.statistics import log_posterior
 
 

@@ -270,39 +270,60 @@ print("HallThruster imported successfully!")
 
 ---
 
-
 ## **Workflow Overview**
 
-1. **Configuration:** Define parameters in `settings.yaml`.
-2. **MAP Optimization:** Find optimal values using the specified models.
-3. **MCMC Sampling:** Generate samples via Bayesian inference.
-4. **Visualization:** Analyze results with plots.
+1. **Configuration:**  
+   - Define simulation parameters and model settings in the `settings.yaml` configuration file.  
+   - Specify options for simulation, optimization, and visualization in their respective .yaml configuration files.
 
+2. **Data Generation:**  
+   - Generate synthetic or experimental ground truth data based on the defined configuration.  
+
+3. **MAP (Maximum A Posteriori) Optimization:**  
+   - Estimate the optimal parameter values using the chosen anomalous transport models (e.g., `TwoZoneBohm`, `MultiLogBohm`).  
+   - Optimizate to minimize the error between simulated and observed data.
+
+4. **MCMC (Markov Chain Monte Carlo) Sampling:**  
+   - Conduct Bayesian inference to obtain parameter distributions.  
+   - Use MCMC techniques (e.g., Delayed Rejection Adaptive Metropolis) to quantify uncertainty.
+
+5. **Visualization and Analysis:**  
+   - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
+   - Compare simulation results against observed data for model validation.
 ---
 
 ## **Usage -- WORK IN PROGRESS**
 
-To perform MAP estimation:
 
-```bash
-python -m hall_opt.main --settings hall_opt/config/settings.yaml
-```
 
-To perform MCMC sampling:
 
-```bash
-python -m hall_opt.main --settings hall_opt/config/settings.yaml
-```
+To configure and run the workflow, modify the respective `.yaml` files listed below:  
+
+- **`gen_data.yaml`** – For data generation  
+- **`map.yaml`** – For MAP estimation  
+- **`mcmc.yaml`** – For MCMC sampling  
+- **`settings.yaml`** – General project settings  
+
+### **Enabling Workflow Steps**
+
+To perform specific tasks, set the corresponding flags to `true` in the respective YAML files:
+
+| Process         | YAML File      | Flag to Enable   |
+|-----------------|---------------|------------------|
+| **Generate Data** | `gen_data.yaml` | `gen_data: true`  |
+| **MAP Estimation**| `map.yaml`      | `run_map: true`   |
+| **MCMC Sampling** | `mcmc.yaml`     | `run_mcmc: true`  |
+| **Visualization** | `settings.yaml` | `plotting: true`  |
+
+
 
 ---
 
-## **Visualization**
-
-To generate plots:
-
+*Run the project:*
 ```bash
-python -m hall_opt.plotting.plotting --settings hall_opt/plotting/plotting.yaml
+python -m hall_opt.main --settings hall_opt/config/settings.yaml
 ```
+
 ---
 
 ## **Contact**
