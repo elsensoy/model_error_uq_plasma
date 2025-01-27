@@ -1,203 +1,261 @@
-## Project Overview
-This project aims to optimize the behavior of a Hall Thruster using the HallThruster.jl Julia package, integrated with Python through Juliacall. The project involves parameter estimation using MCMC sampling and MAP optimization, providing tools for comparison between simulated and observed data. It employs Bayesian inference techniques to refine the parameters of the **TwoZoneBohm** and **MultiLogBohm** models.
+
+# **Project Overview**
+
+This project aims to optimize the behavior of a Hall Thruster using the **HallThruster.jl** Julia package, integrated with Python through Juliacall. The project involves parameter estimation using MCMC sampling and MAP optimization, providing tools for comparison between simulated and observed data. It employs Bayesian inference techniques to refine the parameters of the **TwoZoneBohm** and **MultiLogBohm** models.
 
 Please refer to:
+
 - [HallThruster.jl (v0.18.1)](https://um-pepl.github.io/HallThruster.jl/dev/)
 - [Simulation Tutorial](https://um-pepl.github.io/HallThruster.jl/dev/tutorials/simulation/)
 - [Running Simulations from JSON](https://um-pepl.github.io/HallThruster.jl/dev/howto/json/)
 - [Using HallThruster with Python](https://um-pepl.github.io/HallThruster.jl/dev/howto/python/)
 
+---
 
 ## **Table of Contents**
 1. [Features](#features)
 2. [Requirements](#requirements)
 3. [Installation](#installation)
+   - [Using Python Virtual Environment](#using-python-virtual-environment)
+   - [Using PDM for Dependency Management](#using-pdm-for-dependency-management)
+   - [Windows Installation](#windows-installation)
+   - [Ubuntu Installation](#ubuntu-installation)
+
+   - [HallThruster.jl Installation](#hallthrusterjl-installation)
 4. [Workflow Overview](#workflow-overview)
 5. [Configuration Files](#configuration-files)
 6. [Usage](#usage)
-    - [Running MAP Optimization](#running-map-optimization)
-    - [Running MCMC Sampling](#running-mcmc-sampling)
 7. [Visualization](#visualization)
 8. [Contact](#contact)
 
 ---
 
-## **Features**
-
-- **Simulation**: Uses HallThruster's simulation capabilities to run time-domain plasma simulations for a given thruster configuration.
-- **MAP Estimation**: Implements Maximum A Posteriori (MAP) optimization to estimate parameters such as \( c_1 \) and \( \alpha \) for different anomalous transport models (e.g., TwoZoneBohm, MultiLogBohm).
-- **MCMC Sampling**: Employs the Delayed Rejection Adaptive Metropolis (DRAM) sampler for Bayesian parameter estimation and uncertainty quantification.
-- **Plots**: Automatically generates plots to visualize parameter convergence during optimization and sampling.
-
----
-
 ## **Requirements**
 
-To run this project, you need the following:
+To run this project, ensure the following dependencies are installed:
 
 ### **Python**
 - Python 3.10 or later
-- Required Python packages (specified in `requirements.txt`):
+- Required Python packages (from `requirements.txt`):
   - `numpy`
   - `scipy`
   - `matplotlib`
   - `pydantic`
   - `pyyaml`
   - `MCMCIterators`
+  - `arviz` *(for MCMC analysis)*
+  - Replace any occurrence of `sklearn` with `scikit-learn` to avoid installation errors.
 
 ### **Julia**
-- Julia 1.9 or later
-- Make sure the **HallThruster** package installed in your Julia environment. See the references above. 
+- Julia 1.10 or later
+- Install the **HallThruster** package using Julia's package manager.
+
 ---
 
 ## **Installation**
 
-1. Clone the repository:
+### **Using Python Virtual Environment**
+
+1. **Clone the repository:**
     ```bash
-    git clone ]((https://github.com/gorodetsky-umich/model_error_uq_plasma.git)
-    cd model_error_uq_plasma.git
+    git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
+    cd model_error_uq_plasma
     ```
 
-2. Create a Python virtual environment and activate it:
+2. **Create a virtual environment and activate it:**
     ```bash
+    python -m venv .venv
+    # On Windows
+    .venv\Scripts\activate
+
+    # On Ubuntu/MacOS
+    source .venv/bin/activate
+    ```
+
+3. **Install dependencies:**
+    ```bash
+    python -m pip install -r requirements.txt
+    ```
+---
+
+### **Using PDM for Dependency Management**
+
+[PDM (Python Dependency Manager)](https://pdm-project.org) offers a more streamlined way to manage dependencies and virtual environments.
+
+#### **Step 1: Install PDM**
+
+If you don't have PDM installed, install it via:
+
+```bash
+python -m pip install pdm
+```
+
+#### **Step 2: Clone the repository**
+
+```bash
+git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
+cd model_error_uq_plasma
+```
+
+#### **Step 3: Install dependencies with PDM**
+
+Instead of using a virtual environment manually, PDM will handle it:
+
+```bash
+python -m pdm install
+```
+
+> **Note:** If you encounter an error such as `pdm not >found`, try run `python -m pdm install` instead of `pdm >install`. 
+>
+> To check if any installed Python packages, including PDM, > need an update:
+> ```
+    > python -m pip list --outdated
+>    
+ 
+>If pdm appears in the list, update it using:
+> ```
+    > python -m pdm self update
+    > python -m pip install --upgrade pip
+
+    
+
+#### **Step 4: Activate the PDM virtual environment**
+
+```bash
+python -m pdm venv activate
+```
+
+---
+### **Windows Installation**
+
+Follow the instructions under [Using Python Virtual Environment](#using-python-virtual-environment) or [Using PDM for Dependency Management](#using-pdm-for-dependency-management).
+
+---
+
+### **Ubuntu Installation**
+
+1. **Install required dependencies:**
+    ```bash
+    sudo apt update && sudo apt install -y python3 python3-venv python3-pip git julia
+    ```
+
+2. **Clone the repository and set up the environment:**
+    ```bash
+    git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
+    cd model_error_uq_plasma
     python3 -m venv .venv
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    source .venv/bin/activate
     ```
+---
 
-3. Install the Python dependencies:
+> **Note:** **Troubleshooting Dependency Conflicts**  
+> If you encounter dependency resolution issues (such as conflicts with package versions, e.g., pandas), try the following commands to resolve them:  
+>  
+> ```bash
+> pdm update --unconstrained
+> pdm lock --refresh
+> ```  
+>  
+> These commands will relax dependency constraints and attempt to find compatible versions automatically.
+
+---
+### **HallThruster.jl Installation**
+
+1. **Install Julia (1.10 or later)** from [Julia Official Website](https://julialang.org/downloads/)
+
+2. **Activate a project-specific environment:**
+
     ```bash
-    pdm install
-    pip install -r requirements.txt
+    mkdir hallthruster_project && cd hallthruster_project
+    julia
     ```
+2. **Install HallThruster.jl in Julia REPL:**
 
-4. Install the **HallThruster** package in Julia:
+    **Inside Julia:**
+
+    -> Load the Pkg module: 
+
     ```julia
-    using Pkg
-    Pkg.add("HallThruster")
+    import Pkg
+    ```
+    
+    -> Activate the project environment
+    ```julia
+    Pkg.activate(".")
     ```
 
-5. Add the HallThruster Python path to your script:
-    ```python
-    import sys
-    sys.path.append("<path-to-your-HallThruster-python>")
-    import hallthruster as het
+    -> Add the HallThruster package
+     ```julia
+    Pkg.add("HallThruster")
+     ```
+    -> Update all installed packages to their latest versions
+    
+     ```julia
+      Pkg.update()
+     ```
+    -> Check the installed packages and versions
+    
+    ```julia
+    Pkg.status()
     ```
+4. **Integrate HallThruster with Python**
+
+   -> Find the Python script path:
+
+   ```julia
+   using HallThruster
+   HallThruster.PYTHON_PATH
+   ```
+
+   -> Add the path to Python:
+
+   ```python
+   import sys
+   sys.path.append("/path/to/HallThruster/python")
+
+   import hallthruster as het
+   ```
 
 ---
 
 ## **Workflow Overview**
 
-The workflow consists of the following steps:
-1. **Configuration**: Use the YAML configuration file (`settings.yaml`) to define simulation, optimization, and postprocessing parameters.
-2. **MAP Optimization**: Run MAP estimation to find optimal values for parameters \( c_1 \) and \( alpha \) using the `TwoZoneBohm` or `MultiLogBohm` models.
-3. **MCMC Sampling**: Perform `Delayed Rejection and Adaptive Metropolis` to generate samples.
-4. **Visualization**: Generate plots for MAP and MCMC results to analyze parameter convergence and distribution.
-
----
-
-## **Configuration Files**
-
-The main configuration file is `settings.yaml`. The key sections as follows:
-
-- **General Settings**:
-  ```yaml
-  general_settings:
-    results_dir: "/hall_opt/results"
-    gen_data: true
-    run_map: true
-    run_mcmc: false
-    ion_velocity_weight: 2.0
-    plotting: true
-    iterations: 20
-  ```
-
-- **Optimization Parameters**:
-  ```yaml
-  optimization_params:
-    map_params:
-      method: "Nelder-Mead"
-      map_initial_guess_path: "map-results/map_initial_guess.json"
-      maxfev: 5000
-      fatol: 1e-3
-      xatol: 1e-3
-      iteration_log_file: "/map-results/map_iterations.json"
-      final_map_params: "/map_results/final_map_params.json"
-    mcmc_params:
-      save_interval: 10
-      checkpoint_interval: 10
-      save_metadata: true
-      final_samples_file_log: "/mcmc-results/final_samples_log.csv"
-      final_samples_file_linear: "/mcmc-results/final_samples_linear.csv"
-      checkpoint_file: "/mcmc-results/checkpoint.json"
-      metadata_file: "/mcmc-results/mcmc_metadata.json"
-      initial_cov:
-        - [0.1, -0.5]
-        - [-0.5, 0.1]
-  ```
-
-- **Simulation Configuration**:
-  ```yaml
-  simulation_config:
-    name: "SPT-100"
-    geometry:
-      channel_length: 0.025
-      inner_radius: 0.0345
-      outer_radius: 0.05
-    magnetic_field:
-      file: "config/bfield_spt100.csv"
-    discharge_voltage: 300
-    anode_mass_flow_rate: 0.0001
-    domain: [0, 0.08]
-    propellant: "Xenon"
-    ncharge: 3
-    anom_model:
-      TwoZoneBohm:
-        c1: -2.0
-        c2: 0.5
-      MultiLogBohm:
-        zs: [0.0, 0.01, 0.02, 0.03]
-        cs: [0.02, 0.024, 0.028, 0.033]
-  ```
+1. **Configuration:** Define parameters in `settings.yaml`.
+2. **MAP Optimization:** Find optimal values using the specified models.
+3. **MCMC Sampling:** Generate samples via Bayesian inference.
+4. **Visualization:** Analyze results with plots.
 
 ---
 
 ## **Usage**
 
-### **Running MAP Optimization**
 To perform MAP estimation:
+
 ```bash
 python -m hall_opt.main --settings hall_opt/config/settings.yaml
 ```
 
-### **Running MCMC Sampling**
 To perform MCMC sampling:
-1. Set `run_mcmc: true` in `settings.yaml`.
-2. Run the command:
-   ```bash
-   python -m hall_opt.main --settings hall_opt/config/settings.yaml
-   ```
+
+```bash
+python -m hall_opt.main --settings hall_opt/config/settings.yaml
+```
+
 ---
+
 ## **Visualization**
 
-- To generate the plots of MAP results:
-1. Ensure that `/map_iterations.json` and `final_map_params.json` are saved in their respected folder after the MAP run. Set plotting flag 'true' in the general settings object in the settings.yaml file.
-2. Use the provided plotting script:
-   ```bash
-   python -m hall_opt.main --settings hall_opt/plotting/plotting.yaml
-   ```
+To generate plots:
 
-- Similarly, to demonstrate MCMC sampling:
-1. Load the samples from `final_samples_log.csv` and `mcmc_iterations.json` as well as `plotting.yaml`.
-2. Ensure that the plotting flag 'true'.
-3. Use Python's `matplotlib` library to generate plots.
-
+```bash
+python -m hall_opt.plotting.plotting --settings hall_opt/plotting/plotting.yaml
+```
 ---
-
 
 ## **Contact**
 
-For questions, issues, feel free to contact:
+For any questions or issues, contact:
 
-- **Name**: Elida Sensoy 
-- **Email**: elsensoy@umich.edu
+- **Name:** Elida Sensoy  
+- **Email:** elsensoy@umich.edu  
 

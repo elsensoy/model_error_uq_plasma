@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 from hall_opt.config.loader import Settings, extract_anom_model
 
 # HallThruster Path Setup
-hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
+hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 

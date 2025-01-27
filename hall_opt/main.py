@@ -4,10 +4,10 @@ import json
 import numpy as np
 import argparse
 import logging
-import yaml
+# import pyaml
 import logging
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, ValidationError
+# from typing import Optional, List, Dict, Any
+from pydantic import ValidationError
 from pathlib import Path
 from hall_opt.config.loader import Settings, load_yml_settings,extract_anom_model
 from hall_opt.config.run_model import run_simulation_with_config
@@ -18,7 +18,7 @@ from hall_opt.plotting.posterior_plots import plot_posterior
 from hall_opt.plotting.common_setup import load_data, get_common_paths
 
 # HallThruster Path Setup
-hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
+hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 

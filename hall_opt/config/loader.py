@@ -7,7 +7,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, ValidationError
 
 # Ensure HallThruster Python path is included
-hallthruster_path = "/home/elida/.julia/packages/HallThruster/tHQQa/python"
+hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
