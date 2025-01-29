@@ -3,31 +3,18 @@ import sys
 import json
 import numpy as np
 from typing import Optional, List, Dict, Any
-from hall_opt.config.load_settings import Settings, extract_anom_model
+from hall_opt.config.verifier import GeneralSettings, extract_anom_model
 
 
 def run_model(
-    settings: Settings,
+    settings: GeneralSettings,
     config: Dict[str, Any],
     simulation: Dict[str, Any],
     postprocess: Dict[str, Any],
     model_type: str,
     failing_samples: Optional[list] = None
 ) -> Optional[Dict[str, Any]]:
-    """
-    Run a simulation with the given configuration.
-    
-    Args:
-        settings (Settings): The loaded settings object.
-        config (Dict[str, Any]): Simulation-specific configuration.
-        simulation (Dict[str, Any]): Simulation parameters.
-        postprocess (Dict[str, Any]): Postprocessing configuration.
-        model_type (str): The type of anomalous transport model (e.g., "TwoZoneBohm", "MultiLogBohm").
-        failing_samples (list, optional): A list to store details of failed simulations.
-    
-    Returns:
-        Optional[Dict[str, Any]]: The simulation results, or None if the simulation fails.
-    """
+
     failing_samples = failing_samples or []
 
     # Extract and update the simulation configuration for the specified model type

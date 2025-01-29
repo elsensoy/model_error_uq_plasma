@@ -1,8 +1,7 @@
-general_settings:
-  results_dir: "../results"  # Base directory for results
-  gen_data: true  # Whether to generate data
-  run_map: false    # Whether to run MAP
-  run_mcmc: false   # Whether to run MCMC
-  plotting: false   # Whether to generate plots
-  ion_velocity_weight: 2.0 #same for both mcmc and map
-  iterations: 20   # Number of iterations
+results_dir: "../results"  # Base directory for results
+gen_data: true  # Whether to generate data
+run_map: false    # Whether to run MAP
+run_mcmc: false   # Whether to run MCMC
+plotting: false   # Whether to generate plots
+ion_velocity_weight: 2.0 #same for both mcmc and map
+iterations: 20   # Number of iterations
