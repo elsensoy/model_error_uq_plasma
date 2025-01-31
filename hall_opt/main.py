@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent))
 # Import verifier and run functions
-from config.verifier import verify_all_yaml, extract_anom_model,  GeneralSettings
+from config.verifier import verify_all_yaml, extract_anom_model, GeneralSettings
 from config.run_model import run_model
 from map import run_map_workflow
 from mcmc import run_mcmc_with_final_map_params

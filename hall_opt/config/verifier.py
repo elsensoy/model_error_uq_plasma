@@ -1,57 +1,69 @@
 import yaml
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Dict, Any, Optional
 from pathlib import Path
-from typing import List, Dict, Any
+from typing_extensions import Annotated  # add annotation 
 
+
+###TODO DONE: Defaults & Annotations
 class ThrusterConfig(BaseModel):
-    name: str
-    geometry: Dict[str, float]
-    magnetic_field: Dict[str, str]
+    name: str = Field(..., description="Thruster name")
+    geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
+    magnetic_field: Dict[str, str] = Field(..., description="Magnetic field file path")
+
 
 class Config(BaseModel):
     thruster: ThrusterConfig
-    discharge_voltage: int
-    anode_mass_flow_rate: float
-    domain: List[float]
-    ncharge: int
+    discharge_voltage: Annotated[int, Field(ge=0, description="Discharge voltage in V")]
+    anode_mass_flow_rate: Annotated[float, Field(gt=0, description="Mass flow rate in kg/s")]
+    domain: Annotated[List[float], Field(min_length=2, max_length=2)]
+    ncharge: Annotated[int, Field(ge=1, description="Number of charge states")]
     anom_model: Dict[str, Any]
     postprocess: Dict[str, Any]
 
-class GeneralSettings(BaseModel):  
-    results_dir: str
-    gen_data: bool
-    run_map: bool
-    run_mcmc: bool
-    plotting: bool
-    ion_velocity_weight: float
-    iterations: int
+
+class GeneralSettings(BaseModel):
+    results_dir: str = Field(default="../results", description="Base directory for results")
+    run_map: bool = Field(default=False, description="Run MAP estimation")
+    run_mcmc: bool = Field(default=False, description="Run MCMC sampling")
+    plotting: bool = Field(default=False, description="Generate plots")
+    ion_velocity_weight: float = Field(default=2.0, description="Weighting factor for ion velocity")
+    iterations: Annotated[int, Field(gt=0, description="Number of iterations")]
+
 
 class MapConfig(BaseModel):
-    map_initial_guess_file: str
-    iteration_log_file: str
-    final_map_params_file: str
-    method: str
-    maxfev: int
-    fatol: float
-    xatol: float
+    map_initial_guess_file: str = Field(..., description="Initial MAP guess file")
+    iteration_log_file: str = Field(..., description="MAP iteration log file")
+    final_map_params_file: str = Field(..., description="Final MAP parameter file")
+    method: str = Field(default="Nelder-Mead", description="MAP optimization method")
+    maxfev: int = Field(default=5000, ge=100, description="Maximum function evaluations")
+    fatol: float = Field(default=0.003, gt=0, description="Function tolerance")
+    xatol: float = Field(default=0.003, gt=0, description="Step size tolerance")
+
 
 class MCMCConfig(BaseModel):
-    save_interval: int
-    checkpoint_interval: int
-    save_metadata: bool
-    final_samples_file_log: str
-    final_samples_file_linear: str
-    checkpoint_file: str
-    metadata_file: str
-    initial_cov: List[List[float]]
+    save_interval: int = Field(default=10, ge=1, description="MCMC save interval")
+    checkpoint_interval: int = Field(default=10, ge=1, description="Checkpoint interval")
+    save_metadata: bool = Field(default=True, description="Save metadata flag")
+    final_samples_file_log: str = Field(..., description="Final MCMC log file")
+    final_samples_file_linear: str = Field(..., description="Final MCMC linear file")
+    checkpoint_file: str = Field(..., description="MCMC checkpoint file")
+    metadata_file: str = Field(..., description="MCMC metadata file")
+    initial_cov: List[List[float]] = Field(..., description="Initial covariance matrix")
+
 
 class PlottingConfig(BaseModel):
-    plots_subdir: str
-    metrics_subdir: str
-    enabled_plots: List[str]
+    plots_subdir: str = Field(default="plots-mcmc", description="Directory for plots")
+    metrics_subdir: str = Field(default="iteration_metrics", description="Directory for metrics")
+    enabled_plots: List[str] = Field(default=["autocorrelation", "trace", "posterior", "metric_plots"],
+                                     description="List of enabled plots")
 
-# Load YAML with error handling
-def load_yaml(file_path: str) -> dict:
+
+class GroundTruthConfig(BaseModel):
+    gen_data: bool = Field(default=False, description="Enable ground truth data generation")
+
+#TODO DONE: error handling
+def load_yaml(file_path: str) -> Optional[dict]:
     try:
         with open(file_path, "r") as file:
             return yaml.safe_load(file)
@@ -62,104 +74,67 @@ def load_yaml(file_path: str) -> dict:
         print(f"ERROR: YAML parsing error in {file_path}: {e}")
         return None
 
-# Validate YAML using Pydantic
-def load_and_validate_yaml(file_path: str, model: BaseModel):
-    data = load_yaml(file_path)
-    if data is None:
+
+def load_and_validate_yaml(data: dict, model: BaseModel, section: str):
+    #Validate a specific section
+    if section not in data:
+        print(f"ERROR: Missing section '{section}' in settings.yaml")
         return None
-
-    # Extract "config" from config.yaml
-    if file_path == "config.yaml" and "config" in data:
-        data = data["config"]
-
     try:
-        validated_data = model(**data)
-        print(f"{file_path} is valid.")
+        validated_data = model(**data[section])
+        print(f"settings.yaml [{section}] is valid.")
         return validated_data
     except ValidationError as e:
-        print(f"ERROR: Validation error in {file_path}:\n{e}")
+        print(f"eRROR: Validation error in settings.yaml [{section}]:\n{e}")
         return None
-    
 
-	
+
+### Verification 
 def verify_all_yaml():
-    print("\nVerifying all YAML configuration files...\n")
+    print("\n Verifying settings.yaml configuration...\n")
 
-    # Ensure we correctly set the `config` directory
-    yaml_dir = Path(__file__).resolve().parent  # This is `hall_opt/config/`
+    yaml_dir = Path(__file__).resolve().parent
+    yaml_path = yaml_dir / "settings.yaml"
 
-    # Explicitly define full paths for each YAML file
-    settings_path = yaml_dir / "settings.yaml"
-    config_path = yaml_dir / "config.yaml"
-    map_path = yaml_dir / "map.yaml"
-    mcmc_path = yaml_dir / "mcmc.yaml"
-    plotting_path = yaml_dir / "plotting.yaml"
-
-    # Validate each YAML file using the correct paths
-    settings_data = load_and_validate_yaml(settings_path, GeneralSettings)
-    config = load_and_validate_yaml(config_path, Config)
-    map_config = load_and_validate_yaml(map_path, MapConfig)
-    mcmc_config = load_and_validate_yaml(mcmc_path, MCMCConfig)
-    plotting_config = load_and_validate_yaml(plotting_path, PlottingConfig)
-
-    # Check if any YAML file failed validation
-    if None in [settings_data, config, map_config, mcmc_config, plotting_config]:
-        print("\nERROR: One or more YAML files failed validation. Exiting...\n")
+    # Load entire YAML file(doubled code--could be)
+    settings_data = load_yaml(yaml_path)
+    if settings_data is None:
         return None
 
-    print("\n All YAML files are valid. Proceeding with execution...\n")
-
-    return settings_data
-
-# Workflow logic
-def process_workflow(settings: GeneralSettings):
-    results_dir = Path(settings.results_dir)
-    results_dir.mkdir(parents=True, exist_ok=True)
-
-    if settings.gen_data:
-        print("Generating data... (To be implemented)")
-
-    if settings.run_map:
-        print("Running MAP configuration...")
-        map_config = load_and_validate_yaml("map.yaml", MapConfig)
-        if map_config:
-            print("MAP configuration validated.")
-
-    if settings.run_mcmc:
-        print("Running MCMC configuration...")
-        mcmc_config = load_and_validate_yaml("mcmc.yaml", MCMCConfig)
-        if mcmc_config:
-            print("MCMC configuration validated.")
-
-    if settings.plotting:
-        print("Generating plots... (To be implemented)")
-
-    print(f"Workflow completed with {settings.iterations} iterations.")
-
-# Extract anomalous transport model
-def extract_anom_model(config: Config, model_type: str) -> Dict[str, Any]:
-    try:
-        anom_model_config = config.anom_model
-
-        if model_type not in anom_model_config:
-            raise KeyError(f"Anomalous model type '{model_type}' not found in configuration.")
-
-        model_config = anom_model_config[model_type]
-
-        # Merge base config with the selected model
-        base_config = config.model_dump()
-
-        base_config["anom_model"] = {**model_config, "type": model_type}
-
-        print(f"Extracted model config for {model_type}")
-        return base_config
-
-    except KeyError as e:
-        print(f"ERROR: {e}")
+    #  required sections
+    general_settings = load_and_validate_yaml(settings_data, GeneralSettings, "general")
+    config_data = load_and_validate_yaml(settings_data, Config, "config")
+    
+    if general_settings is None or config_data is None:
+        print("\nERROR: Critical sections missing. Exiting...\n")
         return None
 
-# Main execution for testing 
-# if __name__ == "__main__":
-#     settings = verify_all_yaml()
-#     if settings:
-#         process_workflow(settings)
+    # TODO DONE: Conditionally validate sections based on flags? TODO: test this to ensure switch works
+    ground_truth = load_and_validate_yaml(settings_data, GroundTruthConfig, "ground_truth") if "ground_truth" in settings_data else None
+    map_config = load_and_validate_yaml(settings_data, MapConfig, "map") if general_settings.run_map else None
+    mcmc_config = load_and_validate_yaml(settings_data, MCMCConfig, "mcmc") if general_settings.run_mcmc else None
+    plotting_config = load_and_validate_yaml(settings_data, PlottingConfig, "plots") if general_settings.plotting else None
+
+    #  Final validation check
+    if None in [general_settings, config_data] or (
+        ground_truth and ground_truth.gen_data and ground_truth is None
+    ) or (
+        general_settings.run_map and map_config is None
+    ) or (
+        general_settings.run_mcmc and mcmc_config is None
+    ) or (
+        general_settings.plotting and plotting_config is None
+    ):
+        print("\n ERROR: One or more YAML sections failed validation. Exiting...\n")
+        return None
+
+    print("\n All required YAML sections are valid. Proceeding with execution...\n")
+
+    return {
+        "general": general_settings,
+        "config": config_data,
+        "ground_truth": ground_truth,
+        "map": map_config,
+        "mcmc": mcmc_config,
+        "plots": plotting_config,
+    }

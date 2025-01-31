@@ -3,14 +3,14 @@ import sys
 import json
 import numpy as np
 from typing import Optional, List, Dict, Any
-from hall_opt.config.verifier import GeneralSettings, extract_anom_model
+from hall_opt.config.verifier import extract_anom_model
 
 
 def run_model(
-    settings: GeneralSettings,
-    config: Dict[str, Any],
-    simulation: Dict[str, Any],
-    postprocess: Dict[str, Any],
+   
+    config_settings: Dict[str, Any],   
+    simulation: Dict[str, Any],        
+    postprocess: Dict[str, Any],      
     model_type: str,
     failing_samples: Optional[list] = None
 ) -> Optional[Dict[str, Any]]:
@@ -19,18 +19,16 @@ def run_model(
 
     # Extract and update the simulation configuration for the specified model type
     try:
-        config = extract_anom_model(settings, model_type)
+        config = extract_anom_model(config_settings, model_type)  
     except ValueError as e:
         print(f"Configuration error: {e}")
         return None
 
-    # Extract and validate the output file for the current model type
-# Prepare postprocessing settings
-    postprocess = settings.postprocess.copy()
+  
+    postprocess = config_settings.get("postprocess", {}).copy()
 
     # Handle model-specific output files
     if isinstance(postprocess.get("output_file"), dict):
-        
         output_file = postprocess["output_file"].get(model_type)
         if output_file is None:
             print(f"Warning: No output file defined for model type '{model_type}'. Using default './results/output.json'.")
@@ -39,24 +37,23 @@ def run_model(
         # Use the output_file as a string, or fallback to default
         output_file = postprocess.get("output_file", "hall_opt/results/output.json")
 
-    # Update the postprocessing settings with the selected output file
     postprocess["output_file"] = output_file
 
     # Debugging output
     print(f"Running simulation with {model_type} configuration...")
     print(f"Output file for postprocessing: {postprocess['output_file']}")
 
-
+  
     input_data = {
-        "config": config,  # Anomalous model-specific configuration
-        "simulation": simulation,    # General simulation parameters
-        "postprocess": postprocess,  # Postprocessing settings
+        "config": config,        
+        "simulation": simulation,
+        "postprocess": postprocess,
     }
 
     print(f"Running simulation with {model_type} configuration...")
 
     try:
-        # Run the simulation 
+        # Run the simulation
         solution = het.run_simulation(input_data)
 
         # Check simulation success
@@ -71,7 +68,6 @@ def run_model(
             })
             return None
 
-        # Validate simulation metrics
         metrics = solution["output"].get("average", {})
         if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
             print("Invalid or missing metrics in simulation output.")
