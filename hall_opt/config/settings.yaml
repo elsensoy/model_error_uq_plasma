@@ -1,5 +1,5 @@
 general:
-  results_dir: "../results"  # Base directory for results
+  results_dir: "hall_opt/results"  # Base directory for results
   run_map: false    # Whether to run MAP
   run_mcmc: false   # Whether to run MCMC
   plotting: false   # Whether to generate plots
@@ -28,8 +28,8 @@ config_settings:
         cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
     postprocess:   #  **THIS FIELD MUST EXIST**
       output_file:
-        TwoZoneBohm: "output_twozonebohm.json"
-        MultiLogBohm: "output_multilogbohm.json"
+        TwoZoneBohm: "hall_opt/results/output_twozonebohm.json"
+        MultiLogBohm: "hall_opt/results/output_multilogbohm.json"
       save_time_resolved: false
       average_start_time:  0.4e-3
 

@@ -1,90 +1,74 @@
 import hallthruster as het
-import sys
 import json
 import numpy as np
+import os
 from typing import Optional, List, Dict, Any
 from hall_opt.config.verifier import extract_anom_model
-
+#TODO: output file dir needs to be added to pydantic
 
 def run_model(
-   
-    config_settings: Dict[str, Any],   
-    simulation: Dict[str, Any],        
-    postprocess: Dict[str, Any],      
-    model_type: str,
-    failing_samples: Optional[list] = None
+    config_settings: Dict[str, Any],
+    simulation: Dict[str, Any],
+    postprocess: Dict[str, Any],
+    model_type: str
 ) -> Optional[Dict[str, Any]]:
-
-    failing_samples = failing_samples or []
 
     # Extract and update the simulation configuration for the specified model type
     try:
-        config = extract_anom_model(config_settings, model_type)  
+        config_dict = extract_anom_model(config_settings, model_type)
     except ValueError as e:
-        print(f"Configuration error: {e}")
+        print(f" Configuration error: {e}")
         return None
 
-  
-    postprocess = config_settings.get("postprocess", {}).copy()
+    # Convert Pydantic models to dictionaries if needed
+    if hasattr(config_settings, "model_dump"):
+        config_settings = config_settings.model_dump()
+    
+    if hasattr(simulation, "model_dump"):
+        simulation = simulation.model_dump()
+    
+    if hasattr(postprocess, "model_dump"):
+        postprocess = postprocess.model_dump()
 
-    # Handle model-specific output files
-    if isinstance(postprocess.get("output_file"), dict):
-        output_file = postprocess["output_file"].get(model_type)
-        if output_file is None:
-            print(f"Warning: No output file defined for model type '{model_type}'. Using default './results/output.json'.")
-            output_file = "./results/output.json"
-    else:
-        # Use the output_file as a string, or fallback to default
-        output_file = postprocess.get("output_file", "hall_opt/results/output.json")
+    # Ensure postprocessing settings exist
+    postprocess_dict = postprocess.copy()
 
-    postprocess["output_file"] = output_file
+    # Handle model-specific output files safely
+    output_file = postprocess_dict.get("output_file", {}).get(model_type)
+
+    if not output_file:
+        print(f" Warning: No output file defined for model type '{model_type}'. Using default './hall_opt/results/output.json'.")
+        output_file = "./hall_opt/results/output.json"
+
+    # Update the postprocessing settings with the selected output file
+    postprocess_dict["output_file"] = output_file
 
     # Debugging output
     print(f"Running simulation with {model_type} configuration...")
-    print(f"Output file for postprocessing: {postprocess['output_file']}")
+    print(f" Output file for postprocessing: {output_file}")
 
-  
+    # Prepare input data for simulation
     input_data = {
-        "config": config,        
-        "simulation": simulation,
-        "postprocess": postprocess,
+        "config": config_dict,  
+        "simulation": simulation,  
+        "postprocess": postprocess_dict,  
     }
 
-    print(f"Running simulation with {model_type} configuration...")
+    # Ensure directory exists before running the simulation
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     try:
         # Run the simulation
         solution = het.run_simulation(input_data)
 
-        # Check simulation success
-        retcode = solution["output"].get("retcode", "unknown")
-        if retcode != "success":
-            print(f"Simulation failed with retcode: {retcode}")
-            failing_samples.append({
-                "model_type": model_type,
-                "retcode": retcode,
-                "reason": "Simulation failure",
-                "config": config,
-            })
-            return None
-
+        # Validate simulation metrics
         metrics = solution["output"].get("average", {})
         if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
-            print("Invalid or missing metrics in simulation output.")
-            failing_samples.append({
-                "model_type": model_type,
-                "reason": "Invalid metrics",
-                "config": config,
-            })
+            print("Warning: Invalid or missing metrics in simulation output.")
             return None
 
         return solution
 
     except Exception as e:
-        print(f"Error during simulation: {e}")
-        failing_samples.append({
-            "model_type": model_type,
-            "reason": f"Unexpected error: {str(e)}",
-            "config": config,
-        })
+        print(f"ERROR during simulation: {e}")
         return None

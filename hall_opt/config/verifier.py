@@ -4,13 +4,23 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 from typing_extensions import Annotated  # add annotation 
 
-
 ###TODO DONE: Defaults & Annotations
 class ThrusterConfig(BaseModel):
     name: str = Field(..., description="Thruster name")
     geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
     magnetic_field: Dict[str, str] = Field(..., description="Magnetic field file path")
 
+
+class PostProcessConfig(BaseModel):
+    output_file: Dict[str, str] = Field(
+        ..., description="Mapping of model type to corresponding output file"
+    )
+    save_time_resolved: bool = Field(
+        default=False, description="Flag to save time-resolved data"
+    )
+    average_start_time: float = Field(
+        default=0.0004, description="Start time for averaging process"
+    )
 
 class Config(BaseModel):
     thruster: ThrusterConfig
@@ -19,7 +29,8 @@ class Config(BaseModel):
     domain: Annotated[List[float], Field(min_length=2, max_length=2)]
     ncharge: Annotated[int, Field(ge=1, description="Number of charge states")]
     anom_model: Dict[str, Any]
-    postprocess: Dict[str, Any]
+    postprocess: PostProcessConfig 
+    
 
 
 class GeneralSettings(BaseModel):
@@ -30,6 +41,9 @@ class GeneralSettings(BaseModel):
     ion_velocity_weight: float = Field(default=2.0, description="Weighting factor for ion velocity")
     iterations: Annotated[int, Field(gt=0, description="Number of iterations")]
 
+    # Automatically convert `results_dir` to an absolute path
+    def absolute_paths(self):
+        self.results_dir = str(Path(self.results_dir).resolve())
 
 class MapConfig(BaseModel):
     map_initial_guess_file: str = Field(..., description="Initial MAP guess file")
@@ -89,34 +103,38 @@ def load_and_validate_yaml(data: dict, model: BaseModel, section: str):
         return None
 
 
-### Verification 
 def verify_all_yaml():
     print("\n Verifying settings.yaml configuration...\n")
 
     yaml_dir = Path(__file__).resolve().parent
     yaml_path = yaml_dir / "settings.yaml"
 
-    # Load entire YAML file(doubled code--could be)
+    # Load entire YAML file
     settings_data = load_yaml(yaml_path)
     if settings_data is None:
         return None
 
-    #  required sections
+    #  Validate general settings (Always Required)
     general_settings = load_and_validate_yaml(settings_data, GeneralSettings, "general")
-    config_data = load_and_validate_yaml(settings_data, Config, "config")
-    
-    if general_settings is None or config_data is None:
-        print("\nERROR: Critical sections missing. Exiting...\n")
+    if general_settings is None:
+        print("\n ERROR: General settings validation failed. Exiting...\n")
         return None
 
-    # TODO DONE: Conditionally validate sections based on flags? TODO: test this to ensure switch works
+    #  Convert `config_settings` into a Pydantic `Config` object
+    try:
+        config_settings = Config(**settings_data["config_settings"])
+    except ValidationError as e:
+        print(f"\n ERROR: Validation failed for config_settings:\n{e}")
+        return None
+
+    #  Conditionally validate sections based on general settings
     ground_truth = load_and_validate_yaml(settings_data, GroundTruthConfig, "ground_truth") if "ground_truth" in settings_data else None
     map_config = load_and_validate_yaml(settings_data, MapConfig, "map") if general_settings.run_map else None
     mcmc_config = load_and_validate_yaml(settings_data, MCMCConfig, "mcmc") if general_settings.run_mcmc else None
     plotting_config = load_and_validate_yaml(settings_data, PlottingConfig, "plots") if general_settings.plotting else None
 
-    #  Final validation check
-    if None in [general_settings, config_data] or (
+    # Final validation check
+    if None in [general_settings, config_settings] or (
         ground_truth and ground_truth.gen_data and ground_truth is None
     ) or (
         general_settings.run_map and map_config is None
@@ -132,9 +150,31 @@ def verify_all_yaml():
 
     return {
         "general": general_settings,
-        "config": config_data,
+        "config_settings": config_settings,  
         "ground_truth": ground_truth,
         "map": map_config,
         "mcmc": mcmc_config,
         "plots": plotting_config,
     }
+
+
+# Extract anomalous transport model(might delete later)
+def extract_anom_model(config: Config, model_type: str) -> Dict[str, Any]:
+    try:
+        anom_model_config = config.anom_model
+
+        if model_type not in anom_model_config:
+            raise KeyError(f"Anomalous model type '{model_type}' not found in configuration.")
+
+        model_config = anom_model_config[model_type]
+
+        base_config = config.model_dump()
+
+        base_config["anom_model"] = {**model_config, "type": model_type}
+
+        print(f"Extracted model config for {model_type}")
+        return base_config
+
+    except KeyError as e:
+        print(f"ERROR: {e}")
+        return None
