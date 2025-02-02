@@ -2,7 +2,7 @@ general:
   results_dir: "hall_opt/results"  # Base directory for results
   run_map: false    # Whether to run MAP
   run_mcmc: false   # Whether to run MCMC
-  plotting: false   # Whether to generate plots
+  plotting: true   # Whether to generate plots
   ion_velocity_weight: 2.0 #same for both mcmc and map
   iterations: 20   # Number of iterations
 
@@ -26,12 +26,13 @@ config_settings:
       MultiLogBohm:
         zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
         cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
-    postprocess:   #  **THIS FIELD MUST EXIST**
-      output_file:
-        TwoZoneBohm: "hall_opt/results/output_twozonebohm.json"
-        MultiLogBohm: "hall_opt/results/output_multilogbohm.json"
-      save_time_resolved: false
-      average_start_time:  0.4e-3
+
+postprocess:   #  **THIS FIELD MUST EXIST**
+  output_file:
+    TwoZoneBohm: "hall_opt/results/output_twozonebohm.json"
+    MultiLogBohm: "hall_opt/results/ground_truth/output_multilogbohm.json"
+  save_time_resolved: false
+  average_start_time:  0.4e-3
 
 ground_truth:
   gen_data: true  # Whether to generate data
@@ -60,10 +61,16 @@ map:
   xatol: 0.003
 
 plots:
-  plots_subdir: "plots-mcmc"
+  plots_subdir: "hall_opt/results/ground_truth/ground_truth_plots"
   metrics_subdir: "iteration_metrics"
   enabled_plots:
-    - "autocorrelation"
-    - "trace"
-    - "posterior"
-    - "metric_plots"
+    - "ground_truth_plots"
+
+simulation:
+  dt: 0.000001
+  adaptive: true
+  grid:
+    type: "EvenGrid"
+    num_cells: 100
+  num_save: 1000
+  duration: 0.001
