@@ -297,23 +297,23 @@ print("HallThruster imported successfully!")
 
 
 
-To configure and run the workflow, modify the respective `.yaml` files listed below:  
+To configure and run the workflow, modify the `settings.yaml` file for directory and method settings as listed below:  
+- **`general_settings`** – General project settings (ex.results_dir) included in this file.    
+- **`gen_data`** – For data generation. The script for this method is gen_data.py. If the flag gen_data is unabled in settings.yaml while running other methods, fallback output file for extracting the gen_data could be found in results/ground_truth/output_multilogbohm.json. 
+- **`map`** – For MAP estimation. Script for this method is map.py.  
+- **`mcmc`** – For MCMC sampling. Script for this method is mcmc.py.
 
-- **`gen_data.yaml`** – For data generation  
-- **`map.yaml`** – For MAP estimation  
-- **`mcmc.yaml`** – For MCMC sampling  
-- **`settings.yaml`** – General project settings  
 
 ### **Enabling Workflow Steps**
 
-To perform specific tasks, set the corresponding flags to `true` in the respective YAML files:
+To perform specific tasks, set the corresponding flags to `true` in settings.yaml file:
 
-| Process         | YAML File      | Flag to Enable   |
-|-----------------|---------------|------------------|
-| **Generate Data** | `gen_data.yaml` | `gen_data: true`  |
-| **MAP Estimation**| `map.yaml`      | `run_map: true`   |
-| **MCMC Sampling** | `mcmc.yaml`     | `run_mcmc: true`  |
-| **Visualization** | `settings.yaml` | `plotting: true`  |
+| Process           | Flag to Enable   |   Script     |
+|------------------ |------------------|--------------|
+| **Generate Data** |`gen_data: true`  | gen_data.py  |
+| **MAP Estimation**| `run_map: true`  | map.py       |
+| **MCMC Sampling** |`run_mcmc: true`  | mcmc.py      |
+| **Visualization** | `plotting: true` | -[enabled].py|
 
 
 
