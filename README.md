@@ -292,11 +292,7 @@ print("HallThruster imported successfully!")
    - Compare simulation results against observed data for model validation.
 ---
 
-## **Usage -- WORK IN PROGRESS**
-
-
-
-
+## **Usage 
 To configure and run the workflow, modify the `settings.yaml` file for directory and method settings as listed below:  
 - **`general_settings`** – General project settings (ex.results_dir) included in this file.    
 - **`gen_data`** – For data generation. The script for this method is gen_data.py. If the flag gen_data is unabled in settings.yaml while running other methods, fallback output file for extracting the gen_data could be found in results/ground_truth/output_multilogbohm.json. 
@@ -321,7 +317,7 @@ To perform specific tasks, set the corresponding flags to `true` in settings.yam
 
 *Run the project:*
 ```bash
-python -m hall_opt.main --settings hall_opt/config/settings.yaml
+python -m hall_opt.main
 ```
 ### Results directory:
 ```
