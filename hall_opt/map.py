@@ -15,13 +15,10 @@ def run_map_workflow(
     """
     Runs the MAP optimization workflow using scipy.optimize and saves the last sampled parameters.
     """
-
-    # Ensure the correct MAP results directory (e.g., map-results-1/, map-results-2/)
-    settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
-    print(f"Using MAP base directory: {settings.map.base_dir}")
-
     # Load initial guess
     map_settings = settings.map
+    # Ensure the correct MAP results directory (e.g., map-results-1/, map-results-2/)
+    settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
     try:
         with open(map_settings.map_initial_guess_file, "r") as f:
             initial_guess = json.load(f)  # Example: [-2.0, 0.5]
@@ -97,7 +94,12 @@ def run_map_workflow(
         with open(final_map_params_path, "w") as f:
             json.dump(final_map_params, f, indent=4)
 
-        print(f"Final MAP parameters saved to {final_map_params_path}")
+        final_general_map_path = Path(settings.map.final_map_params_file)
+        with open(final_general_map_path, "w") as f:
+            json.dump(final_map_params, f, indent=4)
+    
+        print(f"Final MAP parameters saved to {final_map_params_path} and {final_general_map_path}")
+        
         return final_map_params
     else:
         print(" MAP optimization failed.")

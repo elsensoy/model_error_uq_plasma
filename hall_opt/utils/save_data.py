@@ -38,13 +38,19 @@ def save_results_to_json(
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
 
     # Ensure directory exists
-    os.makedirs(results_dir, exist_ok=True)
+    # os.makedirs(results_dir, exist_ok=True)
 
     # Filter required keys
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
 
+    # Ensure ion_velocity contains only the first entry
+    if "ion_velocity" in result_dict_copy and isinstance(result_dict_copy["ion_velocity"], list):
+        if len(result_dict_copy["ion_velocity"]) > 0 and isinstance(result_dict_copy["ion_velocity"][0], list):
+            result_dict_copy["ion_velocity"] = result_dict_copy["ion_velocity"][0]  # Pick first set
+
     # Subsample data 
+     # Subsample data 
     if subsample_for_saving:
         for key in ['z_normalized', 'ion_velocity']:
             if key in result_dict_copy and result_dict_copy[key] is not None:

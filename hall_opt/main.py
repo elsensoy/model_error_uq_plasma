@@ -61,6 +61,7 @@ def main():
         if not ground_truth_file.exists():
             print(f"ERROR: Ground truth file '{ground_truth_file}' not found.")
         else:
+            # observed_data = load_ground_truth_data(settings)
             observed_data = load_data(settings, "ground_truth")
 
     #  Stop execution if no ground truth is found
@@ -74,8 +75,6 @@ def main():
     if settings.general.run_map:
         print("Running MAP estimation using TwoZoneBohm...")
 
-        # Ensure `map-results-N/` is determined BEFORE running MAP
-        # settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
         print(f"Using base directory for this MAP run: {settings.map.base_dir}")
 
         try:
@@ -104,11 +103,11 @@ def main():
         print(" Running MCMC sampling...")
 
         # Convert results_dir to a Path before using mkdir()
-        mcmc_results_dir = Path(settings.mcmc.results_dir)
+        mcmc_results_dir = Path(settings.mcmc.mcmc_results_dir)
         mcmc_results_dir.mkdir(parents=True, exist_ok=True)  
 
         # Use the correct base directory
-        settings.mcmc.base_dir = Path(get_next_results_dir(settings.mcmc.results_dir, "mcmc-results")).resolve()
+        settings.mcmc.base_dir = Path(get_next_results_dir(settings.mcmc.mcmc_results_dir, "mcmc-results")).resolve()
         print(f"Using base directory for this MCMC run: {settings.mcmc.base_dir}")
 
         # Run MCMC Sampling

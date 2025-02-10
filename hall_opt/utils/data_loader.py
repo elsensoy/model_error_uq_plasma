@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from hall_opt.config.dict import Settings
 
-
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     if analysis_type == "ground_truth":
         data_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()

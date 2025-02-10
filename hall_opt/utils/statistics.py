@@ -71,7 +71,7 @@ def log_likelihood(
         "thrust": metrics.get("thrust", [0]),
         "discharge_current": metrics.get("discharge_current", 0),
         "z_normalized": metrics.get("z", []),
-        "ion_velocity": [metrics.get("ui", [0])], 
+        "ion_velocity": metrics.get("ui", []) 
     }
     # Extract simulated ion velocity
     simulated_ion_velocity = np.array(metrics.get("ui", [0])[0], dtype=np.float64)

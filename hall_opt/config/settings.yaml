@@ -1,13 +1,13 @@
 general:
   results_dir: "hall_opt/results"  # Base directory for results
   run_map: false     
-  run_mcmc: false                     
+  run_mcmc: true                     
   plotting: false    # Whether to generate plots
   ion_velocity_weight: 2.0  # Same for both MCMC and MAP
   iterations: 20  # Number of iterations
 
 ground_truth:
-  gen_data: true                 
+  gen_data: false                 
   results_dir: "${general.results_dir}/postprocess"
   output_file: "${ground_truth.results_dir}/output_ground_truth.json"
 

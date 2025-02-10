@@ -9,7 +9,6 @@ from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.utils.save_data import save_results_to_json, save_metadata
 from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
 from hall_opt.utils.statistics import log_posterior
-
 def mcmc_inference(
     logpdf,
     initial_sample,
@@ -17,24 +16,28 @@ def mcmc_inference(
     iterations,
     save_interval,
     checkpoint_interval,
-    results_dir,
-    save_metadata_flag,
+    settings,
 ):
-    """
-    Perform MCMC inference, saving final results and periodic checkpoints.
-    """
+    """Performs MCMC inference, saving results in structured directories using YAML attributes."""
+
+    # Ensure correct directories
+    results_dir = settings.mcmc.results_dir
+    settings.mcmc.base_dir = get_next_results_dir(results_dir, "mcmc-results")
+    print(f"Using MCMC base directory: {settings.mcmc.base_dir}")
 
     # Ensure `mcmc-results-N/iter_metrics/` exists
-    iter_metrics_dir = os.path.join(results_dir, "iter_metrics")
+    iter_metrics_dir = os.path.join(settings.mcmc.base_dir, "iter_metrics")
     os.makedirs(iter_metrics_dir, exist_ok=True)
 
-    print(f"Using results directory: {results_dir}")
+    # Define final output file paths dynamically from settings
+    final_samples_log_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")
+    final_samples_linear_file = os.path.join(settings.mcmc.base_dir, "final_samples_linear.csv")
+    checkpoint_file = os.path.join(settings.mcmc.base_dir, "checkpoint.json")
+    metadata_file = os.path.join(settings.mcmc.base_dir, "mcmc_metadata.json")
 
-    # Define file paths for saving final results
-    final_samples_log_file = os.path.join(results_dir, "final_samples_log.csv")
-    final_samples_linear_file = os.path.join(results_dir, "final_samples_linear.csv")
-    checkpoint_file = os.path.join(results_dir, "checkpoint.json")
+    print(f"MCMC output will be saved in: {settings.mcmc.base_dir}")
 
+    # Initialize MCMC sampler
     sampler = DelayedRejectionAdaptiveMetropolis(
         logpdf,
         np.array(initial_sample),
@@ -58,14 +61,14 @@ def mcmc_inference(
             c1, alpha = np.exp(c1_log), np.exp(alpha_log)
             c2 = c1 * alpha
 
-            print(f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, Accepted={accepted}")
+            print(f"🔹 Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, Accepted={accepted}")
 
             all_samples.append(proposed_sample)
             all_samples_linear.append([c1, c2])
 
             # Save iteration results inside `mcmc-results-N/iter_metrics/`
             iter_filename = get_next_filename("metrics", iter_metrics_dir, extension=".json")
-            iter_file_path = os.path.join(iter_metrics_dir, iter_filename)
+            iter_file_path = os.path.join(iter_metrics_dir, os.path.basename(iter_filename))
 
             iteration_data = {
                 "iteration": iteration + 1,
@@ -98,7 +101,7 @@ def mcmc_inference(
                 print(f"Checkpoint saved at iteration {iteration + 1}")
 
         except Exception as e:
-            print(f"Error during MCMC iteration {iteration + 1}: {e}")
+            print(f" Error during MCMC iteration {iteration + 1}: {e}")
             break
 
     # Save final results
@@ -115,14 +118,15 @@ def mcmc_inference(
         "final_results_dir": results_dir,
     }
 
-    if save_metadata_flag:
-        save_metadata(metadata, filename="mcmc_metadata.json", directory=results_dir)
-        print(f"Metadata saved to {results_dir}/mcmc_metadata.json")
+    if settings.mcmc.save_metadata:
+        save_metadata(metadata, filename="mcmc_metadata.json", directory=settings.mcmc.base_dir)
+        print(f"Metadata saved to {metadata_file}")
 
-    print(f"Final samples saved to {results_dir}")
+    print(f"Final samples saved to {settings.mcmc.base_dir}")
     print(f"Acceptance rate: {acceptance_rate:.2%}")
 
     return all_samples, all_samples_linear, acceptance_rate
+
 
 def run_mcmc_with_final_map_params(observed_data, settings):
     """
@@ -130,11 +134,11 @@ def run_mcmc_with_final_map_params(observed_data, settings):
     """
 
     # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
-    settings.mcmc.base_dir = get_next_results_dir(settings.mcmc.results_dir, "mcmc-results")
+    settings.mcmc.base_dir = get_next_results_dir(settings.mcmc.mcmc_results_dir, "mcmc-results")
     print(f"Using base directory for this MCMC run: {settings.mcmc.base_dir}")
 
     # Load final MAP parameters from JSON
-    final_map_params_path = Path(settings.map.base_dir) / "final_map_params.json"
+    final_map_params_path = Path(settings.map.final_map_params_file)
 
     if not final_map_params_path.exists():
         raise FileNotFoundError(f"MAP results file not found at {final_map_params_path}")
