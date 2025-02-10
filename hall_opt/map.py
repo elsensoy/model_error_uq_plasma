@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import numpy as np
+from pathlib import Path
 from scipy.optimize import minimize
 from typing import Dict, Any
 from hall_opt.config.verifier import Settings, extract_anom_model
@@ -16,6 +17,7 @@ def run_map_workflow(
 ):
 
     # Load initial guess
+    map_settings = settings.map
     try:
         initial_guess_path = settings.optimization_params["map_params"]["map_initial_guess_path"]
         with open(initial_guess_path, "r") as f:
@@ -54,9 +56,7 @@ def run_map_workflow(
         return penalty
 
     def neg_log_posterior_with_penalty(c_log):
-        """
-        Compute the negative log-posterior with bounds penalties.
-        """
+        """Compute the negative log-posterior with bounds penalties."""
         try:
             log_posterior_value = log_posterior(
                 c_log, observed_data, settings=settings
@@ -67,9 +67,7 @@ def run_map_workflow(
             return np.inf
 
     def iteration_callback(c_log):
-        """
-        Callback function to save parameters and log progress at each iteration.
-        """
+        """Callback function to save parameters and log progress at each iteration."""
         iteration_counter[0] += 1
         c1_log, alpha_log = c_log
         c1, alpha = np.exp(c1_log), np.exp(alpha_log)
@@ -103,7 +101,7 @@ def run_map_workflow(
         )
     except Exception as e:
         print(f"Error during optimization: {e}")
-        return None, None
+        return None
 
     if result.success:
         c1_opt = np.exp(result.x[0])
@@ -119,5 +117,6 @@ def run_map_workflow(
 
         return c1_opt, alpha_opt
     else:
-        print("MAP optimization failed.")
-        return None, None
+        print(" MAP optimization failed.")
+        return None
+    

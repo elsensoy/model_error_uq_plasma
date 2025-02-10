@@ -1,22 +1,11 @@
 import os
 import json
 import numpy as np
+from hall_opt.config.dict import Settings
 
 # -----------------------------
 # Utility Functions
 # -----------------------------
-
-def load_config(config_path):
-    """Load the JSON configuration file."""
-    try:
-        with open(config_path, 'r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print(f"Configuration file not found: {config_path}")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
-        return None
 
 def subsample_data(data, step=10):
     """Subsample spatial or temporal data."""
@@ -30,49 +19,60 @@ def subsample_data(data, step=10):
 # Saving Results
 # -----------------------------
 
-def save_results_to_json(result_dict, filename, results_dir="results", save_every_n_grid_points=10, subsample_for_saving=True):
+def save_results_to_json(
+    settings: Settings, 
+    result_dict: dict, 
+    filename: str, 
+    results_dir=str,
+    save_every_n_grid_points=int, 
+    subsample_for_saving=True
+):
+    # Determine correct results directory
+    if settings.general.run_map:
+        results_dir = settings.map.base_dir  # Uses `map-results-N/`
+    elif settings.general.run_mcmc:
+        results_dir = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
+    else:
+        raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
+
+    # Ensure directory exists
+    os.makedirs(results_dir, exist_ok=True)
 
     # Filter required keys
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
 
-    # Subsample data if required
+    # Subsample data 
     if subsample_for_saving:
         for key in ['z_normalized', 'ion_velocity']:
             if key in result_dict_copy and result_dict_copy[key] is not None:
                 result_dict_copy[key] = subsample_data(result_dict_copy[key], save_every_n_grid_points)
 
-    # Ensure results directory exists
-    os.makedirs(results_dir, exist_ok=True)
-
     # Save results to JSON
     result_file_path = os.path.join(results_dir, filename)
     with open(result_file_path, 'w') as json_file:
         json.dump(result_dict_copy, json_file, indent=4)
+    
     print(f"Results successfully saved to {result_file_path}")
 
 
-def load_json_data(filename):
-    """Load JSON data from a file."""
-    try:
-        with open(filename, 'r') as f:
-            data = json.load(f)
-        print(f"Data loaded successfully from {filename}")
-        return data
-    except FileNotFoundError:
-        print(f"File not found: {filename}")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
-        return None
+def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
+    """
+    Saves metadata in the appropriate MAP or MCMC directory.
+    """
+    if settings.general.run_map:
+        directory = settings.map.base_dir  # Uses `map-results-N/`
+    elif settings.general.run_mcmc:
+        directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
+    else:
+        raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")
 
-def save_metadata(metadata, filename="mcmc_metadata.json", directory="mcmc/results"):
+    # Ensure directory exists
+    # os.makedirs(directory, exist_ok=True)
 
-    os.makedirs(directory, exist_ok=True)  
+    # Save metadata
     filepath = os.path.join(directory, filename)
-    
     with open(filepath, 'w') as f:
         json.dump(metadata, f, indent=4)
-    print(f"Metadata saved to {filepath}")
 
-   
+    print(f"Metadata saved to {filepath}")

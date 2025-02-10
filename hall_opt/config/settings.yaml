@@ -1,10 +1,23 @@
 general:
   results_dir: "hall_opt/results"  # Base directory for results
+<<<<<<< Updated upstream
   run_map: false    # Whether to run MAP
   run_mcmc: false   # Whether to run MCMC
   plotting: true   # Whether to generate plots
   ion_velocity_weight: 2.0 #same for both mcmc and map
   iterations: 20   # Number of iterations
+=======
+  run_map: true     
+  run_mcmc: false                     
+  plotting: true    # Whether to generate plots
+  ion_velocity_weight: 2.0  # Same for both MCMC and MAP
+  iterations: 20  # Number of iterations
+
+ground_truth:
+  gen_data: true                 
+  results_dir: "${general.results_dir}/postprocess"
+  output_file: "${ground_truth.results_dir}/output_ground_truth.json"
+>>>>>>> Stashed changes
 
 config_settings:
     thruster:

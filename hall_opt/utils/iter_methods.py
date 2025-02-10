@@ -1,37 +1,40 @@
 import os
-import pickle
 import json
 import numpy as np
+from pathlib import Path
+from hall_opt.config.dict import Settings
 
+def get_next_results_dir(base_dir: str, base_name: str) -> str:
+    """
+    Generate the next results directory based on `base_dir` from settings.
+    - Example:
+        `get_next_results_dir("hall_opt/results/mcmc", "mcmc-results")`
+        Returns: `hall_opt/results/mcmc/mcmc-results-1/`
+    """
 
-def get_next_results_dir(base_dir="mcmc/results", base_name="mcmc-results"):
-  
-    #Generate the next results directory with an enumerated suffix.
-    # 'mcmc-results-1', 'mcmc-results-2', etc.
-    #     Example structure:
-    # results/
-    # ├── mcmc-results-1/
-    # ├── mcmc-results-2/
-    # 
-    base_dir = os.path.abspath(base_dir)  # Convert to an absolute path
-    os.makedirs(base_dir, exist_ok=True)  # Ensure the base_dir exists
+    base_dir = os.path.abspath(base_dir)
+    Path(base_dir).mkdir(parents=True, exist_ok=True)
+
     i = 1
     while True:
         dir_name = os.path.join(base_dir, f"{base_name}-{i}")
         if not os.path.exists(dir_name):
-            os.makedirs(dir_name)  # Create the directory
+            Path(dir_name).mkdir(parents=True, exist_ok=True)
             print(f"Created results directory: {dir_name}")
-            return dir_name
+            return dir_name  # Return path to new results folder
         i += 1
 
-
-def get_next_filename(base_filename, directory, extension=".csv"):
+def get_next_filename(base_filename: str, directory: str, extension=".json") -> str:
+    """
+    Generate the next available filename inside `directory`.
+        `get_next_filename("metrics", "hall_opt/results/mcmc/mcmc-results-1/iter_metrics/")`
+        Returns: `hall_opt/results/mcmc/mcmc-results-1/iter_metrics/metrics_1.json`
+    """
+    Path(directory).mkdir(parents=True, exist_ok=True)
 
     i = 1
-    full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
-    while os.path.exists(full_path):
-        i += 1
+    while True:
         full_path = os.path.join(directory, f"{base_filename}_{i}{extension}")
-    return full_path
-
-
+        if not os.path.exists(full_path):
+            return full_path  # Return unique file path
+        i += 1

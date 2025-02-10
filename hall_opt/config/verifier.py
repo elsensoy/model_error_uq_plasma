@@ -2,7 +2,10 @@ import yaml
 from pydantic import BaseModel, Field, ValidationError
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from hall_opt.config.dict import Settings
+from hall_opt.utils.resolve_paths import resolve_yaml_paths
 from typing_extensions import Annotated  # add annotation 
+<<<<<<< Updated upstream
 
 ###TODO DONE: Defaults & Annotations
 
@@ -91,6 +94,16 @@ class Settings(BaseModel):
     plots: Optional[PlottingConfig]
     
 #TODO DONE: error handling
+=======
+from hall_opt.config.dict import (
+    Settings, 
+    MapConfig, 
+    MCMCConfig, 
+    GroundTruthConfig, 
+    PlottingConfig
+)
+
+>>>>>>> Stashed changes
 def load_yaml(file_path: str) -> Optional[dict]:
  
     try:
@@ -170,11 +183,13 @@ def verify_all_yaml() -> Optional[Settings]:
             try:
                 section_class = class_mapping.get(section, f"{section.capitalize()}Config")
                 setattr(settings, section, eval(section_class)(**settings_data[section]))
+
                 print(f"settings.yaml [{section}] is valid.")
             except ValidationError as e:
                 print(f"\nERROR: Validation failed for {section}:\n{e}")
                 return None
 
+<<<<<<< Updated upstream
     return settings  # Return the validated settings object
 
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
@@ -193,3 +208,7 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
     except KeyError as e:
         print(f" ERROR: {e}")
         return None
+=======
+    return settings
+
+>>>>>>> Stashed changes

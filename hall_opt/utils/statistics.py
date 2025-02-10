@@ -5,7 +5,8 @@ import pathlib
 import sys
 from scipy.optimize import minimize
 from scipy.stats import norm
-from hall_opt.config.verifier import Settings, extract_anom_model
+from hall_opt.config.dict import Settings
+from hall_opt.utils.data_loader import extract_anom_model
 from hall_opt.config.run_model import run_model
 
 # -----------------------------

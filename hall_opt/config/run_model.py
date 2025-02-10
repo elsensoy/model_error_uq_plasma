@@ -3,7 +3,8 @@ import json
 import numpy as np
 import os
 from typing import Optional, Dict, Any
-from hall_opt.config.verifier import Settings, extract_anom_model
+from hall_opt.config.dict import Settings
+from hall_opt.utils.data_loader import extract_anom_model
 from pydantic import BaseModel
 from hall_opt.utils.save_data import save_results_to_json
 
