@@ -30,7 +30,7 @@ def main():
     print(f"DEBUG: postprocess type = {type(postprocess)}")
 
     #  Step 3: Results Directory if It Doesn't Exist
-    base_results_dir = Path(general_settings.results_dir).resolve()
+    base_results_dir = Path(settings.postprocess.output_file["Multilogbohm"]).resolve()
     base_results_dir.mkdir(parents=True, exist_ok=True)
     print(f"Results directory set to: {base_results_dir}")
     
@@ -70,12 +70,3 @@ def main():
         else:
             print(" ERROR: Ground truth simulation failed.")
 
-    # Step 7: Generate Plots If Enabled
-    if settings.general.plotting and "ground_truth_plots" in settings.plots.enabled_plots:
-        print("Plotting enabled, generating ground truth plot...")
-        plot_ion_velocity(ground_truth_solution, settings.plots.plots_subdir)
-    else:
-        print(" Plotting is disabled or not enabled in settings.")
-
-if __name__ == "__main__":
-    main()

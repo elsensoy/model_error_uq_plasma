@@ -1,116 +1,134 @@
-# Import necessary modules
 import sys
+from pathlib import Path
+import json
+import numpy as np
 import os
 import yaml
-import numpy as np
-import logging
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent))
-# Import verifier and run functions
-from config.verifier import verify_all_yaml, extract_anom_model, GeneralSettings
-from config.run_model import run_model
-from map import run_map_workflow
-from mcmc import run_mcmc_with_final_map_params
+from hall_opt.map import run_map_workflow
+from hall_opt.mcmc import run_mcmc_with_final_map_params
+from hall_opt.utils.gen_data import generate_ground_truth
+from hall_opt.config.verifier import verify_all_yaml
+from hall_opt.plotting.posterior_plots import generate_plots
+from hall_opt.utils.data_loader import load_data
+from hall_opt.utils.resolve_paths import resolve_yaml_paths
+from hall_opt.utils.save_posterior import save_metrics
+from hall_opt.utils.iter_methods import get_next_results_dir
+
 
 def main():
-
-
-    # Validate all YAML files before execution
+    # -----------------------------
+    #  Step 1: Validate and Load YAML
+    # -----------------------------
     settings = verify_all_yaml()
+
     if settings is None:
-        print("ERROR: One or more YAML configuration files are invalid. Exiting...")
+        print(" ERROR: Failed to load settings. Exiting...")
         sys.exit(1)
 
-    # Resolve base directory paths
-    base_results_dir = Path(settings.results_dir)
+    print(f"DEBUG: settings type = {type(settings)}")
+    resolve_yaml_paths(settings)
+    # Step 2: Extract Required Configurations
+    general_settings = settings.general
+    config_settings = settings.config_settings
+    ground_truth = settings.ground_truth
+    postprocess = settings.postprocess
+    simulation = settings.simulation
+
+    print(f"DEBUG: config_settings type = {type(config_settings)}")
+    print(f"DEBUG: simulation type = {type(simulation)}")
+    print(f"DEBUG: postprocess type = {type(postprocess)}")
+
+    # -----------------------------
+    #  Step 3: Create Results Directory
+    # -----------------------------
+    base_results_dir = Path(general_settings.results_dir).resolve()
     base_results_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Results directory set to: {base_results_dir}")
+   
+    print(f" Results directory set to: {base_results_dir}")
 
+    # -----------------------------
+    #  Step 4: Generate or Load Ground Truth Data
+    # -----------------------------
     observed_data = None
+    ground_truth_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
 
-    # Step 1: Generate ground truth data
-    if settings.gen_data:
-        print("Generating ground truth data using MultiLogBohm...")
-        try:
-            multilogbohm_config = extract_anom_model(settings, model_type="MultiLogBohm")
-            ground_truth_solution = run_model(
-                config=multilogbohm_config,
-                settings=settings,
-                simulation=settings.simulation,      # Pass general simulation settings
-                postprocess=settings.postprocess,    # Pass postprocessing settings
-                model_type="MultiLogBohm",
-            )
+    if settings.ground_truth.gen_data:
+        print("DEBUG: `gen_data=True` -> Running ground truth generation...")
+        observed_data = generate_ground_truth(settings)
+    else:
+        print(f"DEBUG: `gen_data=False` -> Trying to load ground truth data from {ground_truth_file}")
+        
+        if not ground_truth_file.exists():
+            print(f"ERROR: Ground truth file '{ground_truth_file}' not found.")
+        else:
+            observed_data = load_data(settings, "ground_truth")
 
-            if ground_truth_solution:
-                averaged_metrics = ground_truth_solution["output"]["average"]
-                observed_data = {
-                    "thrust": averaged_metrics.get("thrust", 0),
-                    "discharge_current": averaged_metrics.get("discharge_current", 0),
-                    "ion_velocity": averaged_metrics.get("ui", [0])[0],
-                    "z_normalized": averaged_metrics.get("z", 0),
-                }
-                print("Ground truth data generated and extracted.")
-            else:
-                print("ERROR: Ground truth simulation failed.")
-                sys.exit(1)
-        except Exception as e:
-            print(f"ERROR during ground truth generation: {e}")
-            sys.exit(1)
-
-    # Step 2: Run MAP estimation
-    if settings.run_map:
+    #  Stop execution if no ground truth is found
+    if observed_data is None:
+        print("ERROR: Ground truth data is required but missing. Exiting.")
+        save_metrics(settings, observed_data, output_dir=str(ground_truth_file.parent), use_json_dump=True)
+    # -----------------------------
+    #  Step 5: Run MAP Estimation (If Enabled)
+    # -----------------------------
+# Step 5: Run MAP estimation if enabled
+    if settings.general.run_map:
         print("Running MAP estimation using TwoZoneBohm...")
-        map_results_dir = base_results_dir / "map_results"
-        map_results_dir.mkdir(parents=True, exist_ok=True)
+
+        # Ensure `map-results-N/` is determined BEFORE running MAP
+        # settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
+        print(f"Using base directory for this MAP run: {settings.map.base_dir}")
 
         try:
-            final_map_params_path = map_results_dir / settings.map_params.final_map_params_file
+            # Run MAP workflow
+            optimized_params = run_map_workflow(observed_data, settings)
 
-            c1_opt, alpha_opt = run_map_workflow(
-                observed_data=observed_data,
-                settings=settings,
-                simulation=settings.simulation,
-                results_dir=str(map_results_dir),
-            )
+            if optimized_params:
+                # Save final MAP parameters inside `map-results-N/`
+                final_map_params_path = Path(settings.map.base_dir) / "final_map_params.json"
+                with open(final_map_params_path, "w") as f:
+                    json.dump(optimized_params, f, indent=4)
+                print(f"Final MAP parameters saved to {final_map_params_path}")
 
-            if c1_opt is not None and alpha_opt is not None:
-                print(f"MAP optimization completed: c1={c1_opt}, alpha={alpha_opt}")
             else:
                 print("ERROR: MAP optimization failed.")
+
         except Exception as e:
             print(f"ERROR during MAP estimation: {e}")
             sys.exit(1)
 
-    # Step 3: Run MCMC sampling
-    if settings.run_mcmc:
-        print("Running MCMC sampling using TwoZoneBohm...")
-        mcmc_results_dir = base_results_dir / "mcmc_results"
-        mcmc_results_dir.mkdir(parents=True, exist_ok=True)
 
-        observed_data["ion_velocity"] = np.array(observed_data["ion_velocity"], dtype=np.float64)
+    # -----------------------------
+    #  Step 6: Run MCMC Sampling (If Enabled)
+    # -----------------------------
+    if settings.general.run_mcmc:
+        print(" Running MCMC sampling...")
 
-        try:
-            run_mcmc_with_final_map_params(
-                final_map_params=final_map_params_path,
-                observed_data=observed_data,
-                config=extract_anom_model(settings, model_type="TwoZoneBohm"),
-                simulation=settings.simulation,
-                settings=settings,
-                ion_velocity_weight=settings.ion_velocity_weight,
-                iterations=settings.iterations,
-                initial_cov=settings.mcmc_params.initial_cov,
-            )
-            print("MCMC sampling completed successfully.")
-        except Exception as e:
-            print(f"ERROR during MCMC sampling: {e}")
+        # Convert results_dir to a Path before using mkdir()
+        mcmc_results_dir = Path(settings.mcmc.results_dir)
+        mcmc_results_dir.mkdir(parents=True, exist_ok=True)  
+
+        # Use the correct base directory
+        settings.mcmc.base_dir = Path(get_next_results_dir(settings.mcmc.results_dir, "mcmc-results")).resolve()
+        print(f"Using base directory for this MCMC run: {settings.mcmc.base_dir}")
+
+        # Run MCMC Sampling
+        mcmc_params = run_mcmc_with_final_map_params(observed_data, settings)
+        if mcmc_params is None:
+            print(" ERROR: MCMC sampling failed. Exiting.")
             sys.exit(1)
 
-    # Step 4: Generate plots (if enabled)
-    if settings.plotting:
-        print("Generating plots...")
-        plots_dir = base_results_dir / settings.plotting.plots_subdir
-        plots_dir.mkdir(parents=True, exist_ok=True)
-        print(f"Plots will be saved in: {plots_dir}")
+        print(" MCMC sampling completed!")
+
+    # -----------------------------
+    #  Step 7: Generate Plots (If Enabled)
+    # -----------------------------
+    if settings.general.plotting:
+        print(" Generating plots...")
+        generate_plots(settings)
+        print(" All plots successfully generated!")
+
+    print(" All processes completed successfully!")
+
 
 if __name__ == "__main__":
     main()

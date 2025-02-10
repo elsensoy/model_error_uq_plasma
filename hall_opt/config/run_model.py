@@ -3,7 +3,13 @@ import json
 import numpy as np
 import os
 from typing import Optional, Dict, Any
-from hall_opt.config.dict import Settings
+from hall_opt.config.dict import (
+    Settings, 
+    MapConfig, 
+    MCMCConfig, 
+    GroundTruthConfig, 
+    PlottingConfig
+)
 from hall_opt.utils.data_loader import extract_anom_model
 from pydantic import BaseModel
 from hall_opt.utils.save_data import save_results_to_json
@@ -92,9 +98,10 @@ def run_model(
         print(f"Z-Normalized: {extracted_metrics['z_normalized']}")
 
         save_results_to_json(
-            extracted_metrics, 
+            result_dict=extracted_metrics,
             filename=os.path.basename(output_file),
             results_dir=os.path.dirname(output_file),
+            settings = settings,
             save_every_n_grid_points=10, 
             subsample_for_saving=True
         )

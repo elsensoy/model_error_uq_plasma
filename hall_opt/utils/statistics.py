@@ -2,25 +2,19 @@ import os
 import json
 import numpy as np
 import pathlib
-import sys
-from scipy.optimize import minimize
 from scipy.stats import norm
 from hall_opt.config.dict import Settings
 from hall_opt.utils.data_loader import extract_anom_model
 from hall_opt.config.run_model import run_model
-
+from hall_opt.utils.save_posterior import save_metrics, save_posterior
 # -----------------------------
 # 1. Prior
 # -----------------------------
 def prior_logpdf(c1_log: float, alpha_log: float) -> float:
-    # Gaussian prior for c1_log
+    """Computes the log prior probability of the parameters."""
     prior1 = norm.logpdf(c1_log, loc=np.log10(1 / 160), scale=np.sqrt(2))
-    # Uniform prior for alpha_log in range (0, 2]
-    if alpha_log <= 0 or alpha_log > 2:
-        return -np.inf
-    prior2 = 0
+    prior2 = 0 if 0 < alpha_log <= 2 else -np.inf  # Uniform prior
     return prior1 + prior2
-
 
 # -----------------------------
 # 2. Likelihood
@@ -33,8 +27,7 @@ def log_likelihood(
     c1, alpha = np.exp(c1_log), np.exp(alpha_log)
     c2 = c1 * alpha  # Calculate c2 from c1 and alpha
 
-    observed_ion_velocity = np.array(observed_data.get("ion_velocity"), dtype=np.float64)
-
+    # Update the TwoZoneBohm configuration with the new parameters
     try:
         twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
         twozonebohm_config["anom_model"].update({"c1": c1, "c2": c2})
@@ -42,84 +35,117 @@ def log_likelihood(
         print(f"Error updating TwoZoneBohm config: {e}")
         return -np.inf
 
+    # Extract observed ion velocity from "output" -> "average" -> "ui"
+    observed_ion_velocity = np.array(
+        observed_data.get("output", {}).get("average", {}).get("ui", [[0]])[0], dtype=np.float64
+    ).flatten()
+
+    # Use the existing approach for extraction logic
+    try:
+        twozonebohm_config = extract_anom_model(settings, model_type="TwoZoneBohm")
+        twozonebohm_config["anom_model"].update({"c1": c1, "c2": c2})
+    except Exception as e:
+        print(f"Error updating TwoZoneBohm config: {e}")
+        return -np.inf
+
+    # Run Model Simulation
     solution = run_model(
         settings=settings,
-        config=twozonebohm_config,  
+        config_settings=twozonebohm_config,  
         simulation=settings.simulation,     
         postprocess=settings.postprocess,   
         model_type="TwoZoneBohm"
     )
 
     if solution is None:
-        print("Simulation failed. Penalizing with -np.inf.")
+        print("Simulation failed. Returning -np.inf.")
         return -np.inf
 
-    metrics = solution["output"].get("average", {})
-    if not metrics or any(not np.isfinite(value) for value in metrics.values() if isinstance(value, (float, int))):
-        print("Invalid or missing metrics in simulation output.")
+    # Extract necessary metrics using the correct logic
+    metrics = solution.get("output", {}).get("average", {})
+    if not metrics:
+        print("ERROR: Invalid or missing metrics in simulation output.")
         return -np.inf
 
     simulated_data = {
-        "thrust": metrics.get("thrust", 0),
+        "thrust": metrics.get("thrust", [0]),
         "discharge_current": metrics.get("discharge_current", 0),
-        "ui": metrics.get("ui", []),
+        "z_normalized": metrics.get("z", []),
+        "ion_velocity": [metrics.get("ui", [0])], 
     }
+    # Extract simulated ion velocity
+    simulated_ion_velocity = np.array(metrics.get("ui", [0])[0], dtype=np.float64)
+    ion_velocity_weight = settings.general.ion_velocity_weight
+    log_likelihood_value = 0.0
 
-    simulated_ion_velocity = np.array(simulated_data["ui"][0], dtype=np.float64)
+    for key in ["thrust", "discharge_current"]:
+        if key in observed_data and key in simulated_data:
+            residual = np.array(simulated_data[key]) - np.array(observed_data[key])
+            log_likelihood_value += -0.5 * np.sum((residual / sigma) ** 2)
+            
+    if "ui" in simulated_data and "ion_velocity" in observed_data:
+        simulated_ion_velocity = np.array(simulated_data["ui"][0], dtype=np.float64)
+        observed_ion_velocity = np.array(observed_data["ion_velocity"], dtype=np.float64)
+        # print(f"Shape of simulated_ion_velocity: {simulated_ion_velocity.shape}")
+        # print(f"Shape of observed_ion_velocity: {observed_ion_velocity.shape}")
 
-    print(f"Type of simulated_ion_velocity: {type(simulated_ion_velocity)}, Length: {len(simulated_ion_velocity)}")
-    print(f"Type of observed_ion_velocity: {type(observed_ion_velocity)}, Length: {len(observed_ion_velocity)}")
+        if simulated_ion_velocity.shape == observed_ion_velocity.shape:
+            residual = simulated_ion_velocity - observed_ion_velocity
+            log_likelihood_value += -0.5 * np.sum((residual / (sigma / ion_velocity_weight)) ** 2)
+        else:
+            print("Mismatch in ion_velocity shapes. Penalizing with -np.inf.")
+            return -np.inf
 
-    # or iteration results
-    # results_base_dir = settings.general_settings["results_dir"]
-    # results_dir = get_next_results_dir(results_base_dir, base_name="mcmc-results")
-
-    # iteration_metrics_dir = os.path.join(results_dir, "iteration_metrics")
-    # os.makedirs(iteration_metrics_dir, exist_ok=True)
-    
-    # metrics_filename = get_next_filename("iteration_metrics", iteration_metrics_dir, ".json")
-
-    iteration_results = {
-        "c1": c1,
-        "c2": c2,
-        "thrust": simulated_data["thrust"],
-        "discharge_current": simulated_data["discharge_current"],
-        "ion_velocity": simulated_ion_velocity.tolist(),
-    }
-    # save_results_to_json(iteration_results, metrics_filename)
-    # print(f"Saved iteration results to {metrics_filename}")
-    
-    if len(simulated_ion_velocity) == len(observed_ion_velocity):
-        residual = simulated_ion_velocity - observed_ion_velocity
-        log_likelihood_value = -0.5 * np.sum((residual / (sigma / settings.general_settings["ion_velocity_weight"])) ** 2)
+    #  directory for saving metrics map/mcmc
+    if settings.general.run_map:
+        output_dir = settings.map.base_dir  #  base_dir instead of results_dir
+        print("DEBUG: Saving metrics in MAP results directory.")
+    elif settings.general.run_mcmc:
+        output_dir = settings.mcmc.base_dir  #  base_dir instead of results_dir
+        print("DEBUG: Saving metrics in MCMC results directory.")
     else:
-        print("Mismatch in ion_velocity lengths. Penalizing with -np.inf.")
-        return -np.inf
+        print("DEBUG: No MAP or MCMC executed")
+        output_dir = settings.general.results_dir  # Default general directory
+
+    save_metrics(
+        settings=settings,
+        extracted_metrics=simulated_data,
+        output_dir=output_dir
+    )
+
+    # print(f"DEBUG: Type of observed_ion_velocity = {type(observed_ion_velocity)}")
+    # print(f"DEBUG: Shape of observed_ion_velocity = {np.shape(observed_ion_velocity)}")
+    # print(f"DEBUG: First 5 elements of observed_ion_velocity = {observed_ion_velocity[:5]}")
+    # print(f"DEBUG: Length of simulated_ion_velocity = {len(simulated_ion_velocity)}")
+    # print(f"DEBUG: Length of observed_ion_velocity = {len(observed_ion_velocity)}")
 
     return log_likelihood_value
 
+
 # -----------------------------
-# 3. Posterior
+# 3. Posterior (Only Save Posterior Value)
 # -----------------------------
 def log_posterior(
     c_log: list[float], observed_data: dict, settings: Settings
 ) -> float:
-
     c1_log, alpha_log = c_log
 
-    # Convert observed data values to numpy arrays if they are lists
-    for key in observed_data:
-        if isinstance(observed_data[key], list):
-            observed_data[key] = np.array(observed_data[key], dtype=np.float64)
+    observed_data = {
+        key: np.array(value, dtype=np.float64) if isinstance(value, list) else value
+        for key, value in observed_data.items()
+    }
 
-    # Compute prior
     log_prior_value = prior_logpdf(c1_log, alpha_log)
     if not np.isfinite(log_prior_value):
         return -np.inf
 
-    # Compute likelihood
     log_likelihood_value = log_likelihood(c_log, observed_data, settings)
     if not np.isfinite(log_likelihood_value):
         return -np.inf
 
-    return log_prior_value + log_likelihood_value
+    log_posterior_value = log_prior_value + log_likelihood_value
+
+    # Save only posterior value using `save_rseults.json``
+    save_posterior(settings, c1_log, alpha_log, log_posterior_value)
+
+    return log_posterior_value

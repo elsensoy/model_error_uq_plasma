@@ -1,10 +1,12 @@
 import os
 import json
-from hall_opt.config.dict import Settings
+from hall_opt.config.verifier import Settings
 from hall_opt.config.run_model import run_model
 from hall_opt.utils.save_posterior import save_metrics
 
 def generate_ground_truth(settings: Settings):
+    """Generate and save ground truth data if gen_data is True, otherwise load fallback."""
+    
     ground_truth = settings.ground_truth
     output_file = ground_truth.output_file  
 
@@ -50,3 +52,21 @@ def generate_ground_truth(settings: Settings):
         except Exception as e:
             print(f"ERROR during ground truth generation: {e}")
             return None
+
+    # else:
+    #     print("WARNING: ground_truth.gen_data is False. Using fallback output file.")
+
+    #     fallback_output_file = settings.ground_truth.results_dir
+    #     # Load fallback file from disk
+    #     if os.path.exists(fallback_output_file):
+    #         try:
+    #             with open(fallback_output_file, "r") as file:
+    #                 fallback_data = json.load(file)
+    #             print(f"Loaded fallback output from '{fallback_output_file}'")
+    #             return fallback_data
+    #         except json.JSONDecodeError:
+    #             print(f"ERROR: Could not decode JSON from fallback file: {fallback_output_file}")
+    #             return None
+    #     else:
+    #         print(f"ERROR: Fallback file '{fallback_output_file}' not found.")
+    #         return None

@@ -28,7 +28,9 @@ def save_results_to_json(
     subsample_for_saving=True
 ):
     # Determine correct results directory
-    if settings.general.run_map:
+    if settings.ground_truth.gen_data:
+        results_dir = settings.postprocess.output_file["Multilogbohm"]
+    elif settings.general.run_map:
         results_dir = settings.map.base_dir  # Uses `map-results-N/`
     elif settings.general.run_mcmc:
         results_dir = settings.mcmc.base_dir  # Uses `mcmc-results-N/`

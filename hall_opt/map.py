@@ -1,69 +1,48 @@
 import os
 import json
-import sys
 import numpy as np
-from pathlib import Path
 from scipy.optimize import minimize
 from typing import Dict, Any
-from hall_opt.config.verifier import Settings, extract_anom_model
+from pathlib import Path
+from hall_opt.config.verifier import Settings
 from hall_opt.utils.statistics import log_posterior
-
+from hall_opt.utils.iter_methods import get_next_results_dir
 
 def run_map_workflow(
     observed_data: Dict[str, Any],
     settings: Settings,
-    simulation: Dict[str, Any],
-    results_dir: str,
 ):
+    """
+    Runs the MAP optimization workflow using scipy.optimize and saves the last sampled parameters.
+    """
+
+    # Ensure the correct MAP results directory (e.g., map-results-1/, map-results-2/)
+    settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
+    print(f"Using MAP base directory: {settings.map.base_dir}")
 
     # Load initial guess
     map_settings = settings.map
     try:
-        initial_guess_path = settings.optimization_params["map_params"]["map_initial_guess_path"]
-        with open(initial_guess_path, "r") as f:
+        with open(map_settings.map_initial_guess_file, "r") as f:
             initial_guess = json.load(f)  # Example: [-2.0, 0.5]
+            print(f"Running MAP optimization with initial guess (log-space): {initial_guess}")
     except Exception as e:
-        print(f"Error loading initial guess from {initial_guess_path}: {e}")
-        return None, None
+        print(f" Error loading initial guess from {map_settings.map_initial_guess_file}: {e}")
+        return None
 
     if not isinstance(initial_guess, list) or len(initial_guess) != 2:
-        print(f"Invalid initial guess format in {initial_guess_path}. Expected a list of two values.")
-        return None, None
-
-    # Extract MAP parameters from settings
-    map_params = settings.optimization_params["map_params"]
-    method = map_params["method"]
-    maxfev = map_params["maxfev"]
-    fatol = float(map_params["fatol"])
-    xatol = float(map_params["xatol"])
-    final_params_file = map_params["final_map_params"]
-    iteration_log_file = map_params["iteration_log_file"]
+        print(f" Invalid initial guess format in {map_settings.map_initial_guess_file}. Expected a list of two values.")
+        return None
 
     iteration_counter = [0]  # Tracks iterations
     iteration_logs = []  # Store iteration logs
 
-    print(f"Running MAP optimization with initial guess (log-space): {initial_guess}")
-
-    def bounds_penalty(c_log):
-        """
-        Apply penalties for parameters outside bounds.
-        """
-        penalty = 0
-        if not (-5 <= c_log[0] <= 0):  # log(c1) bounds
-            penalty += (c_log[0] - max(-5, min(c_log[0], 0))) ** 2
-        if not (0 <= c_log[1] <= 3):  # log(alpha) bounds
-            penalty += (c_log[1] - max(0, min(c_log[1], 3))) ** 2
-        return penalty
-
     def neg_log_posterior_with_penalty(c_log):
         """Compute the negative log-posterior with bounds penalties."""
         try:
-            log_posterior_value = log_posterior(
-                c_log, observed_data, settings=settings
-            )
-            return -log_posterior_value + bounds_penalty(c_log)
+            return -log_posterior(c_log, observed_data, settings=settings)
         except Exception as e:
-            print(f"Error evaluating log-posterior: {e}")
+            print(f" Error evaluating log-posterior: {e}")
             return np.inf
 
     def iteration_callback(c_log):
@@ -82,12 +61,12 @@ def run_map_workflow(
         }
         iteration_logs.append(iteration_data)
 
-        # Save the log file after each iteration
-        with open(iteration_log_file, "w") as log_file:
+        # Save iteration log file inside `map-results-N/`
+        iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
+        with open(iteration_log_path, "w") as log_file:
             json.dump(iteration_logs, log_file, indent=4)
 
-        # Print progress
-        print(f"Iteration {iteration_counter[0]}: c1 = {c1:.4f} (log: {c1_log:.4f}), "
+        print(f" Iteration {iteration_counter[0]}: c1 = {c1:.4f} (log: {c1_log:.4f}), "
               f"alpha = {alpha:.4f} (log: {alpha_log:.4f})")
 
     # Perform MAP optimization
@@ -95,28 +74,31 @@ def run_map_workflow(
         result = minimize(
             neg_log_posterior_with_penalty,
             initial_guess,
-            method=method,
+            method=map_settings.method,
             callback=iteration_callback,
-            options={"maxfev": maxfev, "fatol": fatol, "xatol": xatol}
+            options={"maxfev": map_settings.maxfev, "fatol": map_settings.fatol, "xatol": map_settings.xatol}
         )
     except Exception as e:
-        print(f"Error during optimization: {e}")
+        print(f" Error during optimization: {e}")
         return None
 
     if result.success:
-        c1_opt = np.exp(result.x[0])
-        alpha_opt = np.exp(result.x[1])
-        print(f"Optimization succeeded: c1 = {c1_opt:.4f}, alpha = {alpha_opt:.4f}")
+        # Extract final MAP sample
+        final_map_params = {
+            "c1_log": result.x[0],
+            "alpha_log": result.x[1],
+            "c1": np.exp(result.x[0]),
+            "alpha": np.exp(result.x[1]),
+            "c2": np.exp(result.x[0]) * np.exp(result.x[1])
+        }
 
-        # Save final parameters
-        final_params_path = os.path.join(results_dir, final_params_file)
-        optimized_param = {"c1": c1_opt, "alpha": alpha_opt}
-        with open(final_params_path, "w") as f:
-            json.dump(optimized_param, f, indent=4)
-        print(f"Final parameters saved to {final_params_path}")
+        # Save final MAP sample to `final_map_params.json` inside `map-results-N/`
+        final_map_params_path = Path(settings.map.base_dir) / "final_map_params.json"
+        with open(final_map_params_path, "w") as f:
+            json.dump(final_map_params, f, indent=4)
 
-        return c1_opt, alpha_opt
+        print(f"Final MAP parameters saved to {final_map_params_path}")
+        return final_map_params
     else:
         print(" MAP optimization failed.")
         return None
-    

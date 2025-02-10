@@ -141,7 +141,7 @@ class Settings(BaseModel):
         # Apply `absolute_paths()` dynamically
         for section_name, section in self.__dict__.items():
             if hasattr(section, "absolute_paths"):
-                print(f"🔹 Resolving paths for section: {section_name}")
+                print(f"Resolving paths for section: {section_name}")
                 section.absolute_paths(base_results_dir)
 
         print(" All paths resolved dynamically!")

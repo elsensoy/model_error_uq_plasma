@@ -59,50 +59,38 @@ def save_posterior(
 # 5. Save Extracted Metrics Using `save_results_to_json`
 # -----------------------------
 
-def save_metrics(
-    settings: Settings,
-    extracted_metrics: dict,
-    output_dir: None, 
-    base_name: str = "metrics",
-    use_json_dump: bool = False,
-    save_every_n_grid_points: int = 10 
-):
-    #Saves extracted simulation metrics inside `map-results-N/iter_metrics/` or `mcmc-results-N/iter_metrics/`.
+def save_metrics(settings, extracted_metrics, output_dir=None, base_name="metrics", use_json_dump=False):
+    """Saves extracted simulation metrics to file."""
 
     if use_json_dump:
-        # save to ground_truth output file
+        # Use ground truth output file
         output_file = settings.postprocess.output_file["MultiLogBohm"]
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
         with open(output_file, "w") as json_file:
             json.dump(extracted_metrics, json_file, indent=4)
-        print(f" Ground truth metrics saved to {output_file}")
-    
+        print(f"Ground truth metrics saved to {output_file}")
+
     else:
-        #  Use the `map-results-N/` or `mcmc-results-N/` directory created before iterations start
+        # Define directory based on the method being used (MAP or MCMC)
         if settings.general.run_map:
-            base_dir = settings.map.base_dir  # Uses pre-defined map-results-N/
+            base_dir = settings.map.results_dir
         elif settings.general.run_mcmc:
-            base_dir = settings.mcmc.base_dir  # Uses pre-defined mcmc-results-N/
+            base_dir = settings.mcmc.results_dir
         else:
             raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
 
-        #  Define `iter_metrics/` inside `map-results-N/` or `mcmc-results-N/`
         metrics_dir = os.path.join(base_dir, "iter_metrics")
-
-        #   `map-results-N/iter_metrics/` or `mcmc-results-N/iter_metrics/` exists
         os.makedirs(metrics_dir, exist_ok=True)
 
-        #  Generate next available `metrics_X.json` filename inside `iter_metrics/`
-        filename = get_next_filename(base_name, metrics_dir, extension=".json")
+        # Ensure filename is always set before using it
+        filename = f"{base_name}.json"  # Assign default filename
 
-    save_results_to_json(
+        # Save results
         save_results_to_json(
-            result_dict=extracted_metrics,
-            filename=os.path.basename(filename),
+            result_dict=extracted_metrics,  # Fix: Ensure this argument is passed
+            filename=os.path.basename(filename),  # Fix: Ensure filename is always defined
             results_dir=metrics_dir,
-            save_every_n_grid_points=save_every_n_grid_points,  # Apply subsampling
-            subsample_for_saving=True  # Enable subsampling
-        )
         )
 
-    print(f"Metrics saved to {os.path.join(metrics_dir, filename)}")
+        print(f"Metrics saved to {metrics_dir}/{filename}")

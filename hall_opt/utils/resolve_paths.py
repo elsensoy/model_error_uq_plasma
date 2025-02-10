@@ -1,30 +1,37 @@
 from pathlib import Path
+from pydantic import BaseModel
 
-def resolve_yaml_paths(settings_data: dict):
-    """Replaces placeholders like '${general.results_dir}' dynamically in all YAML paths."""
+def resolve_yaml_paths(settings):
+    """Recursively resolve file paths inside settings using `general.results_dir`."""
 
-    # Ensure `general.results_dir` exists
-    if "general" not in settings_data or "results_dir" not in settings_data["general"]:
+    if not hasattr(settings, "general") or not hasattr(settings.general, "results_dir"):
         raise KeyError("ERROR: `general.results_dir` missing in settings.yaml")
 
-    results_dir = Path(settings_data["general"]["results_dir"]).resolve()
+    results_dir = Path(settings.general.results_dir).resolve()
+    print(f"DEBUG: Resolving paths with base directory: {results_dir}")
 
-    def replace_var(value):
-        """Replaces placeholders dynamically."""
+    def resolve(value):
+        """Replace placeholders dynamically in string paths."""
         if isinstance(value, str):
-            value = value.replace("${general.results_dir}", str(results_dir))
-            value = value.replace("${ground_truth.results_dir}", str(results_dir / "postprocess"))
-            value = value.replace("${postprocess.output_file}", str(results_dir / "postprocess"))
-            value = value.replace("${map.results_dir}", str(results_dir / "map"))
-            value = value.replace("${mcmc.results_dir}", str(results_dir / "mcmc"))
-            value = value.replace("${plots.results_dir}", str(results_dir / "plots"))
+            return (
+                value.replace("${general.results_dir}", str(results_dir))
+                     .replace("${ground_truth.results_dir}", str(results_dir / "postprocess"))
+                     .replace("${postprocess.output_file}", str(results_dir / "postprocess"))
+                     .replace("${map.results_dir}", str(results_dir / "map"))
+                     .replace("${mcmc.results_dir}", str(results_dir / "mcmc"))
+                     .replace("${plots.results_dir}", str(results_dir / "plots"))
+            )
         return value
 
-    # Apply replacements to all sections
-    for section_name, section_data in settings_data.items():
-        if isinstance(section_data, dict):
-            for key, value in section_data.items():
-                settings_data[section_name][key] = replace_var(value)
+    # Apply replacements to all sections dynamically
+    for section_name, section in vars(settings).items():
+        if isinstance(section, BaseModel):  # Ensure it's a Pydantic model
+            for key, value in vars(section).items():
+                if isinstance(value, str):
+                    setattr(section, key, resolve(value))
+                elif isinstance(value, dict):
+                    for sub_key, sub_value in value.items():
+                        section.__dict__[key][sub_key] = resolve(sub_value)
 
-    print("All YAML paths resolved successfully!")
-    return settings_data
+    print(" All YAML paths resolved successfully!")
+    return settings
