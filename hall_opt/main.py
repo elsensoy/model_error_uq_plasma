@@ -42,7 +42,7 @@ def main():
     #  Step 3: Create Results Directory
     # -----------------------------
     base_results_dir = Path(general_settings.results_dir).resolve()
-    base_results_dir.mkdir(parents=True, exist_ok=True)
+    # base_results_dir.mkdir(parents=True, exist_ok=True)
    
     print(f" Results directory set to: {base_results_dir}")
 
@@ -103,11 +103,9 @@ def main():
         print(" Running MCMC sampling...")
 
         # Convert results_dir to a Path before using mkdir()
-        mcmc_results_dir = Path(settings.mcmc.mcmc_results_dir)
-        mcmc_results_dir.mkdir(parents=True, exist_ok=True)  
 
         # Use the correct base directory
-        settings.mcmc.base_dir = Path(get_next_results_dir(settings.mcmc.mcmc_results_dir, "mcmc-results")).resolve()
+        # settings.mcmc.base_dir = Path(get_next_results_dir(settings.mcmc.base_dir, "mcmc-results")).resolve()
         print(f"Using base directory for this MCMC run: {settings.mcmc.base_dir}")
 
         # Run MCMC Sampling

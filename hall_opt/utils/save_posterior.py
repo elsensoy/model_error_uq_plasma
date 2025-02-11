@@ -114,8 +114,6 @@ def save_metrics(
     metrics_dir = os.path.join(base_dir, "iter_metrics")
     os.makedirs(metrics_dir, exist_ok=True)  # Ensure it exists
 
-    print(f"DEBUG: Metrics will be saved in: {metrics_dir}")
-
     #  Generate unique filename (e.g., `metrics_1.json`, `metrics_2.json`)
     metrics_file_path = get_next_filename(base_name, metrics_dir)
 

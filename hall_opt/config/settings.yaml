@@ -42,8 +42,7 @@ postprocess:
 
 mcmc:
   results_dir: "${general.results_dir}/mcmc"
-  base_dir: "${mcmc.results_dir}/iter_metrics"
-  
+  base_dir: "${mcmc.results_dir}"
   save_interval: 10
   checkpoint_interval: 10
   save_metadata: true
@@ -57,7 +56,7 @@ mcmc:
 
 map:
   results_dir: "${general.results_dir}/map"
-  base_dir: "${map.results_dir}/iter_metrics"
+  base_dir: "${map.results_dir}"
   map_initial_guess_file: "${map.results_dir}/initial_guess.json"
   iteration_log_file: "${map.results_dir}/map_sampling"
   final_map_params_file: "${map.results_dir}/final_map_params.json"

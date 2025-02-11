@@ -39,8 +39,18 @@ def verify_all_yaml() -> Optional[Settings]:
     # Debug: Print `general.results_dir` before resolving
     print(f"DEBUG: Loaded `general.results_dir`: {settings.general.results_dir}")
 
+    print(f"\nDEBUG: before resolving:")
+    print(f"  general.results_dir: {settings.general.results_dir}")
+    print(f"  mcmc.results_dir: {settings.mcmc.results_dir}")
+    print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
+
     # Resolve placeholders in YAML paths using Pydantic object
     settings = resolve_yaml_paths(settings)
+
+    print(f"\nDEBUG: After resolving:")
+    print(f"  general.results_dir: {settings.general.results_dir}")
+    print(f"  mcmc.results_dir: {settings.mcmc.results_dir}")
+    print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
 
     # Debug: Print `general.results_dir` after resolving
     print(f" Results directory resolved to: {settings.general.results_dir}")
@@ -48,7 +58,7 @@ def verify_all_yaml() -> Optional[Settings]:
     # Ensure directories exist
     Path(settings.general.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.ground_truth.results_dir).mkdir(parents=True, exist_ok=True)
-    Path(settings.mcmc.mcmc_results_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.mcmc.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.map.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.mcmc.base_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.map.base_dir).mkdir(parents=True, exist_ok=True)

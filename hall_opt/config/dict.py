@@ -74,7 +74,7 @@ class MapConfig(BaseModel):
         self.final_map_params_file = str(base_dir / self.final_map_params_file)
 
 class MCMCConfig(BaseModel):
-    mcmc_results_dir: str = Field(default="", description="Directory for MCMC results")  #  Add default
+    results_dir: str = Field(default="", description="Directory for MCMC results")  #  Add default
     base_dir: str = Field(default="", description="Directory for Iterations")
     save_interval: int = Field(default=10, ge=1, description="MCMC save interval")
     checkpoint_interval: int = Field(default=10, ge=1, description="Checkpoint interval")
