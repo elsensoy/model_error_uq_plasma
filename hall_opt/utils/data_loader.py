@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import yaml
 import pandas as pd
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -43,4 +44,27 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
 
     except KeyError as e:
         print(f" ERROR: {e}")
+        return 
+import yaml
+
+import yaml
+from pathlib import Path
+
+def load_config(config_path):
+    """Load the YAML configuration file with debug info."""
+    
+    config_path = Path(config_path).resolve()  # Ensure absolute path
+    print(f"DEBUG: Attempting to load YAML config from {config_path}")
+
+    if not config_path.exists():
+        print(f"ERROR: Configuration file does not exist at {config_path}")
+        return None
+
+    try:
+        with open(config_path, 'r') as file:
+            config_data = yaml.safe_load(file)
+            print("DEBUG: YAML configuration loaded successfully!")
+            return config_data
+    except yaml.YAMLError as e:
+        print(f"ERROR: Failed to parse YAML file: {e}")
         return None
