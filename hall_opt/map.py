@@ -35,10 +35,6 @@ def run_map_workflow(
     iteration_counter = [0]
     iteration_logs = []
 
-    # File paths for saving MAP samples
-    # iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
-    # checkpoint_path = Path(settings.map.base_dir) / "map_checkpoint.json"
-
     def bounds_penalty(c_log):
         penalty = 0
         if not (-5 <= c_log[0] <= 0): 
@@ -50,27 +46,37 @@ def run_map_workflow(
     def neg_log_posterior_with_penalty(c_log):
         """Compute the negative log-posterior with bounds penalties."""
         try:
-            return -log_posterior(
+
+            loss = -log_posterior(
                 c_log=c_log,
                 observed_data=observed_data,
-                settings=settings,  # Pass full settings
-                yaml_file=yaml_file  # Pass YAML file path
-            ) + bounds_penalty(c_log)  # Add the penalty
+                settings=settings,
+                yaml_file=yaml_file
+            ) + bounds_penalty(c_log)  # Add penalty term
+            
+            # print(f"Evaluating loss at c_log: {c_log}, loss: {loss}")
+
+            return loss # We return a minimized "loss"
         except Exception as e:
             print(f"ERROR: Failed to evaluate log-posterior: {e}")
             return np.inf
-        
+
+# Define paths for saving iteration logs and checkpoint
+    iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
+    checkpoint_path = Path(settings.map.base_dir) / "map_checkpoint.json"
+
+# Ensure the directory exists before writing files
+    iteration_log_path.parent.mkdir(parents=True, exist_ok=True)
+
     def iteration_callback(c_log):
         """
         Callback function to save parameters and log progress at each iteration.
         """
-        print("Callback function triggered!")  # Debugging print
-
         iteration_counter[0] += 1  # Increment iteration count
         c1_log, alpha_log = c_log
         c1, alpha = np.exp(c1_log), np.exp(alpha_log)  # Convert log-space to actual values
-        
-        # Save iteration logs
+
+        # Store iteration data
         iteration_data = {
             "iteration": iteration_counter[0],
             "c1_log": c1_log,
@@ -80,22 +86,37 @@ def run_map_workflow(
         }
         iteration_logs.append(iteration_data)
 
-        # Save logs to file after each iteration
+        # Save logs to JSON file after each iteration
         try:
-            with open(map_settings.iteration_log_file, "w") as log_file:
+            with open(iteration_log_path, "w") as log_file:
                 json.dump(iteration_logs, log_file, indent=4)
+            print(f"Saved iteration {iteration_counter[0]} to {iteration_log_path}")
         except Exception as e:
             print(f"WARNING: Failed to save iteration log: {e}")
 
-        # Print progress
+        # Save checkpoint (latest parameters)
+        try:
+            checkpoint_data = {
+                "last_iteration": iteration_counter[0],
+                "last_c1_log": c1_log,
+                "last_alpha_log": alpha_log,
+                "last_c1": c1,
+                "last_alpha": alpha,
+            }
+            with open(checkpoint_path, "w") as checkpoint_file:
+                json.dump(checkpoint_data, checkpoint_file, indent=4)
+            print(f"Checkpoint saved at {checkpoint_path}")
+        except Exception as e:
+            print(f"WARNING: Failed to save checkpoint: {e}")
+
+        # Print iteration progress
         print(f"Iteration {iteration_counter[0]}: c1 = {c1:.4f} (log: {c1_log:.4f}), "
             f"alpha = {alpha:.4f} (log: {alpha_log:.4f})")
 
-    # Perform MAP optimization
-
+   # Perform MAP optimization
     try:
         result = minimize(
-            neg_log_posterior_with_penalty,
+            neg_log_posterior_with_penalty, #--->first argument 
             initial_guess,
             method=map_settings.method,
             callback=iteration_callback,

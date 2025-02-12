@@ -2,6 +2,8 @@ import os
 import json
 import numpy as np
 import pathlib
+import csv
+from pathlib import Path
 from scipy.stats import norm
 from hall_opt.config.dict import Settings
 from hall_opt.config.verifier import load_yaml
@@ -26,12 +28,6 @@ def prior_logpdf(c1_log: float, alpha_log: float) -> float:
 # -----------------------------
 def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, sigma: float = 0.08) -> float:
     """Computes log-likelihood by running the model with MCMC parameters."""
-
-    # Print settings structure for debugging
-    # print(f"DEBUG: Settings Loaded = {settings}")
-    # print(f"DEBUG: config_settings = {settings.config_settings}")
-    # print(f"DEBUG: anom_model = {settings.config_settings.anom_model}")
-
     # Ensure the correct structure
     if not hasattr(settings, "config_settings"):
         print("ERROR: 'config_settings' missing from settings!")
@@ -55,6 +51,17 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
     settings.config_settings.anom_model["TwoZoneBohm"]["c2"] = c2
 
     print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
+
+# Define CSV file path
+    csv_file_path = Path(settings.map.base_dir) / "updated_params.csv"
+
+    # Write updated values to the CSV file (overwrite previous file)
+    with open(csv_file_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["c1", "c2"])  # Column headers
+        writer.writerow([c1, c2])  # Write updated values
+
+    print(f"Updated parameters saved to {csv_file_path}")
 
     # Run the model simulation
     solution = run_model(
