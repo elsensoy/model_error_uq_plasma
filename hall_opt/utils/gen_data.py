@@ -2,7 +2,7 @@ import os
 import json
 from hall_opt.config.verifier import Settings
 from hall_opt.config.run_model import run_model
-from hall_opt.utils.save_posterior import save_metrics
+
 
 def generate_ground_truth(settings: Settings):
     """Generate and save ground truth data if gen_data is True, otherwise load fallback."""

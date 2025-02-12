@@ -1,5 +1,6 @@
 general:
   results_dir: "hall_opt/results"  # Base directory for results
+  config_file: "hall_opt/config/settings.yaml"
   run_map: false     
   run_mcmc: true                     
   plotting: false    # Whether to generate plots

@@ -41,6 +41,7 @@ class Simulation(BaseModel):
 
 class GeneralSettings(BaseModel):
     results_dir: str = Field(default="hall_opt/results", description="Base directory for results")
+    config_file: str = Field(..., description="Settings.yaml file")
     run_map: bool = Field(default=False, description="Run MAP estimation")
     run_mcmc: bool = Field(default=False, description="Run MCMC sampling")
     plotting: bool = Field(default=False, description="Generate plots")

@@ -92,7 +92,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
     Run MCMC with optimized parameters loaded from YAML settings.
     """
 
-    config_path = "hall_opt/config/settings.yaml"  
+    config_file = "hall_opt/config/settings.yaml"  
 
     # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
   
@@ -116,7 +116,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
 
     all_samples = mcmc_inference(
-        lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings, config_path),
+        lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings, config_file),
         initial_sample=np.array(params, dtype=np.float64),
         initial_cov=np.array(settings.mcmc.initial_cov, dtype=np.float64),
         iterations=settings.general.iterations,
