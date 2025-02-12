@@ -1,8 +1,8 @@
 import yaml
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from hall_opt.utils.resolve_paths import resolve_yaml_paths
+from ..utils.resolve_paths import resolve_yaml_paths
 from typing_extensions import Annotated  # add annotation 
 
 ### DONE: Defaults & Annotations

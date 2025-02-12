@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from hall_opt.config.dict import Settings
+from ..config.dict import Settings
 
 # -----------------------------
 # Utility Functions
@@ -37,14 +37,14 @@ def save_results_to_json(
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
 
-    # Ensure directory exists
+    # make sure directory exists
     # os.makedirs(results_dir, exist_ok=True)
 
     # Filter required keys
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
 
-    # Ensure ion_velocity contains only the first entry
+    #  ion_velocity contains only the first entry
     if "ion_velocity" in result_dict_copy and isinstance(result_dict_copy["ion_velocity"], list):
         if len(result_dict_copy["ion_velocity"]) > 0 and isinstance(result_dict_copy["ion_velocity"][0], list):
             result_dict_copy["ion_velocity"] = result_dict_copy["ion_velocity"][0]  # Pick first set
@@ -75,7 +75,7 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")
 
-    # Ensure directory exists
+    # make sure directory exists
     # os.makedirs(directory, exist_ok=True)
 
     # Save metadata

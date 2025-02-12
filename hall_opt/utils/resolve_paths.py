@@ -25,7 +25,7 @@ def resolve_yaml_paths(settings):
 
     # Apply replacements to all sections dynamically
     for section_name, section in vars(settings).items():
-        if isinstance(section, BaseModel):  # Ensure it's a Pydantic model
+        if isinstance(section, BaseModel):  #  it should be a Pydantic model
             for key, value in vars(section).items():
                 if isinstance(value, str):
                     setattr(section, key, resolve(value))

@@ -2,8 +2,9 @@ import yaml
 from pathlib import Path
 from pydantic import ValidationError
 from typing import Optional
-from hall_opt.utils.resolve_paths import resolve_yaml_paths
-from hall_opt.config.dict import Settings  #  Import Settings class
+from ..utils.resolve_paths import resolve_yaml_paths
+from .dict import Settings
+  #  Import Settings class
 
 def load_yaml(file_path: str) -> Optional[dict]:
     """Loads YAML configuration file safely."""
@@ -55,7 +56,7 @@ def verify_all_yaml() -> Optional[Settings]:
     # Debug: Print `general.results_dir` after resolving
     print(f" Results directory resolved to: {settings.general.results_dir}")
 
-    # Ensure directories exist
+    #  directories exist
     Path(settings.general.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.ground_truth.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.mcmc.results_dir).mkdir(parents=True, exist_ok=True)

@@ -2,8 +2,8 @@ import os
 import json
 import hallthruster as het
 from typing import Optional, Dict, Any
-from hall_opt.utils.data_loader import extract_anom_model
-from hall_opt.config.dict import Settings
+from ..utils.data_loader import extract_anom_model
+from ..config.dict import Settings
 from pydantic import BaseModel
 
 def run_model(

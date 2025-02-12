@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import arviz as az
-from hall_opt.plotting.common_setup import get_common_paths
-from hall_opt.utils.data_loader import load_data
-from hall_opt.config.dict import Settings
+from ..plotting.common_setup import get_common_paths
+from ..utils.data_loader import load_data
+from ..config.dict import Settings
 
 def plot_autocorrelation(samples, output_dir):
     """Generate autocorrelation plots."""

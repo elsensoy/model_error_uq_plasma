@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 from pathlib import Path
-from hall_opt.config.dict import Settings
+from ..config.dict import Settings
 import os
 
 def get_next_results_dir(base_dir: str, base_name: str) -> str:
@@ -11,11 +11,11 @@ def get_next_results_dir(base_dir: str, base_name: str) -> str:
 
     - Example:
         `get_next_results_dir("hall_opt/results/mcmc", "mcmc-results")`
-        Returns: `hall_opt/results/mcmc/mcmc-results-1/`
+        Returns: `mcmc/mcmc-results-1/`
     """
 
-    base_dir = os.path.abspath(base_dir)  # Ensure absolute path
-    Path(base_dir).mkdir(parents=True, exist_ok=True)  # Ensure base directory exists
+    base_dir = os.path.abspath(base_dir)  #  absolute path
+    Path(base_dir).mkdir(parents=True, exist_ok=True)  
 
     i = 1
     while True:
@@ -32,10 +32,10 @@ def get_next_filename(base_filename: str, directory: str, extension=".json") -> 
     
     - Example:
         `get_next_filename("metrics", "hall_opt/results/mcmc/mcmc-results-1/iter_metrics/")`
-        Returns: `hall_opt/results/mcmc/mcmc-results-1/iter_metrics/metrics_1.json`
+        Returns: `mcmc-results-1/iter_metrics/metrics_1.json`
     """
 
-    Path(directory).mkdir(parents=True, exist_ok=True)  # Ensure directory exists
+    Path(directory).mkdir(parents=True, exist_ok=True)  # make sure directory exists
 
     i = 1
     while True:

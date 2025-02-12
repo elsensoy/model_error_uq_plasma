@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from hall_opt.config.verifier import verify_all_yaml
+from ..config.verifier import verify_all_yaml
 
 def load_results(filename):
     """Load JSON data from a file."""

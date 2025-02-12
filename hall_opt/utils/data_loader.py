@@ -49,7 +49,7 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
 def load_config(config_path):
     """Load the YAML configuration file with debug info."""
     
-    config_path = Path(config_path).resolve()  # Ensure absolute path
+    config_path = Path(config_path).resolve()  
     print(f"DEBUG: Attempting to load YAML config from {config_path}")
 
     if not config_path.exists():
