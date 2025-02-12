@@ -4,12 +4,13 @@ general:
   run_map: false     
   run_mcmc: true                     
   plotting: false    # Whether to generate plots
+  subsampled: false
   ion_velocity_weight: 2.0  # Same for both MCMC and MAP
   iterations: 20  # Number of iterations
 
 ground_truth:
-  gen_data: false                 
-  results_dir: "${general.results_dir}/postprocess"
+  gen_data: true                
+  results_dir: "${general.results_dir}/ground_truth"
   output_file: "${ground_truth.results_dir}/output_ground_truth.json"
 
 config_settings:
@@ -36,8 +37,8 @@ config_settings:
 
 postprocess:
   output_file:
-    TwoZoneBohm: "hall_opt/results/postprocess/output_twozonebohm.json"
-    MultiLogBohm: "hall_opt/results/postprocess/output_multilogbohm.json"
+    TwoZoneBohm: "${general.results_dir}/postprocess/output_twozonebohm.json"
+    MultiLogBohm: "${general.results_dir}/postprocess/output_multilogbohm.json"
   save_time_resolved: false
   average_start_time: 0.4e-3
 

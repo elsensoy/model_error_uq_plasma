@@ -14,12 +14,6 @@ def run_model(
     model_type: str,
 ) -> Optional[Dict[str, Any]]:
     
-    print(f"DEBUG: Inside run_model()")
-    print(f"DEBUG: config_settings type = {type(config_settings)}")
-    print(f"DEBUG: simulation type = {type(simulation)}")
-    print(f"DEBUG: postprocess type = {type(postprocess)}")
-
-    # Ensure `config_settings` is used properly
     if not config_settings or "anom_model" not in config_settings:
         try:
             config_settings = extract_anom_model(settings, model_type)

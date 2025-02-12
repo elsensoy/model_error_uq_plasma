@@ -6,7 +6,6 @@ import numpy as np
 from typing import Dict, Any
 from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.utils.save_data import save_results_to_json, save_metadata
 from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
 from hall_opt.utils.statistics import log_posterior
 
@@ -92,7 +91,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
     Run MCMC with optimized parameters loaded from YAML settings.
     """
 
-    config_file = "hall_opt/config/settings.yaml"  
+    config_file = settings.general.config_file 
 
     # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
   

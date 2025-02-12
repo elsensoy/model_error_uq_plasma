@@ -28,9 +28,9 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
     """Computes log-likelihood by running the model with MCMC parameters."""
 
     # Print settings structure for debugging
-    print(f"DEBUG: Settings Loaded = {settings}")
-    print(f"DEBUG: config_settings = {settings.config_settings}")
-    print(f"DEBUG: anom_model = {settings.config_settings.anom_model}")
+    # print(f"DEBUG: Settings Loaded = {settings}")
+    # print(f"DEBUG: config_settings = {settings.config_settings}")
+    # print(f"DEBUG: anom_model = {settings.config_settings.anom_model}")
 
     # Ensure the correct structure
     if not hasattr(settings, "config_settings"):

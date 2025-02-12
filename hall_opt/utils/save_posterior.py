@@ -89,20 +89,6 @@ def save_metrics(
     if not extracted_metrics:
         print("ERROR: No valid metrics to save. Skipping save operation.")
         return
-
-    #  Determine correct save directory
-    if use_json_dump:
-        # Ground truth results go to predefined postprocess output
-        output_file = settings.postprocess.output_file["MultiLogBohm"]
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        with open(output_file, "w") as json_file:
-            json.dump(extracted_metrics, json_file, indent=4)
-        print(f"Ground truth metrics saved to {output_file}")
-        return
-
-    # if settings.ground_truth.gen_data:
-    #     output_file = settings.ground_truth.output_file["output_ground_truth"]
-    #  # iterative results directory (MAP/MCMC)
     if settings.general.run_map:
         base_dir = settings.map.base_dir  # Uses `map-results-N/`
     elif settings.general.run_mcmc:

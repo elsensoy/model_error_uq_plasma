@@ -29,7 +29,7 @@ def save_results_to_json(
 ):
     # Determine correct results directory
     if settings.ground_truth.gen_data:
-        results_dir = settings.postprocess.output_file["Multilogbohm"]
+        results_dir = settings.ground_truth.output_file
     elif settings.general.run_map:
         results_dir = settings.map.base_dir  # Uses `map-results-N/`
     elif settings.general.run_mcmc:

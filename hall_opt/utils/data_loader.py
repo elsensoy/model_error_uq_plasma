@@ -45,10 +45,6 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
     except KeyError as e:
         print(f" ERROR: {e}")
         return 
-import yaml
-
-import yaml
-from pathlib import Path
 
 def load_config(config_path):
     """Load the YAML configuration file with debug info."""

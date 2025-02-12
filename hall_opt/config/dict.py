@@ -47,6 +47,7 @@ class GeneralSettings(BaseModel):
     plotting: bool = Field(default=False, description="Generate plots")
     ion_velocity_weight: float = Field(default=2.0, description="Weighting factor for ion velocity")
     iterations: Annotated[int, Field(gt=0, description="Number of iterations")]
+    subsampled: bool = Field(default=False, description="whether to keep raw data or subsample it")
 
     # Automatically convert `results_dir` to an absolute path
     def absolute_paths(self):
@@ -117,8 +118,7 @@ class GroundTruthConfig(BaseModel):
     def absolute_paths(self, results_dir: str):
         """ paths are placed inside the results directory."""
         if not self.results_dir:
-            self.results_dir = str(Path(results_dir) / "ground_truth")  #  Set default if missing
-
+            self.results_dir = str(Path(results_dir) / "ground_truth")  #  Set default 
         base_dir = Path(self.results_dir).resolve()
         self.results_dir = str(base_dir)
         self.output_file = str(base_dir / self.output_file)

@@ -11,8 +11,8 @@ from hall_opt.config.verifier import verify_all_yaml
 from hall_opt.plotting.posterior_plots import generate_plots
 from hall_opt.utils.data_loader import load_data
 from hall_opt.utils.resolve_paths import resolve_yaml_paths
-from hall_opt.utils.save_posterior import save_metrics
-from hall_opt.utils.iter_methods import get_next_results_dir
+# from hall_opt.utils.save_posterior import save_metrics
+# from hall_opt.utils.save_data import save_ground_truth
 
 
 def main():
@@ -56,18 +56,14 @@ def main():
         print("DEBUG: `gen_data=True` -> Running ground truth generation...")
         observed_data = generate_ground_truth(settings)
     else:
-        print(f"DEBUG: `gen_data=False` -> Trying to load ground truth data from {ground_truth_file}")
-        
-        if not ground_truth_file.exists():
+        observed_data = load_data(settings, "ground_truth")
+    if not ground_truth_file.exists():
             print(f"ERROR: Ground truth file '{ground_truth_file}' not found.")
-        else:
-            # observed_data = load_ground_truth_data(settings)
-            observed_data = load_data(settings, "ground_truth")
-
-    #  Stop execution if no ground truth is found
+            print(f"DEBUG: `gen_data=False` -> Trying to load ground truth data from {ground_truth_file}")
+     #  Stop execution if no ground truth is found
     if observed_data is None:
         print("ERROR: Ground truth data is required but missing. Exiting.")
-        save_metrics(settings, observed_data, output_dir=str(ground_truth_file.parent), use_json_dump=True)
+      
     # -----------------------------
     #  Step 5: Run MAP Estimation (If Enabled)
     # -----------------------------
@@ -76,10 +72,10 @@ def main():
         print("Running MAP estimation using TwoZoneBohm...")
 
         print(f"Using base directory for this MAP run: {settings.map.base_dir}")
-
+        config_file = settings.general.config_file
         try:
             # Run MAP workflow
-            optimized_params = run_map_workflow(observed_data, settings)
+            optimized_params = run_map_workflow(observed_data, settings, config_file)
 
             if optimized_params:
                 # Save final MAP parameters inside `map-results-N/`
@@ -124,7 +120,7 @@ def main():
         generate_plots(settings)
         print(" All plots successfully generated!")
 
-    print(" All processes completed successfully!")
+        print(" All processes completed successfully!")
 
 
 if __name__ == "__main__":

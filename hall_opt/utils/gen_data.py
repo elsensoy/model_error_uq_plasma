@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 from hall_opt.config.verifier import Settings
 from hall_opt.config.run_model import run_model
 
@@ -8,9 +9,9 @@ def generate_ground_truth(settings: Settings):
     """Generate and save ground truth data if gen_data is True, otherwise load fallback."""
     
     ground_truth = settings.ground_truth
-    output_file = ground_truth.output_file  
+    # output_file = Path(settings.ground_truth.output_file["MultiLogBohm"]).resolve()
 
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    # os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if ground_truth.gen_data:
         print("\nGenerating ground truth data using MultiLogBohm...")
@@ -28,14 +29,8 @@ def generate_ground_truth(settings: Settings):
             if not ground_truth_solution:
                 print("ERROR: Ground truth simulation failed.")
                 return None
-            
-            # Extract Necessary Metrics (Same Structure as Metrics Files)
-            metrics = ground_truth_solution.get("output", {}).get("average", {})
-            if not metrics:
-                print("ERROR: Invalid or missing metrics in ground truth simulation output.")
-                return None
 
-            print(f"Ground truth data successfully saved to {output_file}")
+            print(f"Ground truth data successfully saved")
             return ground_truth_solution
 
         except Exception as e:
