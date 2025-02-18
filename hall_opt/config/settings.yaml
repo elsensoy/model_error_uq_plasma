@@ -2,14 +2,14 @@ general:
   results_dir: "hall_opt/results"  # Base directory for results
   config_file: "hall_opt/config/settings.yaml"
   run_map: false     
-  run_mcmc: true                     
+  run_mcmc: false                     
   plotting: false    # Whether to generate plots
   subsampled: false
   ion_velocity_weight: 2.0  # Same for both MCMC and MAP
   iterations: 20  # Number of iterations
 
 ground_truth:
-  gen_data: false                
+  gen_data: true                
   results_dir: "${general.results_dir}/ground_truth"
   output_file: "${ground_truth.results_dir}/output_ground_truth.json"
 
