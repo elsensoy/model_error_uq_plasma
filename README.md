@@ -291,38 +291,38 @@ print("HallThruster imported successfully!")
    - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
    - Compare simulation results against observed data for model validation.
 ---
+### **Run Project**
 
-## **Usage -- WORK IN PROGRESS**
-
-
-
-
-To configure and run the workflow, modify the respective `.yaml` files listed below:  
-
-- **`gen_data.yaml`** – For data generation  
-- **`map.yaml`** – For MAP estimation  
-- **`mcmc.yaml`** – For MCMC sampling  
-- **`settings.yaml`** – General project settings  
-
-### **Enabling Workflow Steps**
-
-To perform specific tasks, set the corresponding flags to `true` in the respective YAML files:
-
-| Process     | YAML File     | Flag to Enable   |
-|-------------|---------------|------------------|
-| **Generate Data**  `gen_data: true` |
-| **MAP Estimation** `run_map: true`  |
-| **MCMC Sampling** `run_mcmc: true`  |
-| **Visualization** `plotting: true`  |
-
-
-
----
-
-*Run the project:*
+*Run:*
 ```bash
 run.bat
 ```
+## **Optional Command Line Arguments
+
+- **`--gen_data`** – For data generation  
+- **`--map`** – For MAP estimation  
+- **`--mcmc`** – For MCMC sampling  
+- **`--plotting`** – For visualization  
+
+
+| Process     |   Flag to Enable      |   Command Line Argument
+|-------------|--------------------  -|--------------------------|
+| **Generate Data**  `gen_data: true` |   run.bat --gen_data
+| **MAP Estimation** `run_map: true`  |    run.bat --map
+| **MCMC Sampling** `run_mcmc: true`  |    run.bat --mcmc
+| **Visualization** `plotting: true`  |    run.bat --plotting
+
+
+To configure and run the workflow with yaml settings, modify the respective `settings.yaml` files listed below:  
+
+Command-line arguments (--mcmc, --map, --gen_data) override the corresponding YAML flags (run_map, run_mcmc, gen_data). This way, users can either rely on the YAML configuration or override it via CLI arguments.
+
+# Behavior:
+Uses YAML settings: If no CLI arguments are passed, default YAML values are used.
+CLI overrides YAML	If --mcmc, --map, or --gen_data is passed, it takes priority over the YAML file.
+Works with run.bat	Automatically passes arguments from the batch file.
+---
+
 ### Results directory:
 ```
     model_error_uq_plasma

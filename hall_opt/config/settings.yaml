@@ -9,7 +9,7 @@ general:
   iterations: 20  # Number of iterations
 
 ground_truth:
-  gen_data: true                
+  gen_data: false                
   results_dir: "${general.results_dir}/ground_truth"
   output_file: "${ground_truth.results_dir}/output_ground_truth.json"
 
@@ -72,10 +72,10 @@ plots:
     - "trace"
     - "posterior"
     - "pair"
-
+ #see error6.txt, error7.txt, error8.txt for included metrics
 simulation:
   dt: 0.000001
   grid:
     type: "EvenGrid"
     num_cells: 100
-  duration: 0.001 #see error6.txt, error7.txt, error8.txt for included metrics
+  duration: 0.001
