@@ -1,14 +1,34 @@
 import sys
 from pathlib import Path
 import json
+import argparse
+import sys
+import os
+
+# # # Automatically find the project root
+# current_file = os.path.abspath(__file__)
+# project_root = os.path.dirname(current_file)  # Moves up to `hall_opt/`
+
+# # Ensure the parent directory (project root) is in sys.path
+# if project_root not in sys.path:
+#     sys.path.insert(0, project_root)
+
+# # Ensure the grandparent directory (so we can import hall_opt from anywhere)
+# parent_root = os.path.dirname(project_root)
+# if parent_root not in sys.path:
+#     sys.path.insert(0, parent_root)
+
+# Now, imports will always work regardless of where you run the script
+from config.verifier import verify_all_yaml  
+
+
 import numpy as np
-from .map import run_map_workflow
-from .mcmc import run_mcmc_with_final_map_params
-from .gen_data import generate_ground_truth
-from ..config.verifier import verify_all_yaml
-from ..plotting.posterior_plots import generate_plots
-from ..utils.data_loader import load_data
-from ..utils.resolve_paths import resolve_yaml_paths
+from scripts.map import run_map_workflow
+from scripts.mcmc import run_mcmc_with_final_map_params
+from scripts.gen_data import generate_ground_truth
+from plotting.posterior_plots import generate_plots
+from utils.data_loader import load_data
+from utils.resolve_paths import resolve_yaml_paths
 
 def main():
     # -----------------------------
@@ -36,7 +56,9 @@ def main():
     # -----------------------------
     #  Step 3: Create Results Directory
     # -----------------------------
-    base_results_dir = Path(general_settings.results_dir).resolve()
+    project_root = Path(__file__).resolve().parent.parent  # Moves up from hall_opt/main.py to project root
+    base_results_dir = project_root / general_settings.results_dir
+
     # base_results_dir.mkdir(parents=True, exist_ok=True)
    
     print(f" Results directory set to: {base_results_dir}")

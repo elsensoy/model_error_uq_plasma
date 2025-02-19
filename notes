@@ -1,1 +1,0 @@
-PS C:\Users\elsensoy\model_error\model_error_uq_plasma> $env:PATH="C:\Users\elsensoy\.julia\juliaup\julia-1.11.3+0.x64.w64.mingw32\bin;$env:PATH"

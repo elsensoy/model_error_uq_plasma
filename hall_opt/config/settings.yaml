@@ -1,6 +1,6 @@
 general:
-  results_dir: "hall_opt/results"  # Base directory for results
-  config_file: "hall_opt/config/settings.yaml"
+  results_dir: "results"  # Base directory for results
+  config_file: "config/settings.yaml"
   run_map: false     
   run_mcmc: false                     
   plotting: false    # Whether to generate plots
@@ -16,12 +16,12 @@ ground_truth:
 #see error1.txt, error2.txt, error3.txt, error4.txt, error5.txt, error10.txt(magnetic field file), for included metrics
 config_settings:
   thruster:
-    # geometry: #required by ht
-    #   channel_length: 0.025 #required sub
-    #   inner_radius: 0.0345 #required sub
-    #   outer_radius: 0.05 #required sub
+    geometry: #required by ht
+      channel_length: 0.025 #required sub
+      inner_radius: 0.0345 #required sub
+      outer_radius: 0.05 #required sub
     magnetic_field:
-      file: "hall_opt/config/bfield_spt100.csv"
+      file: "config/bfield_spt100.csv"
   discharge_voltage: 300 #required by ht
   anode_mass_flow_rate: 5.0e-6 #required by ht
   domain: [0, 0.08] #required by ht

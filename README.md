@@ -325,35 +325,68 @@ python -m hall_opt.main --settings hall_opt/config/settings.yaml
 ```
 ### Results directory:
 ```
-    hall_opt/results/
-    ├── map/
-    │   ├── map-results-1/  Created dynamically per MAP run
-    │   │   ├── iter_metrics/
-    │   │   │   ├── metrics_1.json  Iteration metrics
-    │   │   │   ├── metrics_2.json
-    │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
-    │   │   ├── final_map_params.json  Final MAP sample 
-    │   │   ├── plots/  Automatically created using `get_common_paths()`
-    │   ├── map-results-2/
-    │   │   ├── iter_metrics/
-    │   │   ├── map_iteration_log.json   
-    │   │   ├── final_map_params.json
-    │   │   ├── plots/
-    ├── mcmc/
-    │   ├── mcmc-results-1/
-    │   │   ├── iter_metrics/
-    │   │   │   ├── metrics_1.json
-    │   │   │   ├── metrics_2.json
-    │   │   ├── checkpoint.json  Checkpoint saving dynamically
-    │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
-    │   │   ├── mcmc_metadata.json  Metadata for MCMC
-    │   │   ├── plots/
-    │   ├── mcmc-results-2/
-    │   │   ├── iter_metrics/
-    │   │   ├── checkpoint.json
-    │   │   ├── final_samples_log.csv
-    │   │   ├── mcmc_metadata.json
-    │   │   ├── plots/
+    model_error_uq_plasma
+    ├run.py   
+    ├hall_opt
+    │   ├── config
+    │   │   ├── bfield_spt100.csv
+    │   │   ├── dict.py
+    │   │   ├── run_model.py
+    │   │   ├── settings.yaml
+    │   │   └── verifier.py
+    │   ├── main.py
+    │   ├── plotting
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   │   ├── __init__.cpython-311.pyc
+    │   │   │   ├── common_setup.cpython-311.pyc
+    │   │   │   ├── plot_ground_truth.cpython-311.pyc
+    │   │   │   └── posterior_plots.cpython-311.pyc
+    │   │   ├── common_setup.py
+    │   │   ├── iteration_plots.py
+    │   │   ├── plot_ground_truth.py
+    │   │   ├── posterior_plots.py
+    │   │   └── tests
+    │   │       ├── 2d_plot_kde.py
+    │   │       ├── delta_plots.py
+    │   │       ├── generate_truth_data.py
+    │   │       ├── map_test.py
+    │   │       └── mock_test.py
+    │   ├── posterior
+    │   │   ├── __pycache__
+    │   │   │   ├── log_likelihood.cpython-311.pyc
+    │   │   │   └── statistics.cpython-311.pyc
+    │   │   ├── log_likelihood.py
+    │   │   └── statistics.py    
+        /results/
+        ├── map/
+        │   ├── map-results-1/  Created dynamically per MAP run
+        │   │   ├── iter_metrics/
+        │   │   │   ├── metrics_1.json  Iteration metrics
+        │   │   │   ├── metrics_2.json
+        │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
+        │   │   ├── final_map_params.json  Final MAP sample 
+        │   │   ├── plots/  Automatically created using `get_common_paths()`
+        │   ├── map-results-2/
+        │   │   ├── iter_metrics/
+        │   │   ├── map_iteration_log.json   
+        │   │   ├── final_map_params.json
+        │   │   ├── plots/
+        ├── mcmc/
+        │   ├── mcmc-results-1/
+        │   │   ├── iter_metrics/
+        │   │   │   ├── metrics_1.json
+        │   │   │   ├── metrics_2.json
+        │   │   ├── checkpoint.json  Checkpoint saving dynamically
+        │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
+        │   │   ├── mcmc_metadata.json  Metadata for MCMC
+        │   │   ├── plots/
+        │   ├── mcmc-results-2/
+        │   │   ├── iter_metrics/
+        │   │   ├── checkpoint.json
+        │   │   ├── final_samples_log.csv
+        │   │   ├── mcmc_metadata.json
+        │   │   ├── plots/
 
 ```
 ---

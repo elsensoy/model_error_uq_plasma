@@ -2,14 +2,14 @@ import yaml
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from ..utils.resolve_paths import resolve_yaml_paths
+from hall_opt.utils.resolve_paths import resolve_yaml_paths
 from typing_extensions import Annotated  # add annotation 
 
 ### DONE: Defaults & Annotations
 
 class ThrusterConfig(BaseModel):
     # name: str = Field(..., description="Thruster name")
-    # geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
+    geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
     magnetic_field: Dict[str, str] = Field(..., description="Magnetic field file path")
 
 class PostProcessConfig(BaseModel):
