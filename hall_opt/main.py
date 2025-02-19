@@ -4,24 +4,8 @@ import json
 import argparse
 import sys
 import os
-
-# # # Automatically find the project root
-# current_file = os.path.abspath(__file__)
-# project_root = os.path.dirname(current_file)  # Moves up to `hall_opt/`
-
-# # Ensure the parent directory (project root) is in sys.path
-# if project_root not in sys.path:
-#     sys.path.insert(0, project_root)
-
-# # Ensure the grandparent directory (so we can import hall_opt from anywhere)
-# parent_root = os.path.dirname(project_root)
-# if parent_root not in sys.path:
-#     sys.path.insert(0, parent_root)
-
-# Now, imports will always work regardless of where you run the script
+project_root = Path(__file__).resolve().parent
 from config.verifier import verify_all_yaml  
-
-
 import numpy as np
 from scripts.map import run_map_workflow
 from scripts.mcmc import run_mcmc_with_final_map_params
@@ -34,6 +18,7 @@ def main():
     # -----------------------------
     #  Step 1: Validate and Load YAML
     # -----------------------------
+
     settings = verify_all_yaml()
 
     if settings is None:
@@ -56,8 +41,7 @@ def main():
     # -----------------------------
     #  Step 3: Create Results Directory
     # -----------------------------
-    project_root = Path(__file__).resolve().parent.parent  # Moves up from hall_opt/main.py to project root
-    base_results_dir = project_root / general_settings.results_dir
+    base_results_dir = settings.general.results_dir
 
     # base_results_dir.mkdir(parents=True, exist_ok=True)
    

@@ -308,12 +308,12 @@ To configure and run the workflow, modify the respective `.yaml` files listed be
 
 To perform specific tasks, set the corresponding flags to `true` in the respective YAML files:
 
-| Process         | YAML File      | Flag to Enable   |
-|-----------------|---------------|------------------|
-| **Generate Data** | `gen_data.yaml` | `gen_data: true`  |
-| **MAP Estimation**| `map.yaml`      | `run_map: true`   |
-| **MCMC Sampling** | `mcmc.yaml`     | `run_mcmc: true`  |
-| **Visualization** | `settings.yaml` | `plotting: true`  |
+| Process     | YAML File     | Flag to Enable   |
+|-------------|---------------|------------------|
+| **Generate Data**  `gen_data: true` |
+| **MAP Estimation** `run_map: true`  |
+| **MCMC Sampling** `run_mcmc: true`  |
+| **Visualization** `plotting: true`  |
 
 
 
@@ -321,12 +321,12 @@ To perform specific tasks, set the corresponding flags to `true` in the respecti
 
 *Run the project:*
 ```bash
-python -m hall_opt.main --settings hall_opt/config/settings.yaml
+run.bat
 ```
 ### Results directory:
 ```
     model_error_uq_plasma
-    ├run.py   
+    ├run.bat   
     ├hall_opt
     │   ├── config
     │   │   ├── bfield_spt100.csv

@@ -1,6 +1,6 @@
 from pathlib import Path
 from pydantic import BaseModel
-
+project_root = Path(__file__).resolve().parent
 def resolve_yaml_paths(settings):
     """Recursively resolve file paths inside settings using `general.results_dir`."""
 
