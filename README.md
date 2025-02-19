@@ -101,7 +101,7 @@ cd model_error_uq_plasma
 Instead of using a virtual environment manually, PDM will handle it:
 
 ```bash
-python pdm install
+python pdm -m install
 ```
 
 Verify the required packages are available in your environment.
@@ -164,24 +164,19 @@ Follow the instructions under [Using Python Virtual Environment](#using-python-v
 > These commands will relax dependency constraints and attempt to find compatible versions automatically.
 
 ---
-### **HallThruster.jl Installation**
+### HallThruster Installation and Python Integration
 
 1. **Install Julia (1.10 or later)** from [Julia Official Website](https://julialang.org/downloads/)
-
-2. **Activate a project-specific environment:**
-
-    ```bash
-    mkdir hallthruster_project && cd hallthruster_project
-    julia
-    ```
-
-### **HallThruster Installation and Python Integration**
-
 To ensure HallThruster works correctly with Python, follow these steps to install and integrate it:
 
 ---
 
-#### **1. Install HallThruster.jl in Julia**
+#### 1. Install HallThruster.jl in Julia
+
+
+    ```
+    mkdir hallthruster_project && cd hallthruster_project
+    ```
 
 1. Open Julia and activate your project environment:
 
@@ -200,77 +195,86 @@ To ensure HallThruster works correctly with Python, follow these steps to instal
 
 #### **2. Locate HallThruster Python Path**
 
-After installation, find the Python script path for HallThruster by running the following command in Julia:
+
+#### **1: Locate HallThruster Python Path**
+After installation, find the Python script path by running the following command in Julia:
 
 ```julia
 using HallThruster
 println(pathof(HallThruster))
 ```
 
-The output will contain the package installation path. Typically, it looks like:
+The output will contain the package installation path. 
 
-```
-C:\Users\yourname\.julia\packages\HallThruster\yxE62\python
-```
-
----
-
-#### **3. Set the Python Path (PYTHONPATH) Permanently**
-
-To make HallThruster available to Python, you can set the `PYTHONPATH` environment variable permanently. Here are the steps:
-
-1. Open **PowerShell as Administrator**.
-2. Run the following command to add the HallThruster path permanently to the user environment variables:
-
-   ```powershell
-   [System.Environment]::SetEnvironmentVariable("PYTHONPATH", "C:\path", [System.EnvironmentVariableTarget]::User)
-   ```
-
-3. Restart PowerShell or your system for changes to take effect.
-
----
-
-#### **4. Verify the PYTHONPATH Variable**
-
-To verify that the path was added correctly, open PowerShell and run:
+#### 2:Verify the PYTHONPATH Variable (If Needed)
+If you want to manually check that `HallThruster` was added to `PYTHONPATH`, open PowerShell and run:
 
 ```powershell
 echo $env:PYTHONPATH
 ```
 
-You should see the HallThruster path listed in the output.
+You should see the `HallThruster` path included in the output.
 
 ---
+---
 
-#### **5. Import HallThruster in Python**
+#### 3: Automatic Setup via `run.bat` (Recommended)
+If you are using the provided `run.bat` file, you do not need to manually set `PYTHONPATH`**. The script will:
+- **Automatically configure `PYTHONPATH` to include `HallThruster`.
+- Run the main script (`main.py`) with the correct environment.
 
-Once the environment variable is set, you can test the integration by running the following Python script:
-
-```python
-import hallthruster as het
-
-# Check if the module is loaded correctly
-print("HallThruster successfully imported!")
+To use this setup, simply run:
+```sh
+run.bat --map --mcmc --plotting
 ```
----
-#### **6. Manually Add the Path (If Needed)**
+_(Modify the arguments as explained below in Run Project Section)_
 
-If you prefer not to set the path permanently, you can add it manually in your Python scripts before importing HallThruster:
-
-```python
-import sys
-
-hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-if hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-
-import hallthruster as het
-print("HallThruster imported successfully!")
-```
+If no flags are provided, `main.py` will automatically fallback to checking for `HallThruster` at the top of the script.
 
 ---
+#### 4 : Import HallThruster in Python
+Once the environment is set (via `run.bat`), you can test if `HallThruster` is available in Python:
 
-## **Workflow Overview**
+    ```python
+    import hallthruster as het
+
+    # Check if the module is loaded correctly
+    print("hallThruster successfully imported!")
+    ```
+
+    If `HallThruster` is available, the script will proceed normally.  
+    If not available, `main.py` will automatically attempt to add it.
+
+    ---
+
+#### 5: Fallback: Manually Add the Path in `main.py`
+If `run.bat` is not used, `main.py` will check if `HallThruster` is available. If not, it will add the path dynamically:
+
+    ```python
+    import sys
+
+    try:
+        import hallthruster as het
+        print("hallThruster imported successfully!")
+    except ModuleNotFoundError:
+        # Ensure HallThruster module is in the Python path dynamically
+        hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
+        if hallthruster_path not in sys.path:
+            sys.path.append(hallthruster_path)
+
+        try:
+            import hallthruster as het
+            print("hallThruster imported after manually adding path!")
+        except ModuleNotFoundError:
+            print("eRROR: HallThruster module not found! Ensure `PYTHONPATH` is set.")
+            sys.exit(1)
+    ```
+
+---
+
+
+
+## Workflow Overview
 
 1. **Configuration:**  
    - Define simulation parameters and model settings in the `settings.yaml` configuration file.  
@@ -297,6 +301,7 @@ print("HallThruster imported successfully!")
 ```bash
 run.bat
 ```
+This will run main from any parent/child directory.
 ## **Optional Command Line Arguments
 
 - **`--gen_data`** – For data generation  

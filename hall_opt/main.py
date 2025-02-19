@@ -2,6 +2,15 @@ import sys
 import argparse
 import json
 from pathlib import Path
+
+# Ensure HallThruster module is in the Python path
+hallthruster_path = "C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
+
+import hallthruster as het
+print("HallThruster imported successfully!")
+
 from config.verifier import verify_all_yaml  
 from scripts.map import run_map_workflow
 from scripts.mcmc import run_mcmc_with_final_map_params
