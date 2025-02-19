@@ -1,0 +1,26 @@
+$env:PATH="C:\Users\elsensoy\.julia\juliaup\julia-1.11.3+0.x64.w64.mingw32\bin;$env:PATH"
+
+
+C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\printEnvVariablesToFile.py c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\deactivate\powershell\envVars.txt
+
+
+& C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\printEnvVariablesToFile.py c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\deactivate\powershell\envVars.txt
+ 
+
+ $env:Path += ";C:\Users\elsensoy\model_error\model_error_uq_plasma"
+$env:PYTHONPATH="C:\Users\elsensoy\model_error\model_error_uq_plasma;$env:PYTHONPATH"
+
+
+
+$ ^[[200~export PATH="/mnt/c/Users/elsensoy/model_error/model_error_uq_plasma/.venv/Scripts:$PATH"
+
+--mcmc.py
+--map.py
+
+--gen_data.py
+
+
+C:\Users\elsensoy\model_error\model_error_uq_plasma> C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\printEnvVariablesToFile.py c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\deactivate\powershell\envVars.txt
+ & C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\printEnvVariablesToFile.py c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\deactivate\powershell\envVars.txt
+
+ C:\Users\elsensoy\model_error\model_error_uq_plasma> $env:PATH="C:\Users\elsensoy\AppData\Local\Programs\Python\Python311;$env:PATH"                                                      

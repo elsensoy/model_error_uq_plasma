@@ -2,26 +2,19 @@ import yaml
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from ..utils.resolve_paths import resolve_yaml_paths
+from hall_opt.utils.resolve_paths import resolve_yaml_paths
 from typing_extensions import Annotated  # add annotation 
 
 ### DONE: Defaults & Annotations
 
 class ThrusterConfig(BaseModel):
-    name: str = Field(..., description="Thruster name")
+    # name: str = Field(..., description="Thruster name")
     geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
     magnetic_field: Dict[str, str] = Field(..., description="Magnetic field file path")
 
 class PostProcessConfig(BaseModel):
-    #output_file: Dict[str, str] = Field(default="hall_opt/results/output_multilogbohm", description="Mapping of model type to corresponding output file")
     output_file: Dict[str, str] = Field(
         ..., description="Mapping of model type to corresponding output file"
-    )
-    save_time_resolved: bool = Field(
-        default=False, description="Flag to save time-resolved data"
-    )
-    average_start_time: float = Field(
-        default=0.0004, description="Start time for averaging process"
     )
 
 class Config(BaseModel):
@@ -29,14 +22,11 @@ class Config(BaseModel):
     discharge_voltage: Annotated[int, Field(ge=0, description="Discharge voltage in V")]
     anode_mass_flow_rate: Annotated[float, Field(gt=0, description="Mass flow rate in kg/s")]
     domain: Annotated[List[float], Field(min_length=2, max_length=2)]
-    ncharge: Annotated[int, Field(ge=1, description="Number of charge states")]
     anom_model: Dict[str, Any]
-
+    
 class Simulation(BaseModel):
     dt: float = Field(..., description="Time step size")
-    adaptive: bool = Field(..., description="Whether to use adaptive time stepping")
     grid: Dict[str, Any] = Field(..., description="Grid configuration")
-    num_save: int = Field(..., description="Number of save points")
     duration: float = Field(..., description="Simulation duration")
 
 class GeneralSettings(BaseModel):

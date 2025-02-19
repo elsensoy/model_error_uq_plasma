@@ -4,10 +4,10 @@ import numpy as np
 from scipy.optimize import minimize
 from typing import Dict, Any
 from pathlib import Path
-from ..config.verifier import Settings
-from ..posterior.statistics import log_posterior
-from ..utils.iter_methods import get_next_results_dir
-from ..utils.iteration_logger import iteration_callback
+from hall_opt.config.verifier import Settings
+from hall_opt.posterior.statistics import log_posterior
+from hall_opt.utils.iter_methods import get_next_results_dir
+from hall_opt.utils.iteration_logger import iteration_callback
 
 
 def run_map_workflow(

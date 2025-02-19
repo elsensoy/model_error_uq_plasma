@@ -3,10 +3,10 @@ import json
 from pathlib import Path
 import numpy as np
 from typing import Dict, Any
-from ..config.dict import Settings
+from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from ..utils.iter_methods import get_next_results_dir
-from ..posterior.statistics import log_posterior
+from hall_opt.utils.iter_methods import get_next_results_dir
+from hall_opt.posterior.statistics import log_posterior
 
 def mcmc_inference(
     logpdf,

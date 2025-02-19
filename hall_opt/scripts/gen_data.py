@@ -1,8 +1,8 @@
 import os
 import json
 from pathlib import Path
-from ..config.verifier import Settings
-from ..config.run_model import run_model
+from hall_opt.config.verifier import Settings
+from hall_opt.config.run_model import run_model
 
 
 def generate_ground_truth(settings: Settings):

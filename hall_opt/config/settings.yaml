@@ -1,6 +1,6 @@
 general:
-  results_dir: "hall_opt/results"  # Base directory for results
-  config_file: "hall_opt/config/settings.yaml"
+  results_dir: "results"  # Base directory for results
+  config_file: "config/settings.yaml"
   run_map: false     
   run_mcmc: false                     
   plotting: false    # Whether to generate plots
@@ -13,19 +13,18 @@ ground_truth:
   results_dir: "${general.results_dir}/ground_truth"
   output_file: "${ground_truth.results_dir}/output_ground_truth.json"
 
+#see error1.txt, error2.txt, error3.txt, error4.txt, error5.txt, error10.txt(magnetic field file), for included metrics
 config_settings:
   thruster:
-    name: "SPT-100"
-    geometry:
-      channel_length: 0.025
-      inner_radius: 0.0345
-      outer_radius: 0.05
+    geometry: #required by ht
+      channel_length: 0.025 #required sub
+      inner_radius: 0.0345 #required sub
+      outer_radius: 0.05 #required sub
     magnetic_field:
-      file: "hall_opt/config/bfield_spt100.csv"
-  discharge_voltage: 300
-  anode_mass_flow_rate: 5.0e-6
-  domain: [0, 0.08]
-  ncharge: 3
+      file: "config/bfield_spt100.csv"
+  discharge_voltage: 300 #required by ht
+  anode_mass_flow_rate: 5.0e-6 #required by ht
+  domain: [0, 0.08] #required by ht
   anom_model:   # **THIS FIELD MUST EXIST**
     TwoZoneBohm:
       c1: 0.00625
@@ -34,13 +33,10 @@ config_settings:
       zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
       cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
 
-
 postprocess:
   output_file:
     TwoZoneBohm: "${general.results_dir}/postprocess/output_twozonebohm.json"
     MultiLogBohm: "${general.results_dir}/postprocess/output_multilogbohm.json"
-  save_time_resolved: false
-  average_start_time: 0.4e-3
 
 mcmc:
   results_dir: "${general.results_dir}/mcmc"
@@ -76,12 +72,10 @@ plots:
     - "trace"
     - "posterior"
     - "pair"
-
+ #see error6.txt, error7.txt, error8.txt for included metrics
 simulation:
   dt: 0.000001
-  adaptive: true
   grid:
     type: "EvenGrid"
     num_cells: 100
-  num_save: 1000
   duration: 0.001

@@ -291,65 +291,102 @@ print("HallThruster imported successfully!")
    - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
    - Compare simulation results against observed data for model validation.
 ---
+### **Run Project**
 
-## **Usage 
-To configure and run the workflow, modify the `settings.yaml` file for directory and method settings as listed below:  
-- **`general_settings`** – General project settings (ex.results_dir) included in this file.    
-- **`gen_data`** – For data generation. The script for this method is gen_data.py. If the flag gen_data is unabled in settings.yaml while running other methods, fallback output file for extracting the gen_data could be found in results/ground_truth/output_multilogbohm.json. 
-- **`map`** – For MAP estimation. Script for this method is map.py.  
-- **`mcmc`** – For MCMC sampling. Script for this method is mcmc.py.
+*Run:*
+```bash
+run.bat
+```
+## **Optional Command Line Arguments
 
-
-### **Enabling Workflow Steps**
-
-To perform specific tasks, set the corresponding flags to `true` in settings.yaml file:
-
-| Process           | Flag to Enable   |   Script     |
-|------------------ |------------------|--------------|
-| **Generate Data** |`gen_data: true`  | gen_data.py  |
-| **MAP Estimation**| `run_map: true`  | map.py       |
-| **MCMC Sampling** |`run_mcmc: true`  | mcmc.py      |
-| **Visualization** | `plotting: true` | -[enabled].py|
+- **`--gen_data`** – For data generation  
+- **`--map`** – For MAP estimation  
+- **`--mcmc`** – For MCMC sampling  
+- **`--plotting`** – For visualization  
 
 
+| Process     |   Flag to Enable      |   Command Line Argument
+|-------------|--------------------  -|--------------------------|
+| **Generate Data**  `gen_data: true` |   run.bat --gen_data
+| **MAP Estimation** `run_map: true`  |    run.bat --map
+| **MCMC Sampling** `run_mcmc: true`  |    run.bat --mcmc
+| **Visualization** `plotting: true`  |    run.bat --plotting
 
+
+To configure and run the workflow with yaml settings, modify the respective `settings.yaml` files listed below:  
+
+Command-line arguments (--mcmc, --map, --gen_data) override the corresponding YAML flags (run_map, run_mcmc, gen_data). This way, users can either rely on the YAML configuration or override it via CLI arguments.
+
+# Behavior:
+Uses YAML settings: If no CLI arguments are passed, default YAML values are used.
+CLI overrides YAML	If --mcmc, --map, or --gen_data is passed, it takes priority over the YAML file.
+Works with run.bat	Automatically passes arguments from the batch file.
 ---
 
-*Run the project:*
-```bash
-python -m hall_opt.main
-```
 ### Results directory:
 ```
-    hall_opt/results/
-    ├── map/
-    │   ├── map-results-1/  Created dynamically per MAP run
-    │   │   ├── iter_metrics/
-    │   │   │   ├── metrics_1.json  Iteration metrics
-    │   │   │   ├── metrics_2.json
-    │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
-    │   │   ├── final_map_params.json  Final MAP sample 
-    │   │   ├── plots/  Automatically created using `get_common_paths()`
-    │   ├── map-results-2/
-    │   │   ├── iter_metrics/
-    │   │   ├── map_iteration_log.json   
-    │   │   ├── final_map_params.json
-    │   │   ├── plots/
-    ├── mcmc/
-    │   ├── mcmc-results-1/
-    │   │   ├── iter_metrics/
-    │   │   │   ├── metrics_1.json
-    │   │   │   ├── metrics_2.json
-    │   │   ├── checkpoint.json  Checkpoint saving dynamically
-    │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
-    │   │   ├── mcmc_metadata.json  Metadata for MCMC
-    │   │   ├── plots/
-    │   ├── mcmc-results-2/
-    │   │   ├── iter_metrics/
-    │   │   ├── checkpoint.json
-    │   │   ├── final_samples_log.csv
-    │   │   ├── mcmc_metadata.json
-    │   │   ├── plots/
+    model_error_uq_plasma
+    ├run.bat   
+    ├hall_opt
+    │   ├── config
+    │   │   ├── bfield_spt100.csv
+    │   │   ├── dict.py
+    │   │   ├── run_model.py
+    │   │   ├── settings.yaml
+    │   │   └── verifier.py
+    │   ├── main.py
+    │   ├── plotting
+    │   │   ├── __init__.py
+    │   │   ├── __pycache__
+    │   │   │   ├── __init__.cpython-311.pyc
+    │   │   │   ├── common_setup.cpython-311.pyc
+    │   │   │   ├── plot_ground_truth.cpython-311.pyc
+    │   │   │   └── posterior_plots.cpython-311.pyc
+    │   │   ├── common_setup.py
+    │   │   ├── iteration_plots.py
+    │   │   ├── plot_ground_truth.py
+    │   │   ├── posterior_plots.py
+    │   │   └── tests
+    │   │       ├── 2d_plot_kde.py
+    │   │       ├── delta_plots.py
+    │   │       ├── generate_truth_data.py
+    │   │       ├── map_test.py
+    │   │       └── mock_test.py
+    │   ├── posterior
+    │   │   ├── __pycache__
+    │   │   │   ├── log_likelihood.cpython-311.pyc
+    │   │   │   └── statistics.cpython-311.pyc
+    │   │   ├── log_likelihood.py
+    │   │   └── statistics.py    
+        /results/
+        ├── map/
+        │   ├── map-results-1/  Created dynamically per MAP run
+        │   │   ├── iter_metrics/
+        │   │   │   ├── metrics_1.json  Iteration metrics
+        │   │   │   ├── metrics_2.json
+        │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
+        │   │   ├── final_map_params.json  Final MAP sample 
+        │   │   ├── plots/  Automatically created using `get_common_paths()`
+        │   ├── map-results-2/
+        │   │   ├── iter_metrics/
+        │   │   ├── map_iteration_log.json   
+        │   │   ├── final_map_params.json
+        │   │   ├── plots/
+        ├── mcmc/
+        │   ├── mcmc-results-1/
+        │   │   ├── iter_metrics/
+        │   │   │   ├── metrics_1.json
+        │   │   │   ├── metrics_2.json
+        │   │   ├── checkpoint.json  Checkpoint saving dynamically
+        │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
+        │   │   ├── mcmc_metadata.json  Metadata for MCMC
+        │   │   ├── plots/
+        │   ├── mcmc-results-2/
+        │   │   ├── iter_metrics/
+        │   │   ├── checkpoint.json
+        │   │   ├── final_samples_log.csv
+        │   │   ├── mcmc_metadata.json
+        │   │   ├── plots/
 
 ```
 ---

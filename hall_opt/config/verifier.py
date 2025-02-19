@@ -2,8 +2,8 @@ import yaml
 from pathlib import Path
 from pydantic import ValidationError
 from typing import Optional
-from ..utils.resolve_paths import resolve_yaml_paths
-from .dict import Settings
+from hall_opt.utils.resolve_paths import resolve_yaml_paths
+from config.dict import Settings
   #  Import Settings class
 
 def load_yaml(file_path: str) -> Optional[dict]:
