@@ -309,13 +309,15 @@ This will run main from any parent/child directory.
 - **`--mcmc`** – For MCMC sampling  
 - **`--plotting`** – For visualization  
 
+```
 
-| Process     |   Flag to Enable      |   Command Line Argument
-|-------------|--------------------  -|--------------------------|
-| **Generate Data**  `gen_data: true` |   run.bat --gen_data
-| **MAP Estimation** `run_map: true`  |    run.bat --map
-| **MCMC Sampling** `run_mcmc: true`  |    run.bat --mcmc
-| **Visualization** `plotting: true`  |    run.bat --plotting
+    | Process     |   Flag to Enable      |   Command Line Argument
+    |-------------|-----------------------|--------------------------|
+    | **Generate Data**  `gen_data: true` |   run.bat --gen_data
+    | **MAP Estimation** `run_map: true`  |    run.bat --map
+    | **MCMC Sampling** `run_mcmc: true`  |    run.bat --mcmc
+    | **Visualization** `plotting: true`  |    run.bat --plotting
+```
 
 
 To configure and run the workflow with yaml settings, modify the respective `settings.yaml` files listed below:  
@@ -323,9 +325,11 @@ To configure and run the workflow with yaml settings, modify the respective `set
 Command-line arguments (--mcmc, --map, --gen_data) override the corresponding YAML flags (run_map, run_mcmc, gen_data). This way, users can either rely on the YAML configuration or override it via CLI arguments.
 
 # Behavior:
+
 Uses YAML settings: If no CLI arguments are passed, default YAML values are used.
 CLI overrides YAML	If --mcmc, --map, or --gen_data is passed, it takes priority over the YAML file.
 Works with run.bat	Automatically passes arguments from the batch file.
+
 ---
 
 ### Results directory:

@@ -1,138 +1,179 @@
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from hall_opt.utils.resolve_paths import resolve_yaml_paths
-from typing_extensions import Annotated  # add annotation 
+import yaml
+from pathlib import Path
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional
 
-### DONE: Defaults & Annotations
 
+### Thruster Configuration
 class ThrusterConfig(BaseModel):
-    # name: str = Field(..., description="Thruster name")
-    geometry: Dict[str, float] = Field(..., description="Geometry dimensions")
-    magnetic_field: Dict[str, str] = Field(..., description="Magnetic field file path")
-
-class PostProcessConfig(BaseModel):
-    output_file: Dict[str, str] = Field(
-        ..., description="Mapping of model type to corresponding output file"
+    geometry: Dict[str, float] = Field(
+        default={"channel_length": 0.025, "inner_radius": 0.0345, "outer_radius": 0.05},
+        description="Thruster geometry dimensions",
+    )
+    magnetic_field: Dict[str, str] = Field(
+        default={"file": "config/bfield_spt100.csv"}, description="Magnetic field file path"
     )
 
-class Config(BaseModel):
-    thruster: ThrusterConfig
-    discharge_voltage: Annotated[int, Field(ge=0, description="Discharge voltage in V")]
-    anode_mass_flow_rate: Annotated[float, Field(gt=0, description="Mass flow rate in kg/s")]
-    domain: Annotated[List[float], Field(min_length=2, max_length=2)]
-    anom_model: Dict[str, Any]
-    
-class Simulation(BaseModel):
-    dt: float = Field(..., description="Time step size")
-    grid: Dict[str, Any] = Field(..., description="Grid configuration")
-    duration: float = Field(..., description="Simulation duration")
 
+### Anomalous Model Configuration (Must Exist, But Values Are Optional)
+class AnomModelConfig(BaseModel):
+    TwoZoneBohm: Dict[str, float] = Field(default_factory=lambda: {"c1": 0.00625, "c2": 0.0625})
+    MultiLogBohm: Dict[str, List[float]] = Field(
+        default_factory=lambda: {
+            "zs": [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07],
+            "cs": [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05],
+        }
+    )
+    other_models: Dict[str, Any] = Field(default_factory=dict)  # Stores additional models
+
+    @model_validator(mode="before")
+    @classmethod
+    def merge_with_defaults(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensure missing parameters are filled with defaults, and allow extra models."""
+
+        # Default values
+        defaults = {
+            "TwoZoneBohm": {"c1": 0.00625, "c2": 0.0625},
+            "MultiLogBohm": {
+                "zs": [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07],
+                "cs": [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05],
+            },
+        }
+
+        # Merge user-defined values with defaults
+        for model_name, default_params in defaults.items():
+            if model_name in values:
+                # Merge user values with defaults
+                values[model_name] = {**default_params, **values[model_name]}
+            else:
+                # Assign default if not provided
+                values[model_name] = default_params
+
+        # Capture additional models not in defaults
+        known_models = set(defaults.keys())
+        values["other_models"] = {k: v for k, v in values.items() if k not in known_models}
+
+        return values
+
+###  Main Configuration (Handles Defaults for All Required Fields)
+class ConfigSettings(BaseModel):
+    thruster: ThrusterConfig = Field(default_factory=ThrusterConfig)
+    anom_model: AnomModelConfig = Field(default_factory=AnomModelConfig)
+    discharge_voltage: int = Field(300, ge=0)
+    anode_mass_flow_rate: float = Field(5.0e-6, gt=0)
+    domain: List[float] = Field(default=[0, 0.08], min_length=2, max_length=2)
+
+
+### General Settings
 class GeneralSettings(BaseModel):
-    results_dir: str = Field(default="hall_opt/results", description="Base directory for results")
-    config_file: str = Field(..., description="Settings.yaml file")
-    run_map: bool = Field(default=False, description="Run MAP estimation")
-    run_mcmc: bool = Field(default=False, description="Run MCMC sampling")
-    plotting: bool = Field(default=False, description="Generate plots")
-    ion_velocity_weight: float = Field(default=2.0, description="Weighting factor for ion velocity")
-    iterations: Annotated[int, Field(gt=0, description="Number of iterations")]
-    subsampled: bool = Field(default=False, description="whether to keep raw data or subsample it")
+    results_dir: str = "results"
+    config_file: str = "config/settings.yaml"
+    run_map: bool = False
+    run_mcmc: bool = False
+    plotting: bool = False
+    subsampled: bool = False
+    ion_velocity_weight: float = 2.0
+    iterations: int = 20
 
-    # Automatically convert `results_dir` to an absolute path
     def absolute_paths(self):
+        """Convert results_dir to an absolute path"""
         self.results_dir = str(Path(self.results_dir).resolve())
 
-class MapConfig(BaseModel):
-    results_dir: str = Field(default="", description="Directory for MAP results")  # 
-    base_dir: str = Field(default="", description="Directory for Iterations")
-    map_initial_guess_file: str = Field(..., description="Initial MAP guess file")
-    iteration_log_file: str = Field(..., description="MAP iteration log file")
-    final_map_params_file: str = Field(..., description="Final MAP parameter file")
-    method: str = Field(default="Nelder-Mead", description="MAP optimization method")
-    maxfev: int = Field(default=5000, ge=100, description="Maximum function evaluations")
-    fatol: float = Field(default=0.003, gt=0, description="Function tolerance")
-    xatol: float = Field(default=0.003, gt=0, description="Step size tolerance")
 
-    def absolute_paths(self, results_dir: str):
-        """Convert paths to absolute paths based on results_dir."""
-        if not self.map_results_dir:
-            self.map_results_dir = str(Path(results_dir) / "map")  
-        base_dir = Path(self.map_results_dir).resolve()
-        self.map_results_dir = str(base_dir)
-        self.base_dir = str(base_dir)
-        self.map_initial_guess_file = str(base_dir / self.map_initial_guess_file)
-        self.iteration_log_file = str(base_dir / self.iteration_log_file)
-        self.final_map_params_file = str(base_dir / self.final_map_params_file)
+### PostProcess Configuration
+class PostProcessConfig(BaseModel):
+    output_file: Dict[str, str] = Field(
+        default={
+            "TwoZoneBohm": "results_test/postprocess/output_twozonebohm.json",
+            "MultiLogBohm": "results_test/postprocess/output_multilogbohm.json"
+        }
+    )
 
-class MCMCConfig(BaseModel):
-    results_dir: str = Field(default="", description="Directory for MCMC results")  #  Add default
-    base_dir: str = Field(default="", description="Directory for Iterations")
-    save_interval: int = Field(default=10, ge=1, description="MCMC save interval")
-    checkpoint_interval: int = Field(default=10, ge=1, description="Checkpoint interval")
-    save_metadata: bool = Field(default=True, description="Save metadata flag")
-    final_samples_file_log: str = Field(..., description="Final MCMC log file")
-    final_samples_file_linear: str = Field(..., description="Final MCMC linear file")
-    checkpoint_file: str = Field(..., description="MCMC checkpoint file")
-    metadata_file: str = Field(..., description="MCMC metadata file")
-    initial_cov: List[List[float]] = Field(..., description="Initial covariance matrix")
 
-    def absolute_paths(self, results_dir: str):
-        """Convert paths to absolute paths based on results_dir."""
-        if not self.mcmc_results_dir:
-            self.mcmc_results_dir = str(Path(results_dir) / "mcmc")  
-        base_dir = Path(self.mcmc_results_dir).resolve()
-        self.mcmc_results_dir = str(base_dir)
-        self.base_dir = str(base_dir)
-        self.final_samples_file_log = str(base_dir / self.final_samples_file_log)
-        self.final_samples_file_linear = str(base_dir / self.final_samples_file_linear)
-        self.checkpoint_file = str(base_dir / self.checkpoint_file)
-        self.metadata_file = str(base_dir / self.metadata_file)
-
-class PlottingConfig(BaseModel):
-    plots_subdir: str = Field(default="ground_truth_plots", description="Directory for plots")
-    metrics_subdir: str = Field(default="iteration_metrics", description="Directory for metrics")
-    enabled_plots: List[str] = Field(default=["ground_truth_plots"],
-                                     description="List of enabled plots")
-
-    def absolute_paths(self, results_dir: str):
-        """Convert plot paths to absolute paths based on results_dir."""
-        self.plots_subdir = str(Path(results_dir) / self.plots_subdir)
-        self.metrics_subdir = str(Path(results_dir) / self.metrics_subdir)
-
+### Ground Truth Configuration
 class GroundTruthConfig(BaseModel):
-    gen_data: bool = Field(default=False, description="Enable ground truth data generation")
-    results_dir: str = Field(default="", description="Directory for ground truth output")
-    output_file: str = Field(default="", description="Ground truth output file")
+    gen_data: bool = True
+    results_dir: str = "results/ground_truth"
+    output_file: str = "results/ground_truth/output_ground_truth.json"
 
     def absolute_paths(self, results_dir: str):
-        """ paths are placed inside the results directory."""
-        if not self.results_dir:
-            self.results_dir = str(Path(results_dir) / "ground_truth")  #  Set default 
-        base_dir = Path(self.results_dir).resolve()
+        base_dir = Path(results_dir) / "ground_truth"
         self.results_dir = str(base_dir)
-        self.output_file = str(base_dir / self.output_file)
-        
+        self.output_file = str(base_dir / "output_ground_truth.json")
+
+
+### MCMC Configuration
+class MCMCConfig(BaseModel):
+    results_dir: str = "results/mcmc"
+    base_dir: str = "results/mcmc"
+    save_interval: int = 10
+    checkpoint_interval: int = 10
+    save_metadata: bool = True
+    final_samples_file_log: str = "results/mcmc/final_samples_log.csv"
+    final_samples_file_linear: str = "results/mcmc/final_samples_linear.csv"
+    checkpoint_file: str = "results/mcmc/checkpoint.json"
+    metadata_file: str = "results/mcmc/mcmc_metadata.json"
+    initial_cov: List[List[float]] = [[0.1, 0.05], [0.05, 0.1]]
+
+    def absolute_paths(self, results_dir: str):
+        base_dir = Path(results_dir) / "mcmc"
+        self.results_dir = str(base_dir)
+        self.base_dir = str(base_dir)
+
+
+### MAP Configuration
+class MapConfig(BaseModel):
+    results_dir: str = "results/map"
+    base_dir: str = "results/map"
+    map_initial_guess_file: str = "results/map/initial_guess.json"
+    iteration_log_file: str = "results/map/map_sampling.json"
+    final_map_params_file: str = "results/map/final_map_params.json"
+    method: str = "Nelder-Mead"
+    maxfev: int = 5000
+    fatol: float = 0.003
+    xatol: float = 0.003
+
+
+### Plotting Configuration
+class PlottingConfig(BaseModel):
+    results_dir: str = "results/plots"
+    plots_subdir: str = "results/plots"
+    metrics_subdir: str = "results/plots/iteration_metrics"
+    enabled_plots: List[str] = ["autocorrelation", "trace", "posterior", "pair"]
+
+
+### Simulation Configuration
+class Simulation(BaseModel):
+    dt: float = 1e-6
+    grid: Dict[str, Any] = Field(default={"type": "EvenGrid", "num_cells": 100})
+    duration: float = 0.001
+
+###  Final Settings Model (Updated)
 class Settings(BaseModel):
-    general: GeneralSettings
-    config_settings: Config
-    simulation: Simulation
-    postprocess: PostProcessConfig
-    ground_truth: Optional[GroundTruthConfig]
-    map: Optional[MapConfig]
-    mcmc: Optional[MCMCConfig]
-    plots: Optional[PlottingConfig]
+    results_dir: str = Field(default="results_test", description="Base directory for results")
+    gen_data: bool = Field(default=True, description="Enable ground truth data generation")
+
+    general: GeneralSettings = Field(default_factory=GeneralSettings)
+    config_settings: ConfigSettings = Field(default_factory=ConfigSettings)
+    postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)
+    ground_truth: Optional[GroundTruthConfig] = Field(default_factory=GroundTruthConfig)
+    mcmc: Optional[MCMCConfig] = Field(default_factory=MCMCConfig)
+    map: Optional[MapConfig] = Field(default_factory=MapConfig)
+    plots: Optional[PlottingConfig] = Field(default_factory=PlottingConfig)
+    simulation: Optional[Simulation] = Field(default_factory=Simulation)
 
     def resolve_all_paths(self):
-        base_results_dir = Path(self.general.results_dir).resolve()
-        self.general.results_dir = str(base_results_dir)
+        """Resolve any dynamic paths and placeholders."""
+        base_results_dir = Path(self.results_dir).resolve()
+        self.results_dir = str(base_results_dir)
+        self.general.results_dir = self.results_dir  # Ensure `general` inherits the correct path
 
-        print(f" Resolving paths based on base directory: {base_results_dir}")
-
-        # Apply `absolute_paths()` dynamically
-        for section_name, section in self.__dict__.items():
-            if hasattr(section, "absolute_paths"):
-                print(f"Resolving paths for section: {section_name}")
+        for section in [self.ground_truth, self.mcmc, self.map, self.plots]:
+            if section and hasattr(section, "absolute_paths"):
                 section.absolute_paths(base_results_dir)
 
-        print(" All paths resolved dynamically!")
+        print("All paths resolved dynamically!")

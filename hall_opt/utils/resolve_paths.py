@@ -1,37 +1,42 @@
 from pathlib import Path
 from pydantic import BaseModel
-project_root = Path(__file__).resolve().parent
+
 def resolve_yaml_paths(settings):
-    """Recursively resolve file paths inside settings using `general.results_dir`."""
+    """Recursively resolve placeholders in file paths using `results_dir`."""
 
-    if not hasattr(settings, "general") or not hasattr(settings.general, "results_dir"):
-        raise KeyError("ERROR: `general.results_dir` missing in settings.yaml")
+    # Ensure results_dir is a Path object
+    base_results_dir = Path(settings.results_dir).resolve()
+    settings.results_dir = str(base_results_dir)
 
-    results_dir = Path(settings.general.results_dir).resolve()
-    print(f"DEBUG: Resolving paths with base directory: {results_dir}")
+    print(f"DEBUG: Resolving paths with base directory: {base_results_dir}")
+
+    # Define replacement map
+    path_map = {
+        "${general.results_dir}": base_results_dir,
+        "${postprocess.results_dir}": base_results_dir / "postprocess",
+        "${map.results_dir}": base_results_dir / "map",
+        "${mcmc.results_dir}": base_results_dir / "mcmc",
+        "${plots.results_dir}": base_results_dir / "plots",
+        "${ground_truth.results_dir}": base_results_dir / "ground_truth",
+    }
 
     def resolve(value):
-        """Replace placeholders dynamically in string paths."""
+        """Recursively replace placeholders in strings, dicts, and lists."""
         if isinstance(value, str):
-            return (
-                value.replace("${general.results_dir}", str(results_dir))
-                     .replace("${ground_truth.results_dir}", str(results_dir / "postprocess"))
-                     .replace("${postprocess.output_file}", str(results_dir / "postprocess"))
-                     .replace("${map.results_dir}", str(results_dir / "map"))
-                     .replace("${mcmc.results_dir}", str(results_dir / "mcmc"))
-                     .replace("${plots.results_dir}", str(results_dir / "plots"))
-            )
-        return value
+            for placeholder, resolved_path in path_map.items():
+                value = value.replace(placeholder, str(resolved_path))
+            return value
+        elif isinstance(value, list):
+            return [resolve(item) for item in value]
+        elif isinstance(value, dict):
+            return {k: resolve(v) for k, v in value.items()}
+        return value  # Return original value if not str, list, or dict
 
-    # Apply replacements to all sections dynamically
+    # Recursively apply replacements to all sections dynamically
     for section_name, section in vars(settings).items():
-        if isinstance(section, BaseModel):  #  it should be a Pydantic model
+        if isinstance(section, BaseModel):  # Ensure it is a Pydantic model
             for key, value in vars(section).items():
-                if isinstance(value, str):
-                    setattr(section, key, resolve(value))
-                elif isinstance(value, dict):
-                    for sub_key, sub_value in value.items():
-                        section.__dict__[key][sub_key] = resolve(sub_value)
+                setattr(section, key, resolve(value))
 
-    print(" All YAML paths resolved successfully!")
+    print("All YAML paths resolved successfully!")
     return settings

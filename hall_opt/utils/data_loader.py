@@ -9,7 +9,7 @@ from hall_opt.config.dict import Settings
 
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     if analysis_type == "ground_truth":
-        data_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
+        data_file = Path("results/postprocess/output_multilogbohm.json").resolve()
         print("Ground truth is loaded successfully")
     elif analysis_type == "map":
         data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  #  Dynamically find path

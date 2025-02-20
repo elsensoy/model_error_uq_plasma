@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 # Ensure HallThruster module is in the Python path
-hallthruster_path = "C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\python"
+hallthruster_path = "C:/Users/elsensoy/.julia/packages/HallThruster/yxE62/python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
 
@@ -54,7 +54,7 @@ def main():
     if args.mcmc:
         settings.general.run_mcmc = True
     if args.gen_data:
-        settings.ground_truth.gen_data = True
+        settings.gen_data = True
     if args.plotting:
         settings.general.plotting =True
 
@@ -71,10 +71,12 @@ def main():
     # -----------------------------
     observed_data = None
     ground_truth_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
+    print(f"ERROR: Ground truth file '{ground_truth_file}' not found.")    
 
     if settings.ground_truth.gen_data:
         print("DEBUG: `gen_data=True` -> Running ground truth generation...")
         observed_data = generate_ground_truth(settings)
+        print("generate_ground_truth_called")
     else:
         observed_data = load_data(settings, "ground_truth")
     if not ground_truth_file.exists():

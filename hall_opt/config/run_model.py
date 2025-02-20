@@ -22,6 +22,8 @@ def run_model(
             return None
     
     # Print updated `c1` and `c2` before running the simulation
+    print("DEBUG: Before extract_anom_model, config_settings =", config_settings)
+
     if "anom_model" in config_settings and "TwoZoneBohm" in config_settings["anom_model"]:
         print(f"DEBUG: Using c1={config_settings['anom_model']['TwoZoneBohm']['c1']}, "
               f"c2={config_settings['anom_model']['TwoZoneBohm']['c2']} in the simulation")
@@ -48,12 +50,42 @@ def run_model(
         "simulation": simulation_dict,
         "postprocess": postprocess_dict,
     }
+    print("DEBUG: Checking required file paths before running simulation...")
 
-    try:
-        # Run the simulation
-        solution = het.run_simulation(input_data)
-        return solution  
-
-    except Exception as e:
-        print(f"ERROR during simulation: {e}")
+# Check magnetic field file
+    magnetic_field_path = os.path.abspath(config_settings["thruster"]["magnetic_field"]["file"])
+    print(f"DEBUG: Magnetic field file path: {magnetic_field_path}")
+    if not os.path.exists(magnetic_field_path):
+        print(f"ERROR: Magnetic field file '{magnetic_field_path}' is missing!")
         return None
+
+    # Check other critical input paths
+    input_files = {
+        "config": config_settings,  # Pass updated config
+        "simulation": simulation_dict,
+        "postprocess": postprocess_dict,
+    }
+
+    for key, path in input_files.items():
+        if isinstance(path, str):
+            abs_path = os.path.abspath(path)
+            print(f"DEBUG: Checking {key}: {abs_path}")
+            if not os.path.exists(abs_path):
+                print(f" ERROR: {key} '{abs_path}' is missing!")
+                return None
+
+    # Check working directory
+    print("DEBUG: Current working directory:", os.getcwd())
+
+    # Run the simulation
+    try:
+        solution = het.run_simulation(input_data)
+        print(f"DEBUG: run_model() returned: {solution}")  # Print simulation output
+        return solution  
+    except FileNotFoundError as e:
+        print(f" ERROR: Missing file: {e}")
+        return None
+    except Exception as e:
+        print(f" ERROR during simulation: {e}")
+        return None
+
