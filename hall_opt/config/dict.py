@@ -1,6 +1,6 @@
 import yaml
 from pydantic import BaseModel, Field, model_validator
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
 import yaml
 from pathlib import Path
@@ -19,50 +19,43 @@ class ThrusterConfig(BaseModel):
     )
 
 
-### Anomalous Model Configuration (Must Exist, But Values Are Optional)
+# Define individual models
+class TwoZoneBohmModel(BaseModel):
+    c1: float = 0.00625
+    c2: float = 0.0625
+
+class MultiLogBohmModel(BaseModel):
+    zs: List[float] = Field(default=[0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07])
+    cs: List[float] = Field(default=[0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05])
+
+#  Main Config (No `parameters` field)
 class AnomModelConfig(BaseModel):
-    TwoZoneBohm: Dict[str, float] = Field(default_factory=lambda: {"c1": 0.00625, "c2": 0.0625})
-    MultiLogBohm: Dict[str, List[float]] = Field(
-        default_factory=lambda: {
-            "zs": [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07],
-            "cs": [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05],
-        }
-    )
-    other_models: Dict[str, Any] = Field(default_factory=dict)  # Stores additional models
+    type: str = "MultiLogBohm"  # Default model type
+    # c1: float = None  # Only for TwoZoneBohm
+    # c2: float = None
+    zs: List[float] = None  # Only for MultiLogBohm
+    cs: List[float] = None
 
     @model_validator(mode="before")
     @classmethod
-    def merge_with_defaults(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Ensure missing parameters are filled with defaults, and allow extra models."""
+    def set_model_defaults(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Fills in the correct model parameters based on the `type`."""
+        model_type = values.get("type", "MultiLogBohm")  # Default if missing
 
-        # Default values
-        defaults = {
-            "TwoZoneBohm": {"c1": 0.00625, "c2": 0.0625},
-            "MultiLogBohm": {
-                "zs": [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07],
-                "cs": [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05],
-            },
-        }
-
-        # Merge user-defined values with defaults
-        for model_name, default_params in defaults.items():
-            if model_name in values:
-                # Merge user values with defaults
-                values[model_name] = {**default_params, **values[model_name]}
-            else:
-                # Assign default if not provided
-                values[model_name] = default_params
-
-        # Capture additional models not in defaults
-        known_models = set(defaults.keys())
-        values["other_models"] = {k: v for k, v in values.items() if k not in known_models}
+        if model_type == "TwoZoneBohm":
+            values.update(TwoZoneBohmModel().model_dump())  # Set TwoZoneBohm parameters
+        elif model_type == "MultiLogBohm":
+            values.update(MultiLogBohmModel().model_dump())  # Set MultiLogBohm parameters
+        else:
+            raise ValueError(f" Invalid anom_model type: {model_type}")
 
         return values
 
-###  Main Configuration (Handles Defaults for All Required Fields)
+
+# Handle Defaults for All Rrquired Fields
 class ConfigSettings(BaseModel):
     thruster: ThrusterConfig = Field(default_factory=ThrusterConfig)
-    anom_model: AnomModelConfig = Field(default_factory=AnomModelConfig)
+    anom_model: AnomModelConfig = Field(default_factory=AnomModelConfig)  # Keep Validation
     discharge_voltage: int = Field(300, ge=0)
     anode_mass_flow_rate: float = Field(5.0e-6, gt=0)
     domain: List[float] = Field(default=[0, 0.08], min_length=2, max_length=2)

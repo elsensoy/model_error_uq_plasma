@@ -1,0 +1,152 @@
+The JSON is missing the key type, which is required by the Julia simulator.
+Julia's deserialize() function fails because it expects type, but it's not there.
+
+
+
+
+
+Generating ground truth data using MultiLogBohm...
+DEBUG: Loaded anom_model from settings:
+TwoZoneBohm={'c1': 0.00625, 'c2': 0.0625} MultiLogBohm={'zs': [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07], 'cs': [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]} other_models={}
+DEBUG: Passed anom_model to run_model(): TwoZoneBohm={'c1': 0.00625, 'c2': 0.0625} MultiLogBohm={'zs': [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07], 'cs': [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]} other_models={}
+DEBUG: Before extract_anom_model, config_settings = {'thruster': {'geometry': {'channel_length': 0.025, 'inner_radius': 0.0345, 'outer_radius': 0.05}, 'magnetic_field': {'file': 'config/bfield_spt100.csv'}}, 'anom_model': {'TwoZoneBohm': {'c1': 0.00625, 'c2': 0.0625}, 'MultiLogBohm': {'zs': [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07], 'cs': [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]}, 'other_models': {}}, 'discharge_voltage': 300, 'anode_mass_flow_rate': 5e-06, 'domain': [0, 0.08]}
+DEBUG: Using c1=0.00625, c2=0.0625 in the simulation
+Running simulation with MultiLogBohm configuration...
+DEBUG: Checking required file paths before running simulation...
+DEBUG: Magnetic field file path: C:\Users\elsensoy\model_error\model_error_uq_plasma\hall_opt\config\bfield_spt100.csv
+DEBUG: Current working directory: C:\Users\elsensoy\model_error\model_error_uq_plasma\hall_opt
+ERROR: KeyError: key :type not found
+Stacktrace:
+  [1] getindex(h::Dict{Symbol, Int64}, key::Symbol)
+    @ Base .\dict.jl:477
+  [2] get(obj::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}, key::Symbol)
+    @ JSON3 C:\Users\elsensoy\.julia\packages\JSON3\ntJon\src\JSON3.jl:87
+  [3] getindex
+    @ C:\Users\elsensoy\.julia\packages\JSON3\ntJon\src\JSON3.jl:128 [inlined]
+  [4] deserialize(::HallThruster.Serialization.TaggedUnion, ::Type{HallThruster.AnomalousTransportModel}, dict::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UntRattRtRtRatRangtRangetRatRtRanttRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:97
+  [5] deserialize(::Type{HallThruster.AnomalousTransportModel}, x::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+  [6] (::HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}})(field::Symbol)
+    @ HallThruster.Serialization .\none:0
+  [7] iterate
+    @ .\generator.jl:48 [inlined]
+  [8] merge(a::@NamedTuple{}, itr::Base.Generator{Base.KeySet{Symbol, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}, HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}})
+    @ Base .\namedtuple.jl:381
+  [9] NamedTuple
+    @ .\namedtuple.jl:151 [inlined]
+ [10] deserialize(::HallThruster.Serialization.Struct, ::Type{HallThruster.Config}, dict::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})                              
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:74
+ [11] deserialize(::Type{HallThruster.Config}, x::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+ [12] run_simulation(json_file::String; restart::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:31
+ [13] run_simulation(json_file::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:11
+ [14] top-level scope
+    @ none:1
+
+
+
+
+	Running simulation with MultiLogBohm configuration...
+DEBUG: Checking required file paths before running simulation...
+DEBUG: Magnetic field file path: C:\Users\elsensoy\model_error\model_error_uq_plasma\hall_opt\config\bfield_spt100.csv
+DEBUG: Current working directory: C:\Users\elsensoy\model_error\model_error_uq_plasma\hall_opt
+DEBUG: JSON configuration sent to HallThruster:
+{
+    "config": {
+        "thruster": {
+            "geometry": {
+                "channel_length": 0.025,
+                "inner_radius": 0.0345,
+                "outer_radius": 0.05
+            },
+            "magnetic_field": {
+                "file": "config/bfield_spt100.csv"
+            }
+        },
+        "anom_model": {
+            "TwoZoneBohm": {
+                "c1": 0.00625,
+                "c2": 0.0625
+            },
+            "MultiLogBohm": {
+                "zs": [
+                    0.0,
+                    0.01,
+                    0.02,
+                    0.03,
+                    0.04,
+                    0.05,
+                    0.06,
+                    0.07
+                ],
+                "cs": [
+                    0.02,
+                    0.024,
+                    0.028,
+                    0.033,
+                    0.04,
+                    0.004,
+                    0.004,
+                    0.05
+                ]
+            },
+            "other_models": {}
+        },
+        "discharge_voltage": 300,
+        "anode_mass_flow_rate": 5e-06,
+        "domain": [
+            0,
+            0.08
+        ]
+    },
+    "simulation": {
+        "dt": 1e-06,
+        "grid": {
+            "type": "EvenGrid",
+            "num_cells": 100
+        },
+        "duration": 0.001
+    },
+    "postprocess": {
+        "output_file": "results_test/postprocess/output_multilogbohm.json"
+    }
+}
+ERROR: KeyError: key :type not found
+Stacktrace:
+  [1] getindex(h::Dict{Symbol, Int64}, key::Symbol)
+    @ Base .\dict.jl:477
+  [2] get(obj::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}, key::Symbol)
+    @ JSON3 C:\Users\elsensoy\.julia\packages\JSON3\ntJon\src\JSON3.jl:87
+  [3] getindex
+    @ C:\Users\elsensoy\.julia\packages\JSON3\ntJon\src\JSON3.jl:128 [inlined]
+  [4] deserialize(::HallThruster.Serialization.TaggedUnion, ::Type{HallThruster.AnomalousTransportModel}, dict::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})        
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:97
+  [5] deserialize(::Type{HallThruster.AnomalousTransportModel}, x::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+  [6] (::HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}})(field::Symbol)
+    @ HallThruster.Serialization .\none:0
+  [7] iterate
+    @ .\generator.jl:48 [inlined]
+  [8] merge(a::@NamedTuple{}, itr::Base.Generator{Base.KeySet{Symbol, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}, HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}})
+    @ Base .\namedtuple.jl:381
+  [9] NamedTuple
+    @ .\namedtuple.jl:151 [inlined]
+ [10] deserialize(::HallThruster.Serialization.Struct, ::Type{HallThruster.Config}, dict::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:74
+ [11] deserialize(::Type{HallThruster.Config}, x::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+ [12] run_simulation(json_file::String; restart::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:31
+ [13] run_simulation(json_file::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:11
+ [14] top-level scope
+    @ none:1
+ DEBUG: Entering `save_metrics()`...
+ERROR during ground truth generation: ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.
+generate_ground_truth_called
+ERROR: Ground truth data is required but missing. Exiting.
+ All processes completed successfully!
+PS C:\Users\elsensoy\model_error\model_error_uq_plasma> 

@@ -78,14 +78,31 @@ def run_model(
     print("DEBUG: Current working directory:", os.getcwd())
 
     # Run the simulation
+    # try:
+    #     solution = het.run_simulation(input_data)
+
     try:
+        json_input = json.dumps(input_data, indent=4)
+        print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
+        
         solution = het.run_simulation(input_data)
-        print(f"DEBUG: run_model() returned: {solution}")  # Print simulation output
         return solution  
-    except FileNotFoundError as e:
-        print(f" ERROR: Missing file: {e}")
+
+    except KeyError as e:
+        print(f" ERROR: Missing key in JSON: {e}")
         return None
     except Exception as e:
         print(f" ERROR during simulation: {e}")
         return None
+
+
+
+    #     # print(f"DEBUG: run_model() returned: {solution}")  # Print simulation output
+    #     return solution  
+    # except FileNotFoundError as e:
+    #     print(f" ERROR: Missing file: {e}")
+    #     return None
+    # except Exception as e:
+    #     print(f" ERROR during simulation: {e}")
+    #     return None
 

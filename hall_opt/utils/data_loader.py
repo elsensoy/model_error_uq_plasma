@@ -31,20 +31,29 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     return samples
 
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
-    """Extracts the anomalous model configuration for a given model type."""
+    """Extracts the anomalous model configuration for the given model type."""
     try:
         anom_model_config = settings.config_settings.anom_model
-        if model_type not in anom_model_config:
-            raise KeyError(f" ERROR: Anomalous model type '{model_type}' not found.")
 
-        base_config = settings.config_settings.model_dump()
-        base_config["anom_model"] = {**anom_model_config[model_type], "type": model_type}
+        # Ensure user-specified `model_type` is valid
+        if model_type not in ["TwoZoneBohm", "MultiLogBohm"]:
+            raise KeyError(f"❌ ERROR: Unknown anomalous model type '{model_type}'.")
 
-        return base_config
+        # Ensure `type` matches what the user specified
+        if anom_model_config.type != model_type:
+            print(f"⚠️ WARNING: Overriding `type` from {anom_model_config.type} to {model_type}.")
+            anom_model_config.type = model_type
+
+        # ✅ Ensure that `model` is FLATTENED, not nested
+        return {
+            "type": model_type,
+            **anom_model_config.model.model_dump()  # ✅ Spread model parameters directly inside `anom_model`
+        }
 
     except KeyError as e:
-        print(f" ERROR: {e}")
-        return 
+        print(f"❌ ERROR: {e}")
+        return {}
+
 
 def load_config(config_path):
     """Load the YAML configuration file with debug info."""

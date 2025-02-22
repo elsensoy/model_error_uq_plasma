@@ -1,8 +1,7 @@
 @echo off
-REM Ensure script runs from the correct location
-pushd "%~dp0"
+REM Run the pre-commands
 
-REM Run the Python script to print system environment variables
+REM Run the Python script to print environment variables
 C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe ^
    c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\printEnvVariablesToFile.py ^
    c:\Users\elsensoy\.vscode\extensions\ms-python.python-2025.0.0-win32-x64\python_files\deactivate\powershell\envVars.txt
@@ -10,16 +9,6 @@ C:/Users/elsensoy/AppData/Local/Microsoft/WindowsApps/python3.11.exe ^
 REM Set environment variables
 set PATH=%PATH%;C:\Users\elsensoy\model_error\model_error_uq_plasma
 set PYTHONPATH=C:\Users\elsensoy\model_error\model_error_uq_plasma;%PYTHONPATH%
-
-REM Ensure HallThruster module is available
-set HALLTHRUSTER_PATH=C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\python
-set PYTHONPATH=%HALLTHRUSTER_PATH%;%PYTHONPATH%
-
-REM Change to hall_opt directory
+REM $env:PATH="C:\Users\elsensoy\.julia\juliaup\julia-1.11.3+0.x64.w64.mingw32\bin;$env:PATH"
 cd /d "%~dp0\hall_opt"
-
-REM Run main.py
-python main.py %*
-
-REM Restore previous directory
-popd
+python "%~dp0\hall_opt\main.py" %*
