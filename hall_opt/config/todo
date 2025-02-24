@@ -1,0 +1,11 @@
+These should be able to be run as
+
+python hallthruster_code.py gen_data.yaml
+
+or
+
+python hallthruster_code.py run_mcmc.yaml
+
+or
+
+python hallthruster_code.py run_map.yaml

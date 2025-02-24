@@ -59,30 +59,13 @@ def run_model(
         print(f"ERROR: Magnetic field file '{magnetic_field_path}' is missing!")
         return None
 
-    # Check other critical input paths
-    input_files = {
-        "config": config_settings,  # Pass updated config
-        "simulation": simulation_dict,
-        "postprocess": postprocess_dict,
-    }
-
-    for key, path in input_files.items():
-        if isinstance(path, str):
-            abs_path = os.path.abspath(path)
-            print(f"DEBUG: Checking {key}: {abs_path}")
-            if not os.path.exists(abs_path):
-                print(f" ERROR: {key} '{abs_path}' is missing!")
-                return None
-
     # Check working directory
     print("DEBUG: Current working directory:", os.getcwd())
 
-    # Run the simulation
-    # try:
-    #     solution = het.run_simulation(input_data)
 
     try:
-        json_input = json.dumps(input_data, indent=4)
+        #uncomment this section to see the input model on cl with pretty printing
+        json_input = json.dumps(input_data, indent=4)    
         print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
         
         solution = het.run_simulation(input_data)
@@ -94,15 +77,3 @@ def run_model(
     except Exception as e:
         print(f" ERROR during simulation: {e}")
         return None
-
-
-
-    #     # print(f"DEBUG: run_model() returned: {solution}")  # Print simulation output
-    #     return solution  
-    # except FileNotFoundError as e:
-    #     print(f" ERROR: Missing file: {e}")
-    #     return None
-    # except Exception as e:
-    #     print(f" ERROR during simulation: {e}")
-    #     return None
-

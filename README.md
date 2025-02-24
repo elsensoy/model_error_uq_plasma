@@ -12,23 +12,41 @@ Please refer to:
 
 ---
 
+---
+
 ## **Table of Contents**
-1. [Features](#features)
+1. [Methods](#methods)
 2. [Requirements](#requirements)
 3. [Installation](#installation)
    - [Using Python Virtual Environment](#using-python-virtual-environment)
    - [Using PDM for Dependency Management](#using-pdm-for-dependency-management)
-   - [Windows Installation](#windows-installation)
-   - [Ubuntu Installation](#ubuntu-installation)
-
    - [HallThruster.jl Installation](#hallthrusterjl-installation)
-4. [Workflow Overview](#workflow-overview)
-5. [Configuration Files](#configuration-files)
+4. [Run Project](#run-project)
 6. [Usage](#usage)
-7. [Visualization](#visualization)
 8. [Contact](#contact)
 
 ---
+
+## **Methods**
+
+1. **Configuration:**  
+   - Define simulation parameters and model settings in a configuration file. 
+   - Specify options for simulation, optimization, and visualization to create a customized thruster model.
+
+2. **Data Generation:**  
+   - Generate synthetic or experimental ground truth data based on the defined configuration.  
+
+3. **MAP (Maximum A Posteriori) Optimization:**  
+   - Estimate the optimal parameter values using the chosen anomalous transport models (e.g., `TwoZoneBohm`, `MultiLogBohm`).  
+   - Optimizate to minimize the error between simulated and observed data.
+
+4. **MCMC (Markov Chain Monte Carlo) Sampling:**  
+   - Conduct Bayesian inference to obtain parameter distributions.  
+   - Use MCMC techniques (e.g., Delayed Rejection Adaptive Metropolis) to quantify uncertainty.
+
+5. **Visualization and Analysis:**  
+   - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
+   - Compare simulation results against observed data for model validation.
 
 ## **Requirements**
 
@@ -56,7 +74,7 @@ To run this project, ensure the following dependencies are installed:
 ### **Using Python Virtual Environment**
 
 1. **Clone the repository:**
-    ```bash
+    ```
     git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
     cd model_error_uq_plasma
     ```
@@ -101,7 +119,7 @@ cd model_error_uq_plasma
 Instead of using a virtual environment manually, PDM will handle it:
 
 ```bash
-python pdm -m install
+python pdm install
 ```
 
 Verify the required packages are available in your environment.
@@ -118,34 +136,35 @@ pdm list
 >    
  
 >If pdm appears in the list, update it using:
-> ```
-    > python -m pdm self update
-    > python -m pip install --upgrade pip
 
+ ```
+ python -m pdm self update
+ python -m pip install --upgrade pip
+ ```
     
 
 #### **Step 4: Activate the PDM virtual environment**
 
-```bash
-python -m pdm venv activate
+```
+python pdm venv activate
 ```
 
 ---
-### **Windows Installation**
+**Windows Installation**
 
 Follow the instructions under [Using Python Virtual Environment](#using-python-virtual-environment) or [Using PDM for Dependency Management](#using-pdm-for-dependency-management).
 
 ---
 
-### **Ubuntu Installation**
+**Ubuntu Installation**
 
 1. **Install required dependencies:**
-    ```bash
+    ```
     sudo apt update && sudo apt install -y python3 python3-venv python3-pip git julia
     ```
 
 2. **Clone the repository and set up the environment:**
-    ```bash
+    ```
     git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
     cd model_error_uq_plasma
     python3 -m venv .venv
@@ -165,10 +184,15 @@ Follow the instructions under [Using Python Virtual Environment](#using-python-v
 
 ---
 ### HallThruster Installation and Python Integration
-
-1. **Install Julia (1.10 or later)** from [Julia Official Website](https://julialang.org/downloads/)
 To ensure HallThruster works correctly with Python, follow these steps to install and integrate it:
 
+1. **Install Julia (1.10 or later)** from [Julia Official Website](https://julialang.org/downloads/)
+
+Ensure Julia is installed and run:
+   ```
+    where julia  # Windows
+    which julia  # macOS/Linux
+   ```
 ---
 
 #### 1. Install HallThruster.jl in Julia
@@ -183,8 +207,8 @@ To ensure HallThruster works correctly with Python, follow these steps to instal
    ```julia
    julia
    ```
-
-2. Activate the project and install the package:
+If it’s not found, add it to PATH or reinstall Julia.
+ Activate the project and install the package:
 
    ```julia
    (@v1.10) pkg> activate .
@@ -193,47 +217,58 @@ To ensure HallThruster works correctly with Python, follow these steps to instal
 
 ---
 
-#### **2. Locate HallThruster Python Path**
+#### 1:Automatic Setup via `run.py` 
 
+The script automatically finds Julia (whether installed via juliaup or standalone).
+The correct HallThruster.PYTHON_PATH is dynamically retrieved. So after confirming
+If you experience import errors, run the following in Julia:
 
-#### **1: Locate HallThruster Python Path**
+    julia```
+    using Pkg
+    Pkg.add("HallThruster")
+
+Then, try running run.py again.
+
 After installation, find the Python script path by running the following command in Julia:
 
 ```julia
 using HallThruster
 println(pathof(HallThruster))
 ```
-
 The output will contain the package installation path. 
 
-#### 2:Verify the PYTHONPATH Variable (If Needed)
-If you want to manually check that `HallThruster` was added to `PYTHONPATH`, open PowerShell and run:
+#### 2: Verify the PYTHONPATH Variable
+If you want to manually check that `HallThruster` was added to `PYTHONPATH`, run:
 
-```powershell
-echo $env:PYTHONPATH
-```
-
+    ```powershell
+    echo $env:PYTHONPATH
+    ```
+    ```sh
+    echo $PYTHONPATH
+    ```
 You should see the `HallThruster` path included in the output.
 
 ---
 ---
+#### 3: Manually Add the Path in `main.py`
 
-#### 3: Automatic Setup via `run.bat` (Recommended)
-If you are using the provided `run.bat` file, you do not need to manually set `PYTHONPATH`**. The script will:
-- **Automatically configure `PYTHONPATH` to include `HallThruster`.
-- Run the main script (`main.py`) with the correct environment.
+If hallthruster is still not found, `main.py` you can add the snippet below at the top of main.py, 
+This will check if `HallThruster` is available. If not, it will add the path:
 
-To use this setup, simply run:
-```sh
-run.bat --map --mcmc --plotting
-```
-_(Modify the arguments as explained below in Run Project Section)_
+    ```python
+    import sys
 
-If no flags are provided, `main.py` will automatically fallback to checking for `HallThruster` at the top of the script.
+    # Ensure HallThruster module is in the Python path
+    hallthruster_path = "C:/Users/your-name/.julia/packages/HallThruster/yxE62/python"
+    if hallthruster_path not in sys.path:
+        sys.path.append(hallthruster_path)
 
----
+    import hallthruster as het
+    print("HallThruster imported successfully!")
+
+    ```
 #### 4 : Import HallThruster in Python
-Once the environment is set (via `run.bat`), you can test if `HallThruster` is available in Python:
+Once the environment is set (via `run.py`), you can test if `HallThruster` is available in Python:
 
     ```python
     import hallthruster as het
@@ -243,163 +278,49 @@ Once the environment is set (via `run.bat`), you can test if `HallThruster` is a
     ```
 
     If `HallThruster` is available, the script will proceed normally.  
-    If not available, `main.py` will automatically attempt to add it.
+    If not available, `main.py` will manually attempt to add it.
 
     ---
-
-#### 5: Fallback: Manually Add the Path in `main.py`
-If `run.bat` is not used, `main.py` will check if `HallThruster` is available. If not, it will add the path dynamically:
-
-    ```python
-    import sys
-
-    try:
-        import hallthruster as het
-        print("hallThruster imported successfully!")
-    except ModuleNotFoundError:
-        # Ensure HallThruster module is in the Python path dynamically
-        hallthruster_path = "C:\\Users\\elsensoy\\.julia\\packages\\HallThruster\\yxE62\\python"
-        if hallthruster_path not in sys.path:
-            sys.path.append(hallthruster_path)
-
-        try:
-            import hallthruster as het
-            print("hallThruster imported after manually adding path!")
-        except ModuleNotFoundError:
-            print("eRROR: HallThruster module not found! Ensure `PYTHONPATH` is set.")
-            sys.exit(1)
-    ```
-
 ---
 
 
-
-## Workflow Overview
-
-1. **Configuration:**  
-   - Define simulation parameters and model settings in the `settings.yaml` configuration file.  
-   - Specify options for simulation, optimization, and visualization in their respective .yaml configuration files.
-
-2. **Data Generation:**  
-   - Generate synthetic or experimental ground truth data based on the defined configuration.  
-
-3. **MAP (Maximum A Posteriori) Optimization:**  
-   - Estimate the optimal parameter values using the chosen anomalous transport models (e.g., `TwoZoneBohm`, `MultiLogBohm`).  
-   - Optimizate to minimize the error between simulated and observed data.
-
-4. **MCMC (Markov Chain Monte Carlo) Sampling:**  
-   - Conduct Bayesian inference to obtain parameter distributions.  
-   - Use MCMC techniques (e.g., Delayed Rejection Adaptive Metropolis) to quantify uncertainty.
-
-5. **Visualization and Analysis:**  
-   - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
-   - Compare simulation results against observed data for model validation.
----
 ### **Run Project**
+
+**Command Line Arguments**
+
+- **`gen_data.yaml`** – For data generation  
+- **`map.yaml`** – For MAP estimation  
+- **`mcmc.yaml`** – For MCMC sampling  
+- **`plotting.yaml`** – For visualization  
 
 *Run:*
 ```bash
-run.bat
-```
-This will run main from any parent/child directory.
-## **Optional Command Line Arguments
-
-- **`--gen_data`** – For data generation  
-- **`--map`** – For MAP estimation  
-- **`--mcmc`** – For MCMC sampling  
-- **`--plotting`** – For visualization  
-
+python run.py `my-method`.yaml
 ```
 
-    | Process     |   Flag to Enable      |   Command Line Argument
-    |-------------|-----------------------|--------------------------|
-    | **Generate Data**  `gen_data: true` |   run.bat --gen_data
-    | **MAP Estimation** `run_map: true`  |    run.bat --map
-    | **MCMC Sampling** `run_mcmc: true`  |    run.bat --mcmc
-    | **Visualization** `plotting: true`  |    run.bat --plotting
-```
-
-
-To configure and run the workflow with yaml settings, modify the respective `settings.yaml` files listed below:  
-
-Command-line arguments (--mcmc, --map, --gen_data) override the corresponding YAML flags (run_map, run_mcmc, gen_data). This way, users can either rely on the YAML configuration or override it via CLI arguments.
-
-# Behavior:
-
-Uses YAML settings: If no CLI arguments are passed, default YAML values are used.
-CLI overrides YAML	If --mcmc, --map, or --gen_data is passed, it takes priority over the YAML file.
-Works with run.bat	Automatically passes arguments from the batch file.
-
+This will:
+- Automatically find the project root
+- Locate the correct Python and Julia paths
+- Ensure HallThruster is correctly imported
+- Run the simulation with the specified YAML configuration.
 ---
 
 ### Results directory:
 ```
-    model_error_uq_plasma
-    ├run.bat   
-    ├hall_opt
-    │   ├── config
-    │   │   ├── bfield_spt100.csv
-    │   │   ├── dict.py
-    │   │   ├── run_model.py
-    │   │   ├── settings.yaml
-    │   │   └── verifier.py
-    │   ├── main.py
-    │   ├── plotting
-    │   │   ├── __init__.py
-    │   │   ├── __pycache__
-    │   │   │   ├── __init__.cpython-311.pyc
-    │   │   │   ├── common_setup.cpython-311.pyc
-    │   │   │   ├── plot_ground_truth.cpython-311.pyc
-    │   │   │   └── posterior_plots.cpython-311.pyc
-    │   │   ├── common_setup.py
-    │   │   ├── iteration_plots.py
-    │   │   ├── plot_ground_truth.py
-    │   │   ├── posterior_plots.py
-    │   │   └── tests
-    │   │       ├── 2d_plot_kde.py
-    │   │       ├── delta_plots.py
-    │   │       ├── generate_truth_data.py
-    │   │       ├── map_test.py
-    │   │       └── mock_test.py
-    │   ├── posterior
-    │   │   ├── __pycache__
-    │   │   │   ├── log_likelihood.cpython-311.pyc
-    │   │   │   └── statistics.cpython-311.pyc
-    │   │   ├── log_likelihood.py
-    │   │   └── statistics.py    
-        /results/
-        ├── map/
-        │   ├── map-results-1/  Created dynamically per MAP run
-        │   │   ├── iter_metrics/
-        │   │   │   ├── metrics_1.json  Iteration metrics
-        │   │   │   ├── metrics_2.json
-        │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
-        │   │   ├── final_map_params.json  Final MAP sample 
-        │   │   ├── plots/  Automatically created using `get_common_paths()`
-        │   ├── map-results-2/
-        │   │   ├── iter_metrics/
-        │   │   ├── map_iteration_log.json   
-        │   │   ├── final_map_params.json
-        │   │   ├── plots/
-        ├── mcmc/
-        │   ├── mcmc-results-1/
-        │   │   ├── iter_metrics/
-        │   │   │   ├── metrics_1.json
-        │   │   │   ├── metrics_2.json
-        │   │   ├── checkpoint.json  Checkpoint saving dynamically
-        │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
-        │   │   ├── mcmc_metadata.json  Metadata for MCMC
-        │   │   ├── plots/
-        │   ├── mcmc-results-2/
-        │   │   ├── iter_metrics/
-        │   │   ├── checkpoint.json
-        │   │   ├── final_samples_log.csv
-        │   │   ├── mcmc_metadata.json
-        │   │   ├── plots/
-
+    model_error_uq_plasma/
+    │── hall_opt/
+    │   ├── main.py             # Main execution script
+    │   ├── results/            # Stores all output files
+    │   ├── results_test/       # Stores test results
+    │   ├── config/             # Configuration files
+    │   ├── scripts/            # Method scripts
+    │   ├── utils/              # Helper scripts
+    │   ├── posterior/          # Posterior calculations
+    │── run.py                  # Entry point
+    │── README.md               # Documentation
+    │── pyproject.toml          # Python dependencies (PDM)
+    │── .venv/                  # Virtual environment
 ```
----
-
 ## **Contact**
 
 For any questions or issues, contact:

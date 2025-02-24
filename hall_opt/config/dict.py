@@ -72,6 +72,7 @@ class GeneralSettings(BaseModel):
     ion_velocity_weight: float = 2.0
     iterations: int = 20
 
+
     def absolute_paths(self):
         """Convert results_dir to an absolute path"""
         self.results_dir = str(Path(self.results_dir).resolve())

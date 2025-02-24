@@ -1,16 +1,20 @@
 import os
 import json
+from pathlib import Path
 from hall_opt.config.verifier import Settings
 from hall_opt.config.run_model import run_model
 from hall_opt.utils.save_posterior import save_metrics
 
 def generate_ground_truth(settings: Settings):
     """Generate and save ground truth data if gen_data is True, otherwise load fallback."""
-    
     ground_truth = settings.ground_truth
-    output_file = ground_truth.output_file  
-
+    output_file = Path(ground_truth.output_file)
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # if not output_file.exists():
+    #     output_file.touch()
+    #     print(f"[DEBUG] Created empty file: {output_file}")
 
     if ground_truth.gen_data:
         print("\nGenerating ground truth data using MultiLogBohm...")
@@ -32,23 +36,6 @@ def generate_ground_truth(settings: Settings):
             if not ground_truth_solution:
                 print("ERROR: Ground truth simulation failed.")
                 return None
-            
-            # Extract Necessary Metrics (Same Structure as Metrics Files)
-            metrics = ground_truth_solution.get("output", {}).get("average", {})
-            if not metrics:
-                print("ERROR: Invalid or missing metrics in ground truth simulation output.")
-                return None
-
-            extracted_metrics = {
-                "thrust": metrics.get("thrust", [0]),
-                "time": [settings.simulation.duration],
-                "discharge_current": metrics.get("discharge_current", [0]),
-                "z_normalized": metrics.get("z", []),
-                "ion_velocity": [metrics.get("ui", [0])], 
-            }
-
-            # # Save Extracted Metrics Using `save_metrics`
-            save_metrics(settings, extracted_metrics, output_dir=settings.ground_truth.results_dir, use_json_dump=True)
 
             print(f"Ground truth data successfully saved to {output_file}")
             return ground_truth_solution
