@@ -2,18 +2,16 @@
 import os
 import sys
 import shutil
-import os
-import sys
 import subprocess
 from pathlib import Path
 
 def debug(msg):
-    #Force debug messages to print immediately
+    #Force debug messages for immediate print
     print(f"[DEBUG] {msg}", file=sys.stderr)
     sys.stderr.flush()
 
 def find_project_root():
-    #Find the project root directory (where hall_opt/main.py is located).
+    #Find the project root directory ( hall_opt/main.py).
     script_dir = os.path.abspath(os.getcwd())
     debug(f"Starting search for project root from: {script_dir}")
 
@@ -64,9 +62,9 @@ def find_julia():
         possible_paths = [
             Path.home() / ".julia/juliaup/bin/julia.exe",  # JuliaUp Windows generic path
             Path("C:/Users") / os.getlogin() / ".julia/juliaup/bin/julia.exe",  # Specific Windows user path
-            Path("C:/Users") / os.getlogin() / ".julia/juliaup" / "julia-1.11.3+0.x64.w64.mingw32/bin/julia.exe",  # Your versioned Julia path
+            Path("C:/Users") / os.getlogin() / ".julia/juliaup" / "julia-1.11.3+0.x64.w64.mingw32/bin/julia.exe",
             Path("C:/Users") / os.getlogin() / ".julia/juliaup" / "julia-*/bin/julia.exe",  # Handle different Julia versions
-            Path.home() / "AppData/Local/Programs/Julia-1.11.3/bin/julia.exe",  # Default Windows install
+            Path.home() / "AppData/Local/Programs/Julia-1.11.3/bin/julia.exe",  # Default for Windows install
             Path("/usr/local/bin/julia"),  # macOS/Linux common location
             Path("/opt/julia/bin/julia"),  # Alternative Linux install
         ]
@@ -90,6 +88,7 @@ def find_julia():
     debug(f"Using Julia: {julia_executable}")
     return julia_executable  # Return Julia's absolute path
 
+#TODO: PROJECT PATH CAN'T ACCESS TO HALLTHRUSTER_PROJECT FROM THE ROOT
 def find_hallthruster_path():
     """Find the HallThruster Python package using Julia's HallThruster.PYTHON_PATH."""
     try:
@@ -114,7 +113,7 @@ if hallthruster_path and hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
     print(f"[DEBUG] HallThruster path set to: {hallthruster_path}")
 
-#  Now import HallThruster
+#  import HallThruster
 try:
     import hallthruster as het
 except ModuleNotFoundError:
@@ -128,13 +127,13 @@ def main():
     python_executable = find_python()
     julia_executable = find_julia()
     hall_opt_dir = os.path.join(project_root, "hall_opt")  # hall_opt as absolute
-    main_py = os.path.join(hall_opt_dir, "main.py")  #  Use hall_opt path
+    main_py = os.path.join(hall_opt_dir, "main.py")  #  main .pypath
 
-    # Fix: Set the working directory to the project root
+    # TODO: Set the working directory to the project root ( -c )
     os.chdir(hall_opt_dir)
     debug(f"Changed working directory to {hall_opt_dir}")
 
-    # Fix: Add project root to PYTHONPATH to ensure imports work
+    # Fix: Add project root to PYTHONPATH ensure imports work
     os.environ["PYTHONPATH"] = project_root + os.pathsep + hall_opt_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
     debug(f"Set PYTHONPATH={os.environ['PYTHONPATH']}")
 

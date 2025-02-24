@@ -8,6 +8,21 @@ import os
 HALL_OPT_DIR = os.path.dirname(os.path.abspath(__file__))  
 print(f"[DEBUG] hall_opt directory: {HALL_OPT_DIR}")
 
+#TODO: Replace python path.
+#( find yours by running `
+#``julia
+# using HallThruster
+# println(pathof(HallThruster))
+# ```)
+
+hallthruster_path = "/home/elida/.julia/packages/HallThruster/cq07j/python"
+if hallthruster_path not in sys.path:
+    sys.path.append(hallthruster_path)
+
+import hallthruster as het
+print("HallThruster imported successfully from main!")
+
+
 from hall_opt.config.verifier import verify_all_yaml  
 from hall_opt.scripts.map import run_map_workflow
 from hall_opt.scripts.mcmc import run_mcmc_with_final_map_params
@@ -20,7 +35,7 @@ def parse_arguments():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Run different methods of the project.")
 
-    # Accept a single argument that looks like "mcmc.yaml", "map.yaml", etc.
+    # Accept argument that looks like "mcmc.yaml", "map.yaml", etc.
     parser.add_argument("method_yaml", type=str, help="The method override file (e.g., mcmc.yaml, map.yaml).")
 
     return parser.parse_args()

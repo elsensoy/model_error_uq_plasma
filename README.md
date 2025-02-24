@@ -18,11 +18,9 @@ Please refer to:
 1. [Methods](#methods)
 2. [Requirements](#requirements)
 3. [Installation](#installation)
-   - [Using Python Virtual Environment](#using-python-virtual-environment)
-   - [Using PDM for Dependency Management](#using-pdm-for-dependency-management)
+   - [Dependency Management](#using-pdm-for-dependency-management)
    - [HallThruster.jl Installation](#hallthrusterjl-installation)
 4. [Run Project](#run-project)
-6. [Usage](#usage)
 8. [Contact](#contact)
 
 ---
@@ -52,7 +50,7 @@ Please refer to:
 
 To run this project, ensure the following dependencies are installed:
 
-### **Python**
+#### **Python**
 - Python 3.10 or later
 - Required Python packages (from `requirements.txt`):
   - `numpy`
@@ -63,7 +61,7 @@ To run this project, ensure the following dependencies are installed:
   - `MCMCIterators`
   - `arviz` *(for MCMC analysis)*
 
-### **Julia**
+#### **Julia**
 - Julia 1.10 or later
 - Install the **HallThruster** package using Julia's package manager.
 
@@ -71,7 +69,6 @@ To run this project, ensure the following dependencies are installed:
 
 ## **Installation**
 
-### **Using Python Virtual Environment**
 
 1. **Clone the repository:**
     ```
@@ -86,40 +83,29 @@ To run this project, ensure the following dependencies are installed:
     .venv\Scripts\activate
 
     # On Ubuntu/MacOS
+    python3 -m venv .venv   
     source .venv/bin/activate
     ```
 
-3. **Install dependencies:**
-    ```bash
-    python -m pip install -r requirements.txt
-    ```
----
-
-### **Using PDM for Dependency Management**
+## **Dependency Management**
 
 [PDM (Python Dependency Manager)](https://pdm-project.org) offers a more streamlined way to manage dependencies and virtual environments.
 
-#### **Step 1: Install PDM**
+
+#### **Step 2: Install PDM**
 
 If you don't have PDM installed, install it via:
 
 ```bash
-python -m pip install pdm
-```
-
-#### **Step 2: Clone the repository**
-
-```bash
-git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
-cd model_error_uq_plasma
+python pip install pdm
 ```
 
 #### **Step 3: Install dependencies with PDM**
 
-Instead of using a virtual environment manually, PDM will handle it:
+Install dependencies:
 
 ```bash
-python pdm install
+pdm install
 ```
 
 Verify the required packages are available in your environment.
@@ -146,30 +132,19 @@ pdm list
 #### **Step 4: Activate the PDM virtual environment**
 
 ```
-python pdm venv activate
+pdm venv activate
 ```
-
----
-**Windows Installation**
-
-Follow the instructions under [Using Python Virtual Environment](#using-python-virtual-environment) or [Using PDM for Dependency Management](#using-pdm-for-dependency-management).
-
----
-
-**Ubuntu Installation**
-
-1. **Install required dependencies:**
-    ```
-    sudo apt update && sudo apt install -y python3 python3-venv python3-pip git julia
-    ```
-
-2. **Clone the repository and set up the environment:**
-    ```
-    git clone https://github.com/gorodetsky-umich/model_error_uq_plasma.git
-    cd model_error_uq_plasma
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
+### Auto-Activation in ~/.bashrc, ~/.zshrc (optional)
+    '''
+    function cd {
+        builtin cd "$@"
+        # bash regex pdm-test / conditionally activate the venv in the current shell 
+        if [[ "$PWD" =~ pdm-test ]]
+        then
+            eval $(pdm venv activate)
+        fi
+    }
+    '''
 ---
 
 > **Note:** **Troubleshooting Dependency Conflicts**  
@@ -188,7 +163,8 @@ To ensure HallThruster works correctly with Python, follow these steps to instal
 
 1. **Install Julia (1.10 or later)** from [Julia Official Website](https://julialang.org/downloads/)
 
-Ensure Julia is installed and run:
+
+#### Ensure Julia is installed and run:
    ```
     where julia  # Windows
     which julia  # macOS/Linux
@@ -214,20 +190,19 @@ If it’s not found, add it to PATH or reinstall Julia.
    (@v1.10) pkg> activate .
    (@v1.10) pkg> add HallThruster
    ```
-
 ---
-
-#### 1:Automatic Setup via `run.py` 
-
-The script automatically finds Julia (whether installed via juliaup or standalone).
-The correct HallThruster.PYTHON_PATH is dynamically retrieved. So after confirming
 If you experience import errors, run the following in Julia:
 
     julia```
     using Pkg
     Pkg.add("HallThruster")
 
-Then, try running run.py again.
+Check if the package installation was successful:
+
+    julia```
+        using Pkg
+        Pkg.status()
+    ```
 
 After installation, find the Python script path by running the following command in Julia:
 
@@ -237,52 +212,11 @@ println(pathof(HallThruster))
 ```
 The output will contain the package installation path. 
 
-#### 2: Verify the PYTHONPATH Variable
-If you want to manually check that `HallThruster` was added to `PYTHONPATH`, run:
-
-    ```powershell
-    echo $env:PYTHONPATH
-    ```
-    ```sh
-    echo $PYTHONPATH
-    ```
-You should see the `HallThruster` path included in the output.
-
 ---
+## 2:Automatic Setup via `run.py` 
+
+#### After hallthruster installation is completed, you are ready to run the project. See the guide for running the project below. 
 ---
-#### 3: Manually Add the Path in `main.py`
-
-If hallthruster is still not found, `main.py` you can add the snippet below at the top of main.py, 
-This will check if `HallThruster` is available. If not, it will add the path:
-
-    ```python
-    import sys
-
-    # Ensure HallThruster module is in the Python path
-    hallthruster_path = "C:/Users/your-name/.julia/packages/HallThruster/yxE62/python"
-    if hallthruster_path not in sys.path:
-        sys.path.append(hallthruster_path)
-
-    import hallthruster as het
-    print("HallThruster imported successfully!")
-
-    ```
-#### 4 : Import HallThruster in Python
-Once the environment is set (via `run.py`), you can test if `HallThruster` is available in Python:
-
-    ```python
-    import hallthruster as het
-
-    # Check if the module is loaded correctly
-    print("hallThruster successfully imported!")
-    ```
-
-    If `HallThruster` is available, the script will proceed normally.  
-    If not available, `main.py` will manually attempt to add it.
-
-    ---
----
-
 
 ### **Run Project**
 
@@ -304,6 +238,40 @@ This will:
 - Ensure HallThruster is correctly imported
 - Run the simulation with the specified YAML configuration.
 ---
+
+
+
+Once the environment is set, you can test if `HallThruster` is available in Python:
+
+    ```python
+    import hallthruster as het
+
+    # Check if the module is loaded correctly
+    print("hallThruster successfully imported!")
+    ```
+
+    If `HallThruster` is available, the script will proceed normally.  
+    If not available, `main.py` will manually attempt to add it.
+
+    ---
+
+### 3: TROUBLESHOOT: Manually Add the Path in `main.py`
+
+If hallthruster is still not found, in `main.py`,  edit the snippet below (located at the top of main.py) and replace the placeholder with your hallthruster python path, 
+This will check if `HallThruster` is accessed. If not, it will add the path:
+
+    ```python
+    import sys
+
+    # Ensure HallThruster module is in the Python path
+    hallthruster_path = "/Users/your-name/.julia/packages/HallThruster/abc/python"
+    if hallthruster_path not in sys.path:
+        sys.path.append(hallthruster_path)
+
+    import hallthruster as het
+    print("HallThruster imported successfully in main!")
+
+    ```
 
 ### Results directory:
 ```
