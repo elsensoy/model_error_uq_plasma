@@ -1,12 +1,21 @@
 import os
 import json
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> ca27a03 (run.py integrated)
 from pathlib import Path
 import numpy as np
 from typing import Dict, Any
 from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
+<<<<<<< HEAD
 from hall_opt.utils.iter_methods import get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
+=======
+from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
+from hall_opt.utils.statistics import log_posterior
+>>>>>>> ca27a03 (run.py integrated)
 
 def mcmc_inference(
     logpdf,
@@ -19,6 +28,11 @@ def mcmc_inference(
 ):
     """Performs MCMC inference, saving results in structured directories."""
 
+<<<<<<< HEAD
+=======
+    # Set up result directories
+    mcmc_settings = settings.mcmc
+>>>>>>> ca27a03 (run.py integrated)
     results_dir = Path(settings.mcmc.results_dir)
     mcmc_base_dir = Path(get_next_results_dir(results_dir, "mcmc-results"))
     settings.mcmc.base_dir = mcmc_base_dir  # Update settings with resolved directory
@@ -89,6 +103,12 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
     """
 
     config_file = settings.general.config_file 
+<<<<<<< HEAD
+=======
+
+    # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
+  
+>>>>>>> ca27a03 (run.py integrated)
     final_map_params_path = os.path.join(settings.map.final_map_params_file)
     
     try:
@@ -100,6 +120,10 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
     print(f"DEBUG: Loaded MAP parameters: {final_map_params}")
 
+<<<<<<< HEAD
+=======
+    #  **Extract only c1_log and alpha_log into a list**
+>>>>>>> ca27a03 (run.py integrated)
     try:
         params = [final_map_params["c1_log"], final_map_params["alpha_log"]]
     except KeyError:
