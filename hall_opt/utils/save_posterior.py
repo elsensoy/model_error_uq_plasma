@@ -27,9 +27,9 @@ def save_metrics(
     if not extracted_metrics:
         print("ERROR: No valid metrics to save. Skipping save operation.")
         return
-    if settings.general.run_map:
+    if settings.run_map:
         base_dir = settings.map.base_dir  # Uses `map-results-N/`
-    elif settings.general.run_mcmc:
+    elif settings.run_mcmc:
         base_dir = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")

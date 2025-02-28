@@ -14,7 +14,6 @@ print(f"[DEBUG] hall_opt directory: {HALL_OPT_DIR}")
 # using HallThruster
 # println(pathof(HallThruster))
 # ```)
-
 hallthruster_path = "/home/elida/.julia/packages/HallThruster/cq07j/python"
 if hallthruster_path not in sys.path:
     sys.path.append(hallthruster_path)
@@ -34,18 +33,14 @@ from hall_opt.utils.resolve_paths import resolve_yaml_paths
 def parse_arguments():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Run different methods of the project.")
-
     # Accept argument that looks like "mcmc.yaml", "map.yaml", etc.
     parser.add_argument("method_yaml", type=str, help="The method override file (e.g., mcmc.yaml, map.yaml).")
-
     return parser.parse_args()
-
 
 def main():
 
 # Parse command-line arguments
     args = parse_arguments()
-
     # -----------------------------
     #  Step 1: Extract method name from the argument
     # -----------------------------
@@ -72,17 +67,23 @@ def main():
         "gen_data": "gen_data",
         "plotting": "plotting"
     }
-
     if method in valid_methods:
-        setattr(settings, valid_methods[method], True)  # Dynamically enable the flag
-        print(f"Overriding: settings.general.{valid_methods[method]} = True")
+        #  Override inside `settings.general`
+        setattr(settings.general, valid_methods[method], True)  
+        print(f"Overriding: settings.{valid_methods[method]} = True")
     else:
         print(f"ERROR: Unrecognized method '{method}'. Use one of {list(valid_methods.keys())}.")
         sys.exit(1)
 
+    #  Debugging: Print final flag values 
+    print("DEBUG: Final execution flags:")
+    print(f"  run_map: {settings.general.run_map}")
+    print(f"  run_mcmc: {settings.general.run_mcmc}")
+    print(f"  gen_data: {settings.general.gen_data}")
+    print(f"  plotting: {settings.general.plotting}")
+
     print(f"Using base configuration from settings.yaml")
     print(f"Method detected: {method}")
-
     # -----------------------------
     #  Step 3: Create Results Directory
     # -----------------------------
@@ -94,15 +95,10 @@ def main():
     # -----------------------------
     #  Step 4: Generate or Load Ground Truth Data
         # -----------------------------
-
-    # -----------------------------
-    #  Step 4: Generate or Load Ground Truth Data
-    # -----------------------------
-
     observed_data = None
     ground_truth_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
 
-    if settings.ground_truth.gen_data:
+    if settings.general.gen_data:
         print("DEBUG: `gen_data=True` -> Running ground truth generation...")
         observed_data = generate_ground_truth(settings)
     else:
@@ -118,23 +114,27 @@ def main():
     #  Step 5: Run MAP Estimation (If Enabled)
     # -----------------------------
     if settings.general.run_map:
-        print("Running MAP estimation using TwoZoneBohm...")
-        print(f"Using base directory for this MAP run: {settings.map.base_dir}")
-        config_file = settings.general.config_file
+        print(f"DEBUG: observed_data: {type(observed_data)}, {observed_data is None}")
+        if observed_data is None:
+            print("ERROR: observed_data is missing, cannot run MAP estimation!")
+        else:
+            try:
+                print("DEBUG: Calling run_map_workflow()...")
+                optimized_params = run_map_workflow(observed_data, settings, settings.general.config_file)
 
-        try:
-            optimized_params = run_map_workflow(observed_data, settings, config_file)
-            if optimized_params:
-                final_map_params_path = Path(settings.map.base_dir) / "final_map_params.json"
-                with open(final_map_params_path, "w") as f:
-                    json.dump(optimized_params, f, indent=4)
-                print(f"Final MAP parameters saved to {final_map_params_path}")
-            else:
-                print("ERROR: MAP optimization failed.")
+                if optimized_params:
+                    final_map_params_path = Path(settings.map.output) / "final_map_params.json"
+                    with open(final_map_params_path, "w") as f:
+                        json.dump(optimized_params, f, indent=4)
+                    print(f"Final MAP parameters saved to {final_map_params_path}")
+                else:
+                    print("ERROR: MAP optimization failed.")
 
-        except Exception as e:
-            print(f"ERROR during MAP estimation: {e}")
-            sys.exit(1)
+            except Exception as e:
+                print(f"ERROR during MAP estimation: {e}")
+                sys.exit(1)
+    else:
+        print("DEBUG: MAP Estimation is disabled.")
 
     # -----------------------------
     #  Step 6: Run MCMC Sampling (If Enabled)

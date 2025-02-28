@@ -14,7 +14,8 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     elif analysis_type == "map":
         data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  #  Dynamically find path
     elif analysis_type == "mcmc":
-        data_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")  #  Dynamically find path
+        data_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")  #  Dynamically find path
+
     else:
         raise ValueError(" Invalid analysis type. Choose 'map' or 'mcmc'.")
 
@@ -26,7 +27,7 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
             data = json.load(f)
         samples = pd.DataFrame([data])  #  Convert single MAP estimate to DataFrame
     else:  # MCMC
-        samples = pd.read_csv(data_file)
+        samples = pd.read_csv(data_file, header=None, names=["log_c1", "log_alpha"])
 
     return samples
 

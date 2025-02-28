@@ -5,7 +5,7 @@ from scipy.optimize import minimize
 from typing import Dict, Any
 from pathlib import Path
 from hall_opt.config.verifier import Settings
-from hall_opt.utils.statistics import log_posterior
+from hall_opt.posterior.statistics import log_posterior
 from hall_opt.utils.iter_methods import get_next_results_dir
 
 def run_map_workflow(
@@ -15,21 +15,24 @@ def run_map_workflow(
 ):
     # Ensure the correct MAP results directory
 
-    settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
+    settings.map.base_dir = get_next_results_dir(settings.map.output_dir, "map-results")
     print(f"Using MAP results directory: {settings.map.base_dir}")
     # Load initial guess
     map_settings= settings.map
-    try:
-        with open(settings.map.map_initial_guess_file, "r") as f:
-            initial_guess = json.load(f)
-            print(f"Running MAP optimization with initial guess: {initial_guess}")
-    except Exception as e:
-        print(f"ERROR: Failed to load initial guess: {e}")
+    # Print entire map configuration for debugging
+    print("DEBUG: MAP Configuration:")
+    print(settings.map.model_dump())
+
+    # Ensure `map` exists before accessing `initial_cs`
+    if not hasattr(settings, "map") or settings.map is None:
+        print("ERROR: `map` section is missing in settings!")
         return None
 
-    if not isinstance(initial_guess, list) or len(initial_guess) != 2:
-        print(f"ERROR: Invalid initial guess format.")
-        return None
+    # Access initial guess safely
+    initial_guess = settings.map.initial_guess
+
+    # Debug print
+    print(f"DEBUG: Running MAP optimization with initial guess: {initial_guess}")
 
     # Track iterations
     iteration_counter = [0]
@@ -58,7 +61,7 @@ def run_map_workflow(
 
             return loss # We return a minimized "loss"
         except Exception as e:
-            print(f"ERROR: Failed to evaluate log-posterior: {e}")
+            print(f"ERROR:  log-posterior: {e}")
             return np.inf
 
 # Define paths for saving iteration logs and checkpoint

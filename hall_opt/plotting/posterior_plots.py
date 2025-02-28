@@ -8,8 +8,8 @@ from hall_opt.config.dict import Settings
 def plot_autocorrelation(samples, output_dir):
     """Generate autocorrelation plots."""
     fig, axes = plt.subplots(2, 1, figsize=(10, 6))
-    az.plot_autocorr(samples["log_v1"].values, ax=axes[0])
-    axes[0].set_title("Autocorrelation for log(v1)")
+    az.plot_autocorr(samples["log_c1"].values, ax=axes[0])
+    axes[0].set_title("Autocorrelation for log(c1)")
     az.plot_autocorr(samples["log_alpha"].values, ax=axes[1])
     axes[1].set_title("Autocorrelation for log(alpha)")
     
@@ -21,8 +21,8 @@ def plot_autocorrelation(samples, output_dir):
 def plot_trace(samples, output_dir):
     """Generate trace plots."""
     fig, axes = plt.subplots(2, 1, figsize=(10, 6))
-    axes[0].plot(samples["log_v1"], color='blue')
-    axes[0].set_title("Trace Plot for log(v1)")
+    axes[0].plot(samples["log_c1"], color='blue')
+    axes[0].set_title("Trace Plot for log(c1)")
     axes[1].plot(samples["log_alpha"], color='green')
     axes[1].set_title("Trace Plot for log(alpha)")
 
@@ -34,7 +34,7 @@ def plot_trace(samples, output_dir):
 
 def plot_posterior(samples, output_dir):
     """Generate posterior distributions."""
-    posterior = az.from_dict(posterior={"log_v1": samples["log_v1"], "log_alpha": samples["log_alpha"]})
+    posterior = az.from_dict(posterior={"log_c1": samples["log_c1"], "log_alpha": samples["log_alpha"]})
     az.plot_posterior(posterior)
     plt.savefig(f"{output_dir}/posterior_marginals.png")
     plt.close()
@@ -42,7 +42,7 @@ def plot_posterior(samples, output_dir):
 
 def plot_pair(samples, output_dir):
     """Generate pair plots for joint distributions."""
-    sns.pairplot(samples[["log_v1", "log_alpha"]], kind="scatter", diag_kind="kde", corner=True)
+    sns.pairplot(samples[["log_c1", "log_alpha"]], kind="scatter", diag_kind="kde", corner=True)
     plt.savefig(f"{output_dir}/pair_plot.png")
     plt.close()
     print(f"Saved pair plot to {output_dir}")
@@ -53,9 +53,9 @@ def generate_plots(settings: Settings):
     """
 
     # Determine analysis type dynamically
-    if settings.general.run_map:
+    if settings.run_map:
         analysis_type = "map"
-    elif settings.general.run_mcmc:
+    elif settings.run_mcmc:
         analysis_type = "mcmc"
     else:
         print("ERROR: Neither MAP nor MCMC is enabled! No plots will be generated.")
