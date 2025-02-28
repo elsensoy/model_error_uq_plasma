@@ -7,9 +7,11 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
+### DONE: Defaults & Annotations
 
-### Thruster Configuration
 class ThrusterConfig(BaseModel):
+    name: str = Field(..., description="Thruster name")
+### Thruster Configuration
     geometry: Dict[str, float] = Field(
         default={"channel_length": 0.025, "inner_radius": 0.0345, "outer_radius": 0.05},
         description="Thruster geometry dimensions",
@@ -18,47 +20,50 @@ class ThrusterConfig(BaseModel):
         default={"file": "config/bfield_spt100.csv"}, description="Magnetic field file path"
     )
 
-
-# Define individual models
 class TwoZoneBohmModel(BaseModel):
-    c1: float = 0.00625
-    c2: float = 0.0625
+    c1: float = Field(0.00625, description="Coefficient 1 for TwoZoneBohm")
+    c2: float = Field(0.0625, description="Coefficient 2 for TwoZoneBohm")
 
 class MultiLogBohmModel(BaseModel):
-    zs: List[float] = Field(default=[0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07])
-    cs: List[float] = Field(default=[0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05])
+    zs: List[float] = Field(
+        default=[0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07], 
+        description="Z values for MultiLogBohm"
+    )
+    cs: List[float] = Field(
+        default=[0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05], 
+        description="C values for MultiLogBohm"
+    )
 
-#  Main Config (No `parameters` field)
-class AnomModelConfig(BaseModel):
-    type: str = "MultiLogBohm"  # Default model type
-    # c1: float = None  # Only for TwoZoneBohm
-    # c2: float = None
-    zs: List[float] = None  # Only for MultiLogBohm
-    cs: List[float] = None
+class Config(BaseModel):
+    """Main configuration model with optional fields and anomalous model validation."""
+
+    thruster: Optional["ThrusterConfig"] = None
+    discharge_voltage: Optional[int] = Field(300, ge=0, description="Discharge voltage in V")
+    anode_mass_flow_rate: Optional[float] = Field(5.0e-6, gt=0, description="Mass flow rate in kg/s")
+    domain: Optional[List[float]] = Field(default=[0, 0.08], min_length=2, max_length=2)
+    anom_model: Optional[Dict[str, Any]] = None
 
     @model_validator(mode="before")
     @classmethod
-    def set_model_defaults(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Fills in the correct model parameters based on the `type`."""
-        model_type = values.get("type", "MultiLogBohm")  # Default if missing
+    def validate_anom_model(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensures `anom_model` contains only `TwoZoneBohm` or `MultiLogBohm` and applies defaults only if missing."""
+        
+        anom_model = values.get("anom_model")
 
-        if model_type == "TwoZoneBohm":
-            values.update(TwoZoneBohmModel().model_dump())  # Set TwoZoneBohm parameters
-        elif model_type == "MultiLogBohm":
-            values.update(MultiLogBohmModel().model_dump())  # Set MultiLogBohm parameters
+        if anom_model is None:
+            print("DEBUG: No `anom_model` found. Defaulting to `MultiLogBohm`.")
+            values["anom_model"] = {"MultiLogBohm": MultiLogBohmModel()} 
+
         else:
-            raise ValueError(f" Invalid anom_model type: {model_type}")
+            valid_models = {"TwoZoneBohm", "MultiLogBohm"}
+            selected_models = set(anom_model.keys()).intersection(valid_models)
+
+            if len(selected_models) > 1:
+                raise ValueError("ERROR: Only one anomalous model (TwoZoneBohm or MultiLogBohm) can be set at a time.")
 
         return values
 
 
-# Handle Defaults for All Rrquired Fields
-class ConfigSettings(BaseModel):
-    thruster: ThrusterConfig = Field(default_factory=ThrusterConfig)
-    anom_model: AnomModelConfig = Field(default_factory=AnomModelConfig)  # Keep Validation
-    discharge_voltage: int = Field(300, ge=0)
-    anode_mass_flow_rate: float = Field(5.0e-6, gt=0)
-    domain: List[float] = Field(default=[0, 0.08], min_length=2, max_length=2)
 
 
 ### General Settings
@@ -77,20 +82,24 @@ class GeneralSettings(BaseModel):
         """Convert results_dir to an absolute path"""
         self.results_dir = str(Path(self.results_dir).resolve())
 
-
-### PostProcess Configuration
 class PostProcessConfig(BaseModel):
     output_file: Dict[str, str] = Field(
         default={
             "TwoZoneBohm": "results_test/postprocess/output_twozonebohm.json",
             "MultiLogBohm": "results_test/postprocess/output_multilogbohm.json"
-        }
+        })
+    save_time_resolved: bool = Field(
+        default=False, description="Flag to save time-resolved data"
     )
+    average_start_time: float = Field(
+        default=0.0004, description="Start time for averaging process"
+    )
+    
 
 
 ### Ground Truth Configuration
 class GroundTruthConfig(BaseModel):
-    gen_data: bool = False
+    gen_data: bool = True
     results_dir: str = "results/ground_truth"
     output_file: str = "results/ground_truth/output_ground_truth.json"
 
@@ -140,20 +149,20 @@ class PlottingConfig(BaseModel):
     enabled_plots: List[str] = ["autocorrelation", "trace", "posterior", "pair"]
 
 
-### Simulation Configuration
 class Simulation(BaseModel):
     dt: float = 1e-6
+    adaptive: bool = Field(default= True, description="Whether to use adaptive time stepping")
     grid: Dict[str, Any] = Field(default={"type": "EvenGrid", "num_cells": 100})
+    num_save: int = Field(default=1000, description="Number of save points")
     duration: float = 0.001
 
+        
 ###  Final Settings Model (Updated)
 class Settings(BaseModel):
     results_dir: str = Field(default="results_test", description="Base directory for results")
-    gen_data: bool = Field(default=False, description="Enable ground truth data generation")
-    run_map: bool = Field(default=False, description="Enable map")
-    run_mcmc: bool = Field(default=False, description="Enable mcmc")
-    general: GeneralSettings = Field(default_factory=GeneralSettings)
-    config_settings: ConfigSettings = Field(default_factory=ConfigSettings)
+    gen_data: bool = Field(default=True, description="Enable ground truth data generation")
+    general: Optional[GeneralSettings] = Field(default_factory=GeneralSettings)
+    config_settings: Config = Field(default_factory=Config)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)
     ground_truth: Optional[GroundTruthConfig] = Field(default_factory=GroundTruthConfig)
     mcmc: Optional[MCMCConfig] = Field(default_factory=MCMCConfig)

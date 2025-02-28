@@ -46,6 +46,7 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
         print(f" ERROR: {e}")
         return 
 
+
 def load_config(config_path):
     """Load the YAML configuration file with debug info."""
     

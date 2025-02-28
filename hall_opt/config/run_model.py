@@ -69,9 +69,7 @@ def run_model(
         # print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
         
         solution = het.run_simulation(input_data)
-        json_output = json.dumps(solution, indent=4)    
-        print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_output}")
-        
+
         return solution  
 
     except KeyError as e:
