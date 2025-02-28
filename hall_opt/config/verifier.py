@@ -41,13 +41,29 @@ def verify_all_yaml() -> Optional[Settings]:
     # Debug: Print `results_dir` before resolving
     print(f"DEBUG: Loaded `results_dir`: {settings.results_dir}")
 
-    # Resolve `results_dir` path
-    settings.resolve_all_paths()
+    print(f"\nDEBUG: before resolving:")
+    print(f"  general.results_dir: {settings.general.results_dir}")
+    print(f"  mcmc.results_dir: {settings.mcmc.output_dir}")
+    print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
 
     # Debug: Print `results_dir` after resolving
     print(f"Results directory resolved to: {settings.results_dir}")
 
-    # Ensure the results directory exists
-    Path(settings.results_dir).mkdir(parents=True, exist_ok=True)
+    print(f"\nDEBUG: After resolving:")
+    print(f"  general.results_dir: {settings.general.results_dir}")
+    print(f"  mcmc.results_dir: {settings.mcmc.output_dir}")
+    print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
+
+    # Debug: Print `general.results_dir` after resolving
+    print(f" Results directory resolved to: {settings.general.results_dir}")
+
+    #  directories exist
+    Path(settings.general.results_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.ground_truth.results_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.mcmc.output_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.map.output_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.mcmc.base_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.map.base_dir).mkdir(parents=True, exist_ok=True)
+    Path(settings.plots.plots_subdir).mkdir(parents=True, exist_ok=True)
 
     return settings

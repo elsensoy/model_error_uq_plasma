@@ -1,11 +1,12 @@
 import os
 import json
+import sys
 from pathlib import Path
 import numpy as np
 from typing import Dict, Any
 from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
-from hall_opt.utils.iter_methods import get_next_results_dir
+from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
 
 def mcmc_inference(
@@ -15,15 +16,19 @@ def mcmc_inference(
     iterations,
     save_interval,
     checkpoint_interval,
-    settings
+    settings,
+    burn_in
 ):
     """Performs MCMC inference, saving results in structured directories."""
 
-    results_dir = Path(settings.mcmc.results_dir)
+    # Set up result directories
+    mcmc_settings = settings.mcmc
+    results_dir = Path(settings.mcmc.output_dir)
     mcmc_base_dir = Path(get_next_results_dir(results_dir, "mcmc-results"))
     settings.mcmc.base_dir = mcmc_base_dir  # Update settings with resolved directory
 
     final_samples_log_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")
+    final_samples_mcmc_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")
     checkpoint_file = os.path.join(settings.mcmc.base_dir, "checkpoint.json")
 
     print(f"MCMC base directory: {settings.mcmc.base_dir}")
@@ -41,9 +46,10 @@ def mcmc_inference(
     )
 
     all_samples = []
-    checkpoint_samples = []  # Stores every 10th sample
+    checkpoint_samples = []   
+    burn_in_samples = [] 
 
-    print(f"Starting MCMC inference with {settings.general.iterations} iterations...")
+    print(f"Starting MCMC inference with {settings.mcmc.max_iter} iterations with burn in {settings.mcmc.burn_in}...")
 
     for iteration in range(iterations):
         try:
@@ -54,13 +60,18 @@ def mcmc_inference(
             c2 = c1 * alpha
 
             print(f"Iteration {iteration + 1}: c1={c1:.4f}, c2={c2:.4f}, Accepted={accepted}")
+            print(f"Log Posterior Value {log_posterior_val}")
+            if iteration < burn_in:
+                burn_in_samples.append(proposed_sample)
+                continue  # Skip saving/logging for burn-in
 
-            # Store only MCMC parameters
+            # Store only post-burn-in MCMC parameters
             all_samples.append(proposed_sample)
 
-            # Save only MCMC parameters incrementally
+            # Save MCMC parameters incrementally
             if (iteration + 1) % save_interval == 0:
                 np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",", fmt="%.6f")
+                np.savetxt(final_samples_mcmc_file, np.array(all_samples), delimiter=",", fmt="%.6f")             
 
             # Save checkpoint every `checkpoint_interval` iterations (only MCMC parameters)
             if (iteration + 1) % checkpoint_interval == 0:
@@ -89,7 +100,11 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
     """
 
     config_file = settings.general.config_file 
-    final_map_params_path = os.path.join(settings.map.final_map_params_file)
+
+    # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
+  
+    final_map_params_path = os.path.join(settings.mcmc.reference_data)
+ 
     
     try:
         with open(final_map_params_path, "r") as f:
@@ -100,10 +115,12 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
     print(f"DEBUG: Loaded MAP parameters: {final_map_params}")
 
+    #  **Extract only c1_log and alpha_log into a list**
     try:
-        params = [final_map_params["c1_log"], final_map_params["alpha_log"]]
+        params = [final_map_params["c1"], final_map_params["alpha"]]
+ 
     except KeyError:
-        raise ValueError(" ERROR: Expected `c1_log` and `alpha_log` in final_map_params.json")
+        raise ValueError(" ERROR: Expected `c1` and `alpha` in final_map_params.json")
     print(f"DEBUG: Extracted parameter list for MCMC: {params}")
 
 
@@ -111,10 +128,11 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
         lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings, config_file),
         initial_sample=np.array(params, dtype=np.float64),
         initial_cov=np.array(settings.mcmc.initial_cov, dtype=np.float64),
-        iterations=settings.general.iterations,
+        iterations=settings.mcmc.max_iter,
         save_interval=settings.mcmc.save_interval,
         checkpoint_interval=settings.mcmc.checkpoint_interval,
-        settings=settings
+        settings=settings,
+        burn_in=settings.mcmc.burn_in
     )
     return all_samples
 

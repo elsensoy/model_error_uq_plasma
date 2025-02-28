@@ -28,11 +28,11 @@ def save_results_to_json(
     subsample_for_saving=True
 ):
     # Determine correct results directory
-    if settings.ground_truth.gen_data:
+    if settings.gen_data:
         results_dir = settings.ground_truth.output_file
-    elif settings.general.run_map:
+    elif settings.run_map:
         results_dir = settings.map.base_dir  # Uses `map-results-N/`
-    elif settings.general.run_mcmc:
+    elif settings.run_mcmc:
         results_dir = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
@@ -68,9 +68,9 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
     """
     Saves metadata in the appropriate MAP or MCMC directory.
     """
-    if settings.general.run_map:
+    if settings.run_map:
         directory = settings.map.base_dir  # Uses `map-results-N/`
-    elif settings.general.run_mcmc:
+    elif settings.run_mcmc:
         directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")

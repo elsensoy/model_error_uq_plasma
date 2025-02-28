@@ -22,17 +22,6 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
 
     print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
 
-# Define CSV file path
-    csv_file_path = Path(settings.map.base_dir) / "updated_params.csv"
-
-    # Write updated values to the CSV file (overwrite previous file)
-    with open(csv_file_path, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["c1", "c2"])  # Column headers
-        writer.writerow([c1, c2])  # Write updated values
-
-    print(f"Updated parameters saved to {csv_file_path}")
-
     # Run the model simulation
     solution = run_model(
         settings=settings,
@@ -82,10 +71,10 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
             return -np.inf
 
     #  directory for saving metrics map/mcmc
-    if settings.general.run_map:
+    if settings.run_map:
         output_dir = settings.map.base_dir  #  base_dir instead of results_dir
         print("DEBUG: Saving metrics in MAP results directory.")
-    elif settings.general.run_mcmc:
+    elif settings.run_mcmc:
         output_dir = settings.mcmc.base_dir  #  base_dir instead of results_dir
         print("DEBUG: Saving metrics in MCMC results directory.")
     else:
