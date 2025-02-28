@@ -5,26 +5,15 @@ from scipy.optimize import minimize
 from typing import Dict, Any
 from pathlib import Path
 from hall_opt.config.verifier import Settings
-<<<<<<< HEAD
-from hall_opt.posterior.statistics import log_posterior
-from hall_opt.utils.iter_methods import get_next_results_dir
-from hall_opt.utils.iteration_logger import iteration_callback
-
-=======
 from hall_opt.utils.statistics import log_posterior
 from hall_opt.utils.iter_methods import get_next_results_dir
->>>>>>> ca27a03 (run.py integrated)
 
 def run_map_workflow(
     observed_data: Dict[str, Any],
     settings: Settings,
     yaml_file: str  # Pass YAML config file path
 ):
-<<<<<<< HEAD
-    #  the correct MAP results directory
-=======
     # Ensure the correct MAP results directory
->>>>>>> ca27a03 (run.py integrated)
 
     settings.map.base_dir = get_next_results_dir(settings.map.results_dir, "map-results")
     print(f"Using MAP results directory: {settings.map.base_dir}")
@@ -68,35 +57,10 @@ def run_map_workflow(
             # print(f"Evaluating loss at c_log: {c_log}, loss: {loss}")
 
             return loss # We return a minimized "loss"
-<<<<<<< HEAD
-        
-=======
->>>>>>> ca27a03 (run.py integrated)
         except Exception as e:
             print(f"ERROR: Failed to evaluate log-posterior: {e}")
             return np.inf
 
-<<<<<<< HEAD
-# # Define paths for saving iteration logs and checkpoint
-    iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
-    checkpoint_path = Path(settings.map.base_dir) / "map_checkpoint.json"
-
-#  the directory exists before writing files
-    iteration_log_path.parent.mkdir(parents=True, exist_ok=True)
-
-   # Perform MAP optimization
-    try:
-        result = minimize(
-            neg_log_posterior_with_penalty,
-            initial_guess,
-            method=map_settings.method,
-            callback=lambda c_log: iteration_callback(
-                c_log, iteration_counter, iteration_logs, iteration_log_path, checkpoint_path
-            ),
-            options={"maxfev": map_settings.maxfev, "fatol": map_settings.fatol, "xatol": map_settings.xatol}
-        )
-
-=======
 # Define paths for saving iteration logs and checkpoint
     iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
     checkpoint_path = Path(settings.map.base_dir) / "map_checkpoint.json"
@@ -158,7 +122,6 @@ def run_map_workflow(
             callback=iteration_callback,
             options={"maxfev": map_settings.maxfev, "fatol": map_settings.fatol, "xatol": map_settings.xatol}
         )
->>>>>>> ca27a03 (run.py integrated)
     except Exception as e:
         print(f"Error during optimization: {e}")
         return None, None
