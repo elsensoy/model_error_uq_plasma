@@ -9,15 +9,12 @@ from hall_opt.config.dict import Settings
 
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     if analysis_type == "ground_truth":
-        data_file = os.path.join(settings.results_dir, "postprocess/output_multilogbohm.json")
-        if not data_file.exists():
-            data_file.touch()
-        print(f"[DEBUG] Created empty file: {data_file}")
+        data_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
         print("Ground truth is loaded successfully")
     elif analysis_type == "map":
-        data_file = os.path.join(settings.map.base_dir, "final_map_params.json")
+        data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  #  Dynamically find path
     elif analysis_type == "mcmc":
-        data_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv") 
+        data_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")  #  Dynamically find path
     else:
         raise ValueError(" Invalid analysis type. Choose 'map' or 'mcmc'.")
 
@@ -34,23 +31,20 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     return samples
 
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
-    """Extracts the anomalous model configuration for the given model type."""
+    """Extracts the anomalous model configuration for a given model type."""
     try:
         anom_model_config = settings.config_settings.anom_model
-        if model_type not in ["TwoZoneBohm", "MultiLogBohm"]:
-            raise KeyError(f" ERROR: Unknown anomalous model type '{model_type}'.")
+        if model_type not in anom_model_config:
+            raise KeyError(f" ERROR: Anomalous model type '{model_type}' not found.")
 
-        if anom_model_config.type != model_type:
-            print(f" WARNING: Overriding `type` from {anom_model_config.type} to {model_type}.")
-            anom_model_config.type = model_type
-        return {
-            "type": model_type,
-            **anom_model_config.model.model_dump()
-        }
+        base_config = settings.config_settings.model_dump()
+        base_config["anom_model"] = {**anom_model_config[model_type], "type": model_type}
+
+        return base_config
+
     except KeyError as e:
         print(f" ERROR: {e}")
-        return {}
-
+        return 
 
 def load_config(config_path):
     """Load the YAML configuration file with debug info."""
@@ -61,6 +55,7 @@ def load_config(config_path):
     if not config_path.exists():
         print(f"ERROR: Configuration file does not exist at {config_path}")
         return None
+
     try:
         with open(config_path, 'r') as file:
             config_data = yaml.safe_load(file)

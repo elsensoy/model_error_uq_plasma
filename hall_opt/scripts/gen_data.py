@@ -12,9 +12,9 @@ def generate_ground_truth(settings: Settings):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    # if not output_file.exists():
-    #     output_file.touch()
-    #     print(f"[DEBUG] Created empty file: {output_file}")
+    if not output_file.exists():
+        output_file.touch()
+        print(f"[DEBUG] Created empty file: {output_file}")
 
     if ground_truth.gen_data:
         print("\nGenerating ground truth data using MultiLogBohm...")

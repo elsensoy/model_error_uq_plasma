@@ -90,7 +90,7 @@ class PostProcessConfig(BaseModel):
 
 ### Ground Truth Configuration
 class GroundTruthConfig(BaseModel):
-    gen_data: bool = True
+    gen_data: bool = False
     results_dir: str = "results/ground_truth"
     output_file: str = "results/ground_truth/output_ground_truth.json"
 
@@ -149,8 +149,9 @@ class Simulation(BaseModel):
 ###  Final Settings Model (Updated)
 class Settings(BaseModel):
     results_dir: str = Field(default="results_test", description="Base directory for results")
-    gen_data: bool = Field(default=True, description="Enable ground truth data generation")
-
+    gen_data: bool = Field(default=False, description="Enable ground truth data generation")
+    run_map: bool = Field(default=False, description="Enable map")
+    run_mcmc: bool = Field(default=False, description="Enable mcmc")
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     config_settings: ConfigSettings = Field(default_factory=ConfigSettings)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)
