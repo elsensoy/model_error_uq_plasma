@@ -11,8 +11,8 @@ print(f"[DEBUG] hall_opt directory: {HALL_OPT_DIR}")
 #TODO: Replace python path.
 #( find yours by running `
 #``julia
-# using HallThruster
-# println(pathof(HallThruster))
+# using HallThruster; 
+# HallThruster.PYTHON_PATH
 # ```)
 hallthruster_path = "/home/elida/.julia/packages/HallThruster/cq07j/python"
 if hallthruster_path not in sys.path:

@@ -190,6 +190,8 @@ If it’s not found, add it to PATH or reinstall Julia.
    (@v1.10) pkg> activate .
    (@v1.10) pkg> add HallThruster
    ```
+placeholder half replace the hallthruster jls.e
+
 ---
 If you experience import errors, run the following in Julia:
 
@@ -207,8 +209,8 @@ Check if the package installation was successful:
 After installation, find the Python script path by running the following command in Julia:
 
 ```julia
-using HallThruster
-println(pathof(HallThruster))
+using HallThruster; 
+HallThruster.PYTHON_PATH
 ```
 The output will contain the package installation path. 
 

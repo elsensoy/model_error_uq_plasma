@@ -12,9 +12,9 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
         data_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
         print("Ground truth is loaded successfully")
     elif analysis_type == "map":
-        data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  #  Dynamically find path
+        data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  
     elif analysis_type == "mcmc":
-        data_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")  #  Dynamically find path
+        data_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")  
 
     else:
         raise ValueError(" Invalid analysis type. Choose 'map' or 'mcmc'.")
