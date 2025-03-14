@@ -1,6 +1,6 @@
 results_dir: "results_test"
 gen_data: true
-
+#yaml script used for reference for testing. 
 #======CONFIG=====================
 config_settings:
   thruster:

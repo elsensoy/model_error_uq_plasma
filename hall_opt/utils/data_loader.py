@@ -46,26 +46,3 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
     except KeyError as e:
         print(f" ERROR: {e}")
         return 
-
-<<<<<<< HEAD
-
-def load_config(config_path):
-=======
->>>>>>> hall_dot
-    """Load the YAML configuration file with debug info."""
-    
-    config_path = Path(config_path).resolve()  
-    print(f"DEBUG: Attempting to load YAML config from {config_path}")
-
-    if not config_path.exists():
-        print(f"ERROR: Configuration file does not exist at {config_path}")
-        return None
-
-    try:
-        with open(config_path, 'r') as file:
-            config_data = yaml.safe_load(file)
-            print("DEBUG: YAML configuration loaded successfully!")
-            return config_data
-    except yaml.YAMLError as e:
-        print(f"ERROR: Failed to parse YAML file: {e}")
-        return None

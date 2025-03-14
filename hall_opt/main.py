@@ -10,7 +10,7 @@ import yaml
 HALL_OPT_DIR = os.path.dirname(os.path.abspath(__file__))  
 print(f"[DEBUG] hall_opt directory: {HALL_OPT_DIR}")
 
-#TODO: Replace python path.
+#TODO: Replace python path. This should resolve path finding issue if run.py fails finding het.
 #( find yours by running `
 #``julia
 # using HallThruster; 
@@ -74,6 +74,7 @@ def main():
         print("DEBUG: Final execution flags:")
         for flag in valid_flags:
             print(f"  {flag}: {getattr(settings.general, flag)}")
+
         # -----------------------------
         #  Step 3: Create Results Directory
         # -----------------------------
@@ -82,9 +83,10 @@ def main():
         base_results_dir.mkdir(parents=True, exist_ok=True)
 
         print(f" Results directory set to: {base_results_dir}")
+
         # -----------------------------
         #  Step 4: Generate or Load Ground Truth Data
-            # -----------------------------
+        # -----------------------------
         observed_data = None
         ground_truth_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
 
@@ -151,8 +153,8 @@ def main():
         print("All processes completed successfully!")
 
     except KeyboardInterrupt:
-        print("\n[INFO] KeyboardInterrupt detected in main.py. Exiting cleanly.")
-        sys.exit(0)  # Exit cleanly on Ctrl+C
+        print("\n[INFO] KeyboardInterrupt detected in main.py. Exiting.")
+        sys.exit(0)  # Exit on Ctrl+C
 
 if __name__ == "__main__":
     main()

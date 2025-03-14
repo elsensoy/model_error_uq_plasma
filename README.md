@@ -212,36 +212,6 @@ After installation, find the Python script path by running the following command
 using HallThruster; 
 HallThruster.PYTHON_PATH
 ```
-The output will contain the package installation path. 
-
----
-## 2:Automatic Setup via `run.py` 
-
-#### After hallthruster installation is completed, you are ready to run the project. See the guide for running the project below. 
----
-
-### **Run Project**
-
-**Command Line Arguments**
-
-- **`gen_data.yaml`** – For data generation  
-- **`map.yaml`** – For MAP estimation  
-- **`mcmc.yaml`** – For MCMC sampling  
-- **`plotting.yaml`** – For visualization  
-
-*Run:*
-```bash
-python run.py `my-method`.yaml
-```
-
-This will:
-- Automatically find the project root
-- Locate the correct Python and Julia paths
-- Ensure HallThruster is correctly imported
-- Run the simulation with the specified YAML configuration.
----
-
-
 
 Once the environment is set, you can test if `HallThruster` is available in Python:
 
@@ -275,13 +245,43 @@ This will check if `HallThruster` is accessed. If not, it will add the path:
 
     ```
 
+
+---
+## 2:Automatic Setup via `run.py` 
+
+#### After hallthruster installation is completed, you are ready to run the project. See the guide for running the project below. 
+---
+
+### **Run Project**
+
+*Run:*
+```bash
+python run.py my_file.yaml
+```
+**Command Line Arguments**
+
+The command line accepts a user-provided YAML file with preferred model settings or method parameters. This allows the user to run the model along with the optimization or Bayesian method they wish to employ.
+-- **`[my_file].yaml`**. Examples include: 
+- **`gen_data.yaml`** – For data generation  
+- **`map.yaml`** – For MAP estimation  
+- **`mcmc.yaml`** – For MCMC sampling  
+- **`plotting.yaml`** – For visualization  
+
+This will:
+- Automatically find the project root
+- Locate the correct Python and Julia paths
+- Ensure HallThruster is correctly imported
+- Run the simulation along with the desired methods with the specified YAML configuration.
+---
+
+
 ### Results directory:
 ```
     model_error_uq_plasma/
     │── hall_opt/
     │   ├── main.py             # Main execution script
     │   ├── results/            # Stores all output files
-    │   ├── results_test/       # Stores test results
+    │   ├── results_test/       # Results (testing)
     │   ├── config/             # Configuration files
     │   ├── scripts/            # Method scripts
     │   ├── utils/              # Helper scripts

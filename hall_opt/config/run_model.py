@@ -64,7 +64,7 @@ def run_model(
 
 
     try:
-        #uncomment this section to see the input model on cl with pretty printing
+        #uncommented this section to see the input model on cl with pretty printing
         json_input = json.dumps(input_data, indent=4)    
         print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
         
