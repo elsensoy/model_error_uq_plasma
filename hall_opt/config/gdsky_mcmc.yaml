@@ -1,0 +1,12 @@
+output_dir: "mcmc_results"
+run_mcmc: true
+
+reference_data: "results_test/results.json"
+
+settings:
+  initial_cs: [0.2, 0.1]
+  initial_cov: [[1.0, 0.0], [0.0, 1.0]]
+  max_iter: 100
+  burn_in: 50
+
+    

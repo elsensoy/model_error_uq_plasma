@@ -1,55 +1,25 @@
-#!/usr/bin/env python
-import os
 import sys
-import shutil
+import os
 import subprocess
+import shutil
 from pathlib import Path
 
 def debug(msg):
-    #Force debug messages for immediate print
-    print(f"[DEBUG] {msg}", file=sys.stderr)
-    sys.stderr.flush()
-
-def find_project_root():
-    #Find the project root directory ( hall_opt/main.py).
-    script_dir = os.path.abspath(os.getcwd())
-    debug(f"Starting search for project root from: {script_dir}")
-
-    while not os.path.exists(os.path.join(script_dir, "hall_opt", "main.py")) and script_dir != os.path.dirname(script_dir):
-        debug(f"Checking: {script_dir}")
-        script_dir = os.path.dirname(script_dir)
-
-    if not os.path.exists(os.path.join(script_dir, "hall_opt", "main.py")):
-        print("Error: Could not find hall_opt/main.py", file=sys.stderr)
-        sys.exit(1)
-
-    debug(f"Project root found: {script_dir}")
-    return script_dir
+    """Helper function to print debug messages."""
+    print(f"[DEBUG] {msg}")
 
 def find_python():
     debug("Searching for Python executable...")
     python_executable = shutil.which("python") or shutil.which("python3")
+    
     if not python_executable:
-        print("Error: Python not found. Please install Python and add it to PATH.", file=sys.stderr)
+        print("[ERROR] Python not found. Please install Python and add it to PATH.", file=sys.stderr)
         sys.exit(1)
     
     debug(f"Using Python: {python_executable}")
     return python_executable
 
-# def find_julia():
-#     """Find the Julia executable dynamically."""
-#     debug("Searching for Julia executable...")
-#     julia_executable = shutil.which("julia")
-    
-#     if not julia_executable:
-#         print("Error: Julia not found. Please install Julia and add it to PATH.", file=sys.stderr)
-#         sys.exit(1)
-    
-#     debug(f"Using Julia: {julia_executable}")
-#     return julia_executable
-
 def find_julia():
-    """Find the Julia executable dynamically and return its absolute path."""
     debug("Searching for Julia executable...")
 
     # Step 1: First, Julia PATH check using shutil.which()
@@ -82,70 +52,108 @@ def find_julia():
                 break
 
     if not julia_executable:
-        print("Error: Julia not found. Please install Julia or add it to PATH.", file=sys.stderr)
-        return None  # Return None instead of exiting
+        print("[ERROR] Julia not found. Please install Julia or add it to PATH.", file=sys.stderr)
+        sys.exit(1)  # Exit if Julia is not found
 
     debug(f"Using Julia: {julia_executable}")
     return julia_executable  # Return Julia's absolute path
 
-#TODO: PROJECT PATH CAN'T ACCESS TO HALLTHRUSTER_PROJECT FROM THE ROOT
-def find_hallthruster_path():
+def find_hallthruster_path(julia_executable):
     """Find the HallThruster Python package using Julia's HallThruster.PYTHON_PATH."""
+    if not julia_executable:
+        print("[ERROR] Cannot determine HallThruster path because Julia was not found.")
+        return None
+
     try:
-        #  Run Julia command to get HallThruster's Python path
-        hallthruster_path = subprocess.check_output(["julia", "-e", 'using HallThruster; print(HallThruster.PYTHON_PATH)'], text=True).strip()
+        debug(f"Using Julia executable: {julia_executable}")
+        debug("Attempting to find HallThruster path using Julia...")
+
+        # Run Julia command to get HallThruster's Python path
+        hallthruster_path = subprocess.check_output(
+            [julia_executable, "-e", 'using HallThruster; print(HallThruster.PYTHON_PATH)'],
+            text=True
+        ).strip()
+
+        # Resolve to absolute path
         hallthruster_path = Path(hallthruster_path).resolve()
 
         if hallthruster_path.exists():
-            print(f"[DEBUG] Found HallThruster path: {hallthruster_path}")
+            debug(f"HallThruster path found: {hallthruster_path}")
             return str(hallthruster_path)
         else:
-            print("[ERROR] HallThruster path not found in expected location!")
+            print(f"[ERROR] HallThruster path '{hallthruster_path}' does not exist!")
             return None
+    except subprocess.CalledProcessError as e:
+        print("[ERROR] Julia command failed! Could not determine HallThruster path.")
+        debug(f"Error message: {e}")
+        return None
+    except FileNotFoundError:
+        print("[ERROR] Julia is not installed or not found in system PATH.")
+        return None
     except Exception as e:
-        print(f"[ERROR] Failed to locate HallThruster path via Julia: {e}")
+        print(f"[ERROR] Unexpected error locating HallThruster path: {e}")
         return None
 
-#  Find HallThruster path
-hallthruster_path = find_hallthruster_path()
-
-if hallthruster_path and hallthruster_path not in sys.path:
-    sys.path.append(hallthruster_path)
-    print(f"[DEBUG] HallThruster path set to: {hallthruster_path}")
-
-#  import HallThruster
-try:
-    import hallthruster as het
-except ModuleNotFoundError:
-    print(" [ERROR] Could not import HallThruster! Check if the package is installed correctly.")
-
 def main():
-    """Execute main.py inside hall_opt/ with arguments."""
-    debug(f"Arguments received: {sys.argv[1:]}")
-    
-    project_root = find_project_root()
-    python_executable = find_python()
-    julia_executable = find_julia()
-    hall_opt_dir = os.path.join(project_root, "hall_opt")  # hall_opt as absolute
-    main_py = os.path.join(hall_opt_dir, "main.py")  #  main .pypath
+    try:
+        """Execute main.py inside hall_opt/ with arguments."""
+        debug(f"Arguments received: {sys.argv[1:]}")
 
-    # TODO: Set the working directory to the project root ( -c )
-    os.chdir(hall_opt_dir)
-    debug(f"Changed working directory to {hall_opt_dir}")
+        # Step 1: Find Julia
+        julia_executable = find_julia()
 
-    # Fix: Add project root to PYTHONPATH ensure imports work
-    os.environ["PYTHONPATH"] = project_root + os.pathsep + hall_opt_dir + os.pathsep + os.environ.get("PYTHONPATH", "")
-    debug(f"Set PYTHONPATH={os.environ['PYTHONPATH']}")
+        # Step 2: Find HallThruster
+        hallthruster_path = find_hallthruster_path(julia_executable)
 
-    # Fix: Add Julia's bin directory to PATH so it's available
-    julia_bin_dir = os.path.dirname(julia_executable)
-    os.environ["PATH"] = julia_bin_dir + os.pathsep + os.environ.get("PATH", "")
-    debug(f"Set PATH={os.environ['PATH']}")
+        # Step 3: Check HallThruster path and import
+        if hallthruster_path:
+            debug(f"Checking if HallThruster path '{hallthruster_path}' is already in sys.path...")
+            if hallthruster_path not in sys.path:
+                sys.path.append(hallthruster_path)
+                debug(f"HallThruster path added to sys.path: {hallthruster_path}")
+            else:
+                debug(f"HallThruster path already in sys.path: {hallthruster_path}")
 
-    debug(f"Running: {python_executable} {main_py} {' '.join(sys.argv[1:])}")
+            # Try importing HallThruster
+            debug("Attempting to import HallThruster module...")
+            try:
+                import hallthruster as het
+                debug("[SUCCESS] HallThruster imported successfully!")
+            except ModuleNotFoundError:
+                print("[ERROR] Could not import HallThruster! The package may not be installed correctly.")
+                debug(f"Checked path: {hallthruster_path}")
+        else:
+            print("[ERROR] HallThruster path could not be determined!")
+            debug("Ensure Julia is installed and HallThruster is properly configured.")
+            sys.exit(1)  # Exit if HallThruster path is not found
 
-    # Run main.py with all user-provided arguments
-    os.execv(python_executable, [python_executable, main_py] + sys.argv[1:])
+        # Step 4: Prepare execution environment
+        project_root = Path(__file__).resolve().parent
+        python_executable = find_python()
+        hall_opt_dir = project_root / "hall_opt"
+        main_py = hall_opt_dir / "main.py"
+
+        # Set working directory
+        os.chdir(hall_opt_dir)
+        debug(f"Changed working directory to {hall_opt_dir}")
+
+        # Fix PYTHONPATH for proper imports
+        os.environ["PYTHONPATH"] = f"{project_root}{os.pathsep}{hall_opt_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}"
+        debug(f"Set PYTHONPATH={os.environ['PYTHONPATH']}")
+
+        # Fix PATH to include Julia bin
+        os.environ["PATH"] = f"{Path(julia_executable).parent}{os.pathsep}{os.environ.get('PATH', '')}"
+        debug(f"Set PATH={os.environ['PATH']}")
+
+        debug(f"Running: {python_executable} {main_py} {' '.join(sys.argv[1:])}")
+
+        os.execv(python_executable, [python_executable, str(main_py)] + sys.argv[1:])
+        process = subprocess.Popen([python_executable, str(main_py)] + sys.argv[1:], stdout=sys.stdout, stderr=sys.stderr)
+        process.communicate()
+
+    except KeyboardInterrupt:
+        print("\n[INFO] KeyboardInterrupt detected. Exiting.")
+        sys.exit(0)  
 
 if __name__ == "__main__":
     main()

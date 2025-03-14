@@ -171,10 +171,12 @@ class Simulation(BaseModel):
 ###  Final Settings Model (Updated)
 class Settings(BaseModel):
     results_dir: str = Field(default="results_test", description="Base directory for results")
+    output_dir: str = Field(default="sub_dir", description="method result directory for testing == results_test/[method_dir]")
     gen_data: bool = Field(default=False, description="Enable ground truth data generation")
     run_map: bool =  Field(default=False, description="Enable MAP optimization")
     plotting: bool =  Field(default=False, description="Enable Plots Generation")
     run_mcmc: bool = Field(default=False, description="Enable MCMC Sampling")
+    reference_data: str = Field(default="results/map/final_map_params.json", description="initial point for mcmc sampling")
     general: Optional[GeneralSettings] = Field(default_factory=GeneralSettings)
     config_settings: Config = Field(default_factory=Config)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)

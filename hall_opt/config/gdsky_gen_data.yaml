@@ -1,0 +1,11 @@
+output_dir: "results_test"
+gen_data: true
+
+config_settings:
+  thruster:
+    name: "SPT-100"
+  anom_model:   # **THIS FIELD MUST EXIST**
+    MultiLogBohm:
+      zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
+      cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
+
