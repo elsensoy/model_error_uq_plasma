@@ -9,9 +9,15 @@ def generate_ground_truth(settings: Settings):
     """Generate and save ground truth data if gen_data is True, otherwise load fallback."""
     
     ground_truth = settings.ground_truth
-    # output_file = Path(settings.ground_truth.output_file["MultiLogBohm"]).resolve()
+    output_file = Path(settings.postprocess.output_file["MultiLogBohm"])
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    # os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+
+    if not output_file.exists():
+        output_file.touch()
+        print(f"[DEBUG] Created empty file: {output_file}")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
 
     if ground_truth.gen_data:
         print("\nGenerating ground truth data using MultiLogBohm...")
