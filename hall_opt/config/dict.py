@@ -17,7 +17,7 @@ class ThrusterConfig(BaseModel):
         description="Thruster geometry dimensions",
     )
     magnetic_field: Dict[str, str] = Field(
-        default={"file": "config/bfield_spt100.csv"}, description="Magnetic field file path"
+        default={"file": "hall_opt/config/bfield_spt100.csv"}, description="Magnetic field file path"
     )
 
 class TwoZoneBohmModel(BaseModel):

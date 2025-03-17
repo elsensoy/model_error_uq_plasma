@@ -53,11 +53,11 @@ def run_model(
     print("DEBUG: Checking required file paths before running simulation...")
 
 # Check magnetic field file
-    magnetic_field_path = os.path.abspath(config_settings["thruster"]["magnetic_field"]["file"])
-    print(f"DEBUG: Magnetic field file path: {magnetic_field_path}")
-    if not os.path.exists(magnetic_field_path):
-        print(f"ERROR: Magnetic field file '{magnetic_field_path}' is missing!")
-        return None
+    # magnetic_field_path = os.path.abspath(config_settings["thruster"]["magnetic_field"]["file"])
+    # print(f"DEBUG: Magnetic field file path: {magnetic_field_path}")
+    # if not os.path.exists(magnetic_field_path):
+    #     print(f"ERROR: Magnetic field file '{magnetic_field_path}' is missing!")
+    #     return None
 
     # Check working directory
     print("DEBUG: Current working directory:", os.getcwd())

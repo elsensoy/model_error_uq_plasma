@@ -3,8 +3,6 @@ import argparse
 from pathlib import Path
 import os
 import yaml
- 
-
 
 def parse_arguments():
     """Parse command-line arguments."""
@@ -25,7 +23,7 @@ def get_yaml_path(method_yaml):
         return yaml_file
 
     # Case 2: Otherwise, assume it's inside `config/`
-    config_yaml_file = Path("config") / yaml_file
+    config_yaml_file = Path("hall_opt/config") / yaml_file
     if config_yaml_file.exists():
         return config_yaml_file
 
