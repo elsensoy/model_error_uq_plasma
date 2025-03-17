@@ -3,61 +3,42 @@ from pathlib import Path
 from pydantic import ValidationError
 from typing import Optional
 from config.dict import Settings  # Import the updated Settings model
+from hall_opt.utils.parse import load_yaml
 
+def verify_all_yaml(yaml_path: str) -> Optional[Settings]:
+    """Verifies, validates, and resolves paths in the provided YAML file."""
+    
+    yaml_file_path = Path(yaml_path).resolve()  # Resolve absolute path
 
-def load_yaml(file_path: str) -> Optional[dict]:
-    """Loads YAML configuration file safely."""
-    try:
-        with open(file_path, "r") as file:
-            return yaml.safe_load(file)
-    except FileNotFoundError:
-        print(f"ERROR: YAML file not found: {file_path}")
-        return None
-    except yaml.YAMLError as e:
-        print(f"ERROR: YAML parsing error in {file_path}: {e}")
+    if not yaml_file_path.exists():
+        print(f"[ERROR] YAML file '{yaml_path}' not found. Exiting...")
         return None
 
-
-def verify_all_yaml() -> Optional[Settings]:
-    """Verifies, validates, and resolves paths in `settings.yaml`."""
-    print("\nVerifying settings.yaml configuration...\n")
-
-    yaml_path = Path(__file__).resolve().parent / "settings.yaml"
+    print(f"\nVerifying configuration file: {yaml_file_path}\n")
 
     # Load YAML data
-    settings_data = load_yaml(yaml_path)
+    settings_data = load_yaml(yaml_file_path)
     if settings_data is None:
-        print("ERROR: Failed to load settings.yaml. Exiting...")
+        print("[ERROR] Failed to load YAML file. Exiting...")
         return None
 
     # Convert raw YAML dict into a Pydantic `Settings` object
     try:
         settings = Settings(**settings_data)
-        print("\nsettings.yaml is valid. Proceeding with execution...\n")
+        print("\n YAML file is valid. Proceeding with execution...\n")
     except ValidationError as e:
-        print(f"\nERROR: Validation failed for settings.yaml:\n{e}")
+        print(f"\n[ERROR] Validation failed for YAML configuration:\n{e}")
         return None
 
     # Debug: Print `results_dir` before resolving
     print(f"DEBUG: Loaded `results_dir`: {settings.results_dir}")
 
-    print(f"\nDEBUG: before resolving:")
+    print(f"\nDEBUG: Before resolving:")
     print(f"  general.results_dir: {settings.general.results_dir}")
     print(f"  mcmc.results_dir: {settings.mcmc.output_dir}")
     print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
 
-    # Debug: Print `results_dir` after resolving
-    print(f"Results directory resolved to: {settings.results_dir}")
-
-    print(f"\nDEBUG: After resolving:")
-    print(f"  general.results_dir: {settings.general.results_dir}")
-    print(f"  mcmc.results_dir: {settings.mcmc.output_dir}")
-    print(f"  mcmc.base_dir: {settings.mcmc.base_dir}")
-
-    # Debug: Print `general.results_dir` after resolving
-    print(f" Results directory resolved to: {settings.general.results_dir}")
-
-    #  directories exist
+    # Ensure required directories exist
     Path(settings.general.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.ground_truth.results_dir).mkdir(parents=True, exist_ok=True)
     Path(settings.mcmc.output_dir).mkdir(parents=True, exist_ok=True)

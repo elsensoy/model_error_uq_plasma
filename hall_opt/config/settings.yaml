@@ -23,13 +23,13 @@ map:
   method: "Nelder-Mead"
   max_iter: 100
 #======MCMC_YAML=====================
-run_mcmc: false
-mcmc:
-  reference_data: "results_test/map/final_map_params.json"
-  output_dir: "results_test/mcmc"
-  initial_cov: [[1.0, 0.0], [0.0, 1.0]]
-  burn_in: 20
-  max_iter: 100
+# run_mcmc: false
+# mcmc:
+#   reference_data: "results_test/map/final_map_params.json"
+#   output_dir: "results_test/mcmc"
+#   initial_cov: [[1.0, 0.0], [0.0, 1.0]]
+#   burn_in: 20
+#   max_iter: 100
 
-#======PLOTTING_YAML=====================
-plotting: true
+# #======PLOTTING_YAML=====================
+# plotting: true

@@ -8,3 +8,4 @@ settings:
   max_iter: 100
   algorithm: 'slsqp'
     
+

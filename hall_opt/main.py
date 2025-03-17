@@ -31,52 +31,72 @@ from hall_opt.scripts.gen_data import generate_ground_truth
 from hall_opt.plotting.posterior_plots import generate_plots
 from hall_opt.utils.data_loader import load_data
 from hall_opt.utils.resolve_paths import resolve_yaml_paths
-from hall_opt.utils.parse import load_yaml, get_yaml_path, parse_arguments
+from hall_opt.utils.parse import get_yaml_path, parse_arguments
 
 def main():
     try:
         print("Starting main.py execution...")
+        # -----------------------------
+        #  Step 1: Parse Command-Line Arguments
+        # -----------------------------
         args = parse_arguments()
-        yaml_path = get_yaml_path(args.method_yaml)
 
-        print(f"[DEBUG] Using YAML file: {yaml_path}")  # Debugging message
-
-        # Load the YAML file
-        yaml_data = load_yaml(yaml_path)
-
-        # Debug: Print the loaded YAML data
-        print(f"[DEBUG] Loaded YAML data: {yaml_data}")
-
-        # -----------------------------
-        #  Step 2: Validate and Load settings.yaml
-        # -----------------------------
-        settings = verify_all_yaml()  # Load "settings.yaml"
-
-        if settings is None:
-            print("ERROR: Failed to load settings. Exiting...")
+        # Ensure a YAML file is provided
+        if len(sys.argv) < 2:
+            print("[ERROR] Missing configuration file.")
+            print("Usage: python run.py <config_file.yaml>")
             sys.exit(1)
 
-        resolve_yaml_paths(settings)
+      #  yaml_file = sys.argv[1]  # Get YAML filename from command line
+        yaml_file = get_yaml_path(sys.argv[1])
+        print(f"[DEBUG] Using YAML configuration: {yaml_file}")
 
         # -----------------------------
-        #  Step 3: Override YAML Settings with Loaded Config
+        #  Step 2: Validate and Load YAML Configuration
         # -----------------------------
+        settings = verify_all_yaml(yaml_file)  # Dynamically loads YAML
+
+        if settings is None:
+            print("[ERROR] Configuration verification failed. Exiting...")
+            sys.exit(1)
+
+        # Set the dynamically loaded YAML file in `settings.general.config_file`
+        settings.general.config_file = str(yaml_file)  # Ensure it's stored as a string
+        print(f"[DEBUG] settings.general.config_file set to: {settings.general.config_file}")
+
+
+
+                # -----------------------------
+        #  Step 3: Resolve Paths Based on YAML Configuration
+        # -----------------------------
+        resolve_yaml_paths(settings)  # Ensure paths are correctly set
+        print("[INFO] YAML paths resolved successfully.")
+
+
+    # -----------------------------
+    #  Step 4: Override YAML Settings with Loaded Config
+    # -----------------------------
         valid_flags = ["run_map", "run_mcmc", "gen_data", "plotting"]
 
+        print("\n[DEBUG] Checking overrides from YAML file...")
         for flag in valid_flags:
-            if flag in yaml_data:  # If the flag exists in the YAML file
-                setattr(settings.general, flag, bool(yaml_data[flag]))
-                print(f"Overriding: settings.{flag} = {getattr(settings.general, flag)}")
+            if hasattr(settings.general, flag):  # Ensure the flag exists in settings
+                yaml_value = getattr(settings.general, flag, None)
+                print(f"[DEBUG] Current YAML value for {flag}: {yaml_value}")  # Debugging line
+
+                if yaml_value is not None:
+                    setattr(settings.general, flag, bool(yaml_value))
+                    print(f"[INFO] Overriding: settings.general.{flag} = {getattr(settings.general, flag)}")
 
         # -----------------------------
         #  Debugging: Print Final Execution Flags
         # -----------------------------
         print("DEBUG: Final execution flags:")
         for flag in valid_flags:
-            print(f"  {flag}: {getattr(settings.general, flag)}")
+            print(f"  {flag}: {getattr(settings, flag)}")
 
         # -----------------------------
-        #  Step 3: Create Results Directory
+        #  Step 5: Create Results Directory
         # -----------------------------
         base_results_dir = Path(settings.results_dir)
 
@@ -85,12 +105,12 @@ def main():
         print(f" Results directory set to: {base_results_dir}")
 
         # -----------------------------
-        #  Step 4: Generate or Load Ground Truth Data
+        #  Step 6: Generate or Load Ground Truth Data
         # -----------------------------
         observed_data = None
         ground_truth_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
 
-        if settings.general.gen_data:
+        if settings.gen_data:
             print("DEBUG: `gen_data=True` -> Running ground truth generation...")
             observed_data = generate_ground_truth(settings)
         else:
@@ -103,9 +123,9 @@ def main():
             print("ERROR: Ground truth data is required but missing. Exiting.")
 
         # -----------------------------
-        #  Step 5: Run MAP Estimation (If Enabled)
+        #  Step 7: Run MAP Estimation (If Enabled)
         # -----------------------------
-        if settings.general.run_map:
+        if settings.run_map:
             print(f"DEBUG: observed_data: {type(observed_data)}, {observed_data is None}")
             if observed_data is None:
                 print("ERROR: observed_data is missing, cannot run MAP estimation!")
@@ -115,7 +135,7 @@ def main():
                     optimized_params = run_map_workflow(observed_data, settings, settings.general.config_file)
 
                     if optimized_params:
-                        final_map_params_path = Path(settings.map.output) / "final_map_params.json"
+                        final_map_params_path = Path(settings.map.output_dir) / "final_map_params.json"
                         with open(final_map_params_path, "w") as f:
                             json.dump(optimized_params, f, indent=4)
                         print(f"Final MAP parameters saved to {final_map_params_path}")
@@ -129,9 +149,9 @@ def main():
             print("DEBUG: MAP Estimation is disabled.")
 
         # -----------------------------
-        #  Step 6: Run MCMC Sampling (If Enabled)
+        #  Step 8: Run MCMC Sampling (If Enabled)
         # -----------------------------
-        if settings.general.run_mcmc:
+        if settings.run_mcmc:
             print("Running MCMC sampling...")
             print(f"Using base directory for this MCMC run: {settings.mcmc.base_dir}")
 
@@ -144,9 +164,9 @@ def main():
             print("MCMC sampling completed!")
 
         # -----------------------------
-        #  Step 7: Generate Plots (If Enabled)
+        #  Step 9: Generate Plots (If Enabled)
         # -----------------------------
-        if settings.general.plotting:
+        if settings.plotting:
             print("Generating plots...")
             generate_plots(settings)
 
