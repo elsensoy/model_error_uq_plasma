@@ -98,11 +98,11 @@ def main():
         # -----------------------------
         #  Step 5: Create Results Directory
         # -----------------------------
-        base_results_dir = Path(settings.results_dir)
+        # base_results_dir = Path(settings.results_dir)
 
-        base_results_dir.mkdir(parents=True, exist_ok=True)
+        # base_results_dir.mkdir(parents=True, exist_ok=True)
 
-        print(f" Results directory set to: {base_results_dir}")
+        # print(f" Results directory set to: {base_results_dir}")
 
         # -----------------------------
         #  Step 6: Generate or Load Ground Truth Data
