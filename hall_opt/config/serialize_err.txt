@@ -1,0 +1,92 @@
+Generating ground truth data using MultiLogBohm...
+DEBUG: Before extract_anom_model, config_settings = {'thruster': None, 'discharge_voltage': 300, 'anode_mass_flow_rate': 5e-06, 'domain': [0, 0.08], 'anom_model': {'zs': [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07], 'cs': [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05], 'type': 'MultiLogBohm'}}
+Running simulation with MultiLogBohm configuration...
+DEBUG: Checking required file paths before running simulation...
+DEBUG: Current working directory: C:\Users\elsensoy\model_error\model_error_uq_plasma
+DEBUG: JSON configuration sent to HallThruster:
+{
+    "config": {
+        "thruster": null,
+        "discharge_voltage": 300,
+        "anode_mass_flow_rate": 5e-06,
+        "domain": [
+            0,
+            0.08
+        ],
+        "anom_model": {
+            "zs": [
+                0.0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07
+            ],
+            "cs": [
+                0.02,
+                0.024,
+                0.028,
+                0.033,
+                0.04,
+                0.004,
+                0.004,
+                0.05
+            ],
+            "type": "MultiLogBohm"
+        }
+    },
+    "simulation": {
+        "dt": 1e-06,
+        "adaptive": true,
+        "grid": {
+            "type": "EvenGrid",
+            "num_cells": 100
+        },
+        "num_save": 1000,
+        "duration": 0.001
+    },
+    "postprocess": {
+        "output_file": "results_test/postprocess/output_multilogbohm.json",
+        "save_time_resolved": false,
+        "average_start_time": 0.0004
+    }
+}
+ERROR: MethodError: no method matching deserialize(::HallThruster.Serialization.Struct, ::Type{HallThruster.Thruster}, ::Nothing)
+The function `deserialize` exists, but no method is defined for this combination of argument types.
+
+Closest candidates are:
+  deserialize(::HallThruster.Serialization.Boolean, ::Type{T}, ::Any) where T
+   @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:49
+  deserialize(::S, ::Type{Any}, ::T) where {S<:HallThruster.Serialization.SType, T}
+   @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:64
+  deserialize(::HallThruster.Serialization.String, ::Type{T}, ::Any) where T
+   @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:55
+  ...
+
+Stacktrace:
+  [1] deserialize(::Type{HallThruster.Thruster}, x::Nothing)
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+  [2] (::HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}})(field::Symbol)
+    @ HallThruster.Serialization .\none:0
+  [3] iterate
+    @ .\generator.jl:48 [inlined]
+  [4] merge(a::@NamedTuple{}, itr::Base.Generator{Base.KeySet{Symbol, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}, HallThruster.Serialization.var"#9#10"{HallThruster.Config, JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}}}})
+    @ Base .\namedtuple.jl:371
+  [5] NamedTuple
+    @ .\namedtuple.jl:151 [inlined]
+  [6] deserialize(::HallThruster.Serialization.Struct, ::Type{HallThruster.Config}, dict::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:74
+  [7] deserialize(::Type{HallThruster.Config}, x::JSON3.Object{Vector{UInt8}, SubArray{UInt64, 1, Vector{UInt64}, Tuple{UnitRange{Int64}}, true}})
+    @ HallThruster.Serialization C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\utilities\serialization.jl:43
+  [8] run_simulation(json_file::String; restart::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:31
+  [9] run_simulation(json_file::String)
+    @ HallThruster C:\Users\elsensoy\.julia\packages\HallThruster\yxE62\src\simulation\json.jl:11
+ [10] top-level scope
+    @ none:1
+Ground truth data successfully saved
+DEBUG: MAP Estimation is disabled.
+All processes completed successfully!
+PS C:\Users\elsensoy\model_error\model_error_uq_plasma> 

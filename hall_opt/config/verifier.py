@@ -5,27 +5,15 @@ from typing import Optional
 from config.dict import Settings  # Import the updated Settings model
 from hall_opt.utils.parse import load_yaml
 
-def verify_all_yaml(yaml_path: str) -> Optional[Settings]:
-    """Verifies, validates, and resolves paths in the provided YAML file."""
-    
-    yaml_file_path = Path(yaml_path).resolve()  # Resolve absolute path
 
-    if not yaml_file_path.exists():
-        print(f"[ERROR] YAML file '{yaml_path}' not found. Exiting...")
-        return None
+def verify_all_yaml(yaml_data: dict) -> Optional[Settings]:
+    """Verifies, validates, and resolves paths in `settings.yaml`."""
 
-    print(f"\nVerifying configuration file: {yaml_file_path}\n")
+    print("\nVerifying configuration...\n")
 
-    # Load YAML data
-    settings_data = load_yaml(yaml_file_path)
-    if settings_data is None:
-        print("[ERROR] Failed to load YAML file. Exiting...")
-        return None
-
-    # Convert raw YAML dict into a Pydantic `Settings` object
     try:
-        settings = Settings(**settings_data)
-        print("\n YAML file is valid. Proceeding with execution...\n")
+        settings = Settings(**yaml_data)  # Validate & create settings object
+        print("[INFO] Configuration successfully loaded and verified!")
     except ValidationError as e:
         print(f"\n[ERROR] Validation failed for YAML configuration:\n{e}")
         return None

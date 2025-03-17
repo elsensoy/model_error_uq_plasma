@@ -7,11 +7,9 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 
-### DONE: Defaults & Annotations
-
 class ThrusterConfig(BaseModel):
-    name: str = Field(..., description="Thruster name")
-### Thruster Configuration
+    name: str = Field("SPT-100", description="Thruster name")
+
     geometry: Dict[str, float] = Field(
         default={"channel_length": 0.025, "inner_radius": 0.0345, "outer_radius": 0.05},
         description="Thruster geometry dimensions",
@@ -19,6 +17,7 @@ class ThrusterConfig(BaseModel):
     magnetic_field: Dict[str, str] = Field(
         default={"file": "hall_opt/config/bfield_spt100.csv"}, description="Magnetic field file path"
     )
+
 
 class TwoZoneBohmModel(BaseModel):
     c1: float = Field(0.00625, description="Coefficient 1 for TwoZoneBohm")
@@ -36,28 +35,31 @@ class MultiLogBohmModel(BaseModel):
 
 class Config(BaseModel):
     """Main configuration model with optional fields and anomalous model validation."""
-
     thruster: Optional["ThrusterConfig"] = None
     discharge_voltage: Optional[int] = Field(300, ge=0, description="Discharge voltage in V")
     anode_mass_flow_rate: Optional[float] = Field(5.0e-6, gt=0, description="Mass flow rate in kg/s")
     domain: Optional[List[float]] = Field(default=[0, 0.08], min_length=2, max_length=2)
     anom_model: Optional[Dict[str, Any]] = None 
 
+    thruster: Optional[ThrusterConfig] = None
+    anom_model: Optional[Dict[str, Any]] = None  # Allows user override
+
     @model_validator(mode="before")
     @classmethod
     def validate_anom_model(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Ensures `anom_model` contains only `TwoZoneBohm` or `MultiLogBohm` and applies defaults only if missing."""
-        
-        anom_model = values.get("anom_model")
+        """Ensures `anom_model` contains both `TwoZoneBohm` and `MultiLogBohm` with proper defaults."""
 
-        if anom_model is None:
-            print("DEBUG: No `anom_model` found. Defaulting to `MultiLogBohm`.")
-            values["anom_model"] = {"MultiLogBohm": MultiLogBohmModel()} 
+        anom_model = values.get("anom_model", {})
 
-        else:
-            valid_models = {"TwoZoneBohm", "MultiLogBohm"}
-            selected_models = set(anom_model.keys()).intersection(valid_models)
-            
+        if "MultiLogBohm" not in anom_model:
+            print("DEBUG: Adding default `MultiLogBohm` model...")
+            anom_model["MultiLogBohm"] = MultiLogBohmModel().model_dump()
+
+        if "TwoZoneBohm" not in anom_model:
+            print("DEBUG: Adding default `TwoZoneBohm` model...")
+            anom_model["TwoZoneBohm"] = TwoZoneBohmModel().model_dump()
+
+        values["anom_model"] = anom_model 
         return values
 
 
@@ -109,17 +111,17 @@ class GroundTruthConfig(BaseModel):
 
 ### MCMC Configuration
 class MCMCConfig(BaseModel):
-    output_dir: str = "results/mcmc"
-    base_dir: str = "results/mcmc"
+    output_dir: str = "results_test/mcmc"
+    base_dir: str = "results_test/mcmc"
     burn_in: int = Field(default = 50, description= "Discarded Iterations to Minimize Initial Bias")
     save_interval: int = 10
     checkpoint_interval: int = 10
     save_metadata: bool = True
-    reference_data: str = "results/map/final_map_params.json"
-    final_samples_file_log: str = "results/mcmc/final_samples_log.csv"
-    final_samples_file_linear: str = "results/mcmc/final_samples_linear.csv"
-    checkpoint_file: str = "results/mcmc/checkpoint.json"
-    metadata_file: str = "results/mcmc/mcmc_metadata.json"
+    reference_data: str = "results_test/map/final_map_params.json"
+    final_samples_file_log: str = "results_test/mcmc/final_samples_log.csv"
+    final_samples_file_linear: str = "results_test/mcmc/final_samples_linear.csv"
+    checkpoint_file: str = "results_test/mcmc/checkpoint.json"
+    metadata_file: str = "results_test/mcmc/mcmc_metadata.json"
     initial_cov: List[List[float]] = [[0.1, 0.05], [0.05, 0.1]]
     max_iter: int =  Field(default= 100, description="Maximum iteration count" )
 
@@ -176,7 +178,7 @@ class Settings(BaseModel):
     run_map: bool =  Field(default=False, description="Enable MAP optimization")
     plotting: bool =  Field(default=False, description="Enable Plots Generation")
     run_mcmc: bool = Field(default=False, description="Enable MCMC Sampling")
-    reference_data: str = Field(default="results/map/final_map_params.json", description="initial point for mcmc sampling")
+    reference_data: str = Field(default="results_test/map/final_map_params.json", description="initial point for mcmc sampling")
     general: Optional[GeneralSettings] = Field(default_factory=GeneralSettings)
     config_settings: Config = Field(default_factory=Config)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)

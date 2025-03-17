@@ -14,17 +14,19 @@ def prior_logpdf(c1_log: float, alpha_log: float) -> float:
 # -----------------------------
 # 3. Posterior (Only Save Posterior Value)
 # -----------------------------
-def log_posterior(c_log: list[float], observed_data: dict, settings: Settings, yaml_file: str) -> float:
+def log_posterior(c_log: list[float], observed_data: dict, settings: Settings) -> float:
+    """Computes log-posterior using settings from Pydantic-verified object"""
 
     # Compute Prior
     log_prior_value = prior_logpdf(*c_log)
     if not np.isfinite(log_prior_value):
         return -np.inf  
     
-    log_likelihood_value = log_likelihood(c_log, observed_data, settings, yaml_file)
+    log_likelihood_value = log_likelihood(c_log, observed_data, settings)
 
     if not np.isfinite(log_likelihood_value):
         return -np.inf  
+    
     # Compute Log Posterior
     log_posterior_value = log_prior_value + log_likelihood_value
     return log_posterior_value

@@ -11,7 +11,6 @@ from hall_opt.utils.iter_methods import get_next_results_dir
 def run_map_workflow(
     observed_data: Dict[str, Any],
     settings: Settings,
-    yaml_file: str  # Pass YAML config file path
 ):
     # Ensure the correct MAP results directory
 
@@ -54,7 +53,6 @@ def run_map_workflow(
                 c_log=c_log,
                 observed_data=observed_data,
                 settings=settings,
-                yaml_file=yaml_file
             ) + bounds_penalty(c_log)  # Add penalty term
             
             # print(f"Evaluating loss at c_log: {c_log}, loss: {loss}")

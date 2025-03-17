@@ -17,9 +17,14 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
     c2 = c1 * alpha  
 
     # Update MCMC parameters in settings
-    settings.config_settings.anom_model["TwoZoneBohm"]["c1"] = c1
-    settings.config_settings.anom_model["TwoZoneBohm"]["c2"] = c2
+    if "TwoZoneBohm" in settings.config_settings.anom_model:
+        settings.config_settings.anom_model["TwoZoneBohm"]["c1"] = c1
+        settings.config_settings.anom_model["TwoZoneBohm"]["c2"] = c2
+    else:
+        print("[ERROR] Missing `TwoZoneBohm` model settings in configuration.")
+        return -np.inf
 
+    print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
     print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
 
     # Run the model simulation

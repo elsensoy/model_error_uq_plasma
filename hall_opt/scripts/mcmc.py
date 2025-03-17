@@ -26,7 +26,6 @@ def mcmc_inference(
     results_dir = Path(settings.mcmc.output_dir)
     mcmc_base_dir = Path(get_next_results_dir(results_dir, "mcmc-results"))
     settings.mcmc.base_dir = mcmc_base_dir  # Update settings with resolved directory
-
     final_samples_log_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")
     final_samples_mcmc_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")
     checkpoint_file = os.path.join(settings.mcmc.base_dir, "checkpoint.json")
@@ -99,8 +98,6 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
     Run MCMC with optimized parameters loaded from YAML settings.
     """
 
-    config_file = settings.general.config_file 
-
     # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
   
     final_map_params_path = os.path.join(settings.mcmc.reference_data)
@@ -125,7 +122,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
 
     all_samples = mcmc_inference(
-        lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings, config_file),
+        lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings),
         initial_sample=np.array(params, dtype=np.float64),
         initial_cov=np.array(settings.mcmc.initial_cov, dtype=np.float64),
         iterations=settings.mcmc.max_iter,
