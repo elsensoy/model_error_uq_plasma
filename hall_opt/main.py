@@ -63,27 +63,24 @@ def main():
         # -----------------------------
         #  Step 2: Validate and Load YAML Configuration
         # -----------------------------
-        settings = verify_all_yaml(yaml_file)  # Dynamically loads YAML
+
+        yaml_data = load_yaml(yaml_path)  
+        print(f"[DEBUG] Loaded YAML data: {yaml_data}")
+        settings = verify_all_yaml(yaml_data)  
 
         if settings is None:
             print("[ERROR] Configuration verification failed. Exiting...")
             sys.exit(1)
-        settings.general.config_file = str(yaml_path)
+
+        print("[INFO] Configuration successfully loaded and verified!")
+
+        resolve_yaml_paths(settings)
 
         print(f"[INFO] Updated settings.config_file: {settings.general.config_file}")
 
         # Set the dynamically loaded YAML file in `settings.general.config_file`
         settings.general.config_file = str(yaml_file)  # Ensure it's stored as a string
         print(f"[DEBUG] settings.general.config_file set to: {settings.general.config_file}")
-
-
-
-                # -----------------------------
-        #  Step 3: Resolve Paths Based on YAML Configuration
-        # -----------------------------
-        resolve_yaml_paths(settings)  # Ensure paths are correctly set
-        print("[INFO] YAML paths resolved successfully.")
-
 
     # -----------------------------
     #  Step 4: Override YAML Settings with Loaded Config
