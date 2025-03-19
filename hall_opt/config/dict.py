@@ -33,24 +33,22 @@ class MultiLogBohmModel(BaseModel):
         description="C values for MultiLogBohm"
     )
 
+#defaulting to classtwozonebohm parameter values if config isnt provided
 class Config(BaseModel):
-    """Main configuration model with optional fields and anomalous model validation."""
-    thruster: Optional["ThrusterConfig"] = None
+    """Main configuration model with default settings from `dict.py` and optional user overrides."""
+    thruster: Optional[ThrusterConfig] = None  # Defaulted later in validator
     discharge_voltage: Optional[int] = Field(300, ge=0, description="Discharge voltage in V")
     anode_mass_flow_rate: Optional[float] = Field(5.0e-6, gt=0, description="Mass flow rate in kg/s")
     domain: Optional[List[float]] = Field(default=[0, 0.08], min_length=2, max_length=2)
-    anom_model: Optional[Dict[str, Any]] = None 
-
-    thruster: Optional[ThrusterConfig] = None
     anom_model: Optional[Dict[str, Any]] = None  # Allows user override
 
     @model_validator(mode="before")
     @classmethod
-    def validate_anom_model(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Ensures `anom_model` contains both `TwoZoneBohm` and `MultiLogBohm` with proper defaults."""
-
+    def validate_config(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensures `anom_model` and `thruster` have default values unless overridden."""
+        
+        # Ensure anom_model defaults exist
         anom_model = values.get("anom_model", {})
-
         if "MultiLogBohm" not in anom_model:
             print("DEBUG: Adding default `MultiLogBohm` model...")
             anom_model["MultiLogBohm"] = MultiLogBohmModel().model_dump()
@@ -59,8 +57,15 @@ class Config(BaseModel):
             print("DEBUG: Adding default `TwoZoneBohm` model...")
             anom_model["TwoZoneBohm"] = TwoZoneBohmModel().model_dump()
 
-        values["anom_model"] = anom_model 
+        values["anom_model"] = anom_model
+
+        #  `thruster` is never `None` (Fix for `deserialize` error)
+        if values.get("thruster") is None:
+            print("DEBUG: Adding default `ThrusterConfig`...")
+            values["thruster"] = ThrusterConfig().model_dump()
+
         return values
+
 
 
 ### General Settings

@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import hallthruster as het
 from typing import Optional, Dict, Any
 from ..utils.data_loader import extract_anom_model
@@ -65,12 +66,16 @@ def run_model(
 
     try:
         #uncommented this section to see the input model on cl with pretty printing
-        # json_input = json.dumps(input_data, indent=4)    
-        # print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
+        json_input = json.dumps(input_data, indent=4)    
+        print(f"DEBUG: JSON configuration sent to HallThruster:\n{json_input}")
         
         solution = het.run_simulation(input_data)
-
+        if solution is None:
+            print("ERROR: Simulation failed. Returning `None`.")
+            sys.exit(1)  # Stop execution due to critical failure
+        
         return solution  
+
 
     except KeyError as e:
         print(f" ERROR: Missing key in JSON: {e}")

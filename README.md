@@ -291,6 +291,77 @@ This will:
     │── pyproject.toml          # Python dependencies (PDM)
     │── .venv/                  # Virtual environment
 ```
+
+
+#               YAML VALIDATION & DEFAULTS WORKFLOW
+
+
+#### 1. START PROCESS
+   ------------------------------------------------------------
+- Main script execution begins in `main.py`.
+- The YAML configuration file is read from command-line args.
+
+#### 2. PARSE YAML CONFIGURATION
+   ------------------------------------------------------------
+- Read the YAML file using `load_yaml()`.
+- Convert YAML content into a Python dictionary.
+
+#### 3. VERIFY YAML CONTENT & CREATE DEFAULTS (Pydantic Validation)
+   ------------------------------------------------------------
+- `verify_all_yaml(yaml_data)` validates the config.
+- If fields are missing, Pydantic assigns default values:
+- `gen_data = False`
+- `thruster = "SPT-100"`
+- `anom_model = MultiLogBohm (default values)`
+- If verification fails, exit process.
+
+   ------------------------------------------------------------
+
+#### 4. RESOLVE FILE PATHS
+
+- Calls `resolve_yaml_paths(settings)`.
+- Converts relative paths to absolute paths.
+
+------------------------------------------------------------
+#### 5. OVERRIDE DEFAULT SETTINGS WITH USER-SPECIFIED VALUES
+
+- Flags from YAML (`gen_data`, `run_map`, etc.) override defaults.
+- `setattr(settings.general, flag, value)` applies overrides.
+------------------------------------------------------------
+
+#### 6. CREATE RESULTS DIRECTORY
+
+- Ensures `results_test/` directory exists.
+- Creates subdirectories dynamically.
+------------------------------------------------------------
+
+#### 7. VALIDATE `gen_data` FLAG & RUN DATA GENERATION
+
+- If `gen_data=True`:
+- Calls `generate_ground_truth(settings)`.
+- Runs `run_model()` to create synthetic data.
+- Saves results in `results_test/postprocess/output_multilogbohm.json`.
+- If `gen_data=False`, loads existing ground truth data.
+
+
+#### 8. ERROR HANDLING & EXCEPTION MANAGEMENT
+------------------------------------------------------------
+- If missing config keys (`KeyError`), print error and exit.
+- If `thruster` is None, assign a default model.
+- If ground truth data is missing, stop execution.
+------------------------------------------------------------
+
+#### 9. CONTINUE EXECUTION OR EXIT
+
+- If YAML is valid, execution continues to MAP/MCMC steps.
+- If errors occur, exit process.
+------------------------------------------------------------
+#### 10. END PROCESS
+
+- All settings are finalized.
+- Ready to proceed with the next computational steps.
+
+
 ## **Contact**
 
 For any questions or issues, contact:

@@ -32,7 +32,6 @@ def verify_all_yaml(yaml_data: dict) -> Optional[Settings]:
 
     # Debug: Print `results_dir` before resolving
     print(f"DEBUG: Loaded `results_dir`: {settings.results_dir}")
-
     print(f"\nDEBUG: Before resolving:")
     print(f"  general.results_dir: {settings.general.results_dir}")
     print(f"  mcmc.results_dir: {settings.mcmc.output_dir}")
