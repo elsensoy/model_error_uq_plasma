@@ -10,32 +10,43 @@ def parse_arguments():
     parser.add_argument("method_yaml", type=str, help="Path to a YAML configuration file (in root or config/).")
     return parser.parse_args()
 
-def get_yaml_path(method_yaml):
+ 
+def get_yaml_path(method_yaml: str, max_depth_up: int = 3) -> Path:
     """
-    Determines the correct path for the YAML file.
-    - If `method_yaml` exists in the root directory, use it.
-    - Otherwise, look for it inside the `config/` directory.
+    Searches recursively for the given YAML file in the current project directory,
+    or up to `max_depth_up` levels above it.
+
+    Args:
+        method_yaml (str): Name of the YAML file to search for
+        max_depth_up (int): How many parent levels to search above the current directory
+
+    Returns:
+        Path: Resolved path to the YAML file
+
+    Exits:
+        If not found, prints an error and exits the program.
     """
-    yaml_file = Path(method_yaml)
+    root_dir = Path(".").resolve()
+    target_filename = Path(method_yaml).name
 
-    # Case 1: If the file exists in the root directory, use it directly
-    if yaml_file.exists():
-        return yaml_file
+    # 1. First try the current directory and its subdirs
+    matches = list(root_dir.rglob(target_filename))
+    if matches:
+        print(f"[INFO] Found YAML config at: {matches[0]}")
+        return matches[0]
 
-    # Case 2: Otherwise, assume it's inside `config/`
-    config_yaml_file = Path("hall_opt/config") / yaml_file
-    if config_yaml_file.exists():
-        return config_yaml_file
+    # 2. Try parent directories (up to max_depth_up)
+    for level in range(1, max_depth_up + 1):
+        try:
+            search_root = root_dir.parents[level]
+        except IndexError:
+            break  # We've gone higher than root (e.g., /)
 
-    # If neither file exists, print an error and exit
-    print(f"ERROR: '{method_yaml}' not found in the root directory or 'config/' folder.")
+        matches = list(search_root.rglob(target_filename))
+        if matches:
+            print(f"[INFO] Found YAML config at: {matches[0]}")
+            return matches[0]
+
+    # 3. If nothing found
+    print(f"[ERROR] Could not find '{method_yaml}' under current or any of {max_depth_up} parent levels.")
     sys.exit(1)
-
-def load_yaml(file_path):
-    """Load the YAML file and return its contents as a dictionary."""
-    try:
-        with open(file_path, "r") as file:
-            return yaml.safe_load(file)
-    except Exception as e:
-        print(f"ERROR: Failed to load YAML file {file_path}: {e}")
-        sys.exit(1)

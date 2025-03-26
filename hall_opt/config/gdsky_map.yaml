@@ -1,9 +1,8 @@
 output_dir: "map_results"
 run_map: true
-
 reference_data: "results_test/results.json"
-
-settings:
+gen_data: false
+map_settings:
   initial_cs: [0.2, 0.1]
   max_iter: 100
   algorithm: 'slsqp'

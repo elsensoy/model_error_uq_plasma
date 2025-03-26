@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 from ..config.dict import Settings
-
+from pathlib import Path
 # -----------------------------
 # Utility Functions
 # -----------------------------
@@ -29,7 +29,7 @@ def save_results_to_json(
 ):
     # Determine correct results directory
     if settings.gen_data:
-        results_dir = settings.ground_truth.output_file
+        results_dir = settings.ground_truth.results_dir
     elif settings.run_map:
         results_dir = settings.map.base_dir  # Uses `map-results-N/`
     elif settings.run_mcmc:
@@ -37,8 +37,6 @@ def save_results_to_json(
     else:
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
 
-    # make sure directory exists
-    # os.makedirs(results_dir, exist_ok=True)
 
     # Filter required keys
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
@@ -84,3 +82,32 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
         json.dump(metadata, f, indent=4)
 
     print(f"Metadata saved to {filepath}")
+
+# In main.py (after resolve_all_paths, and after flags like run_map/gen_data are available):
+
+def create_used_directories(settings):
+    dirs = set()
+
+    base_dir = Path(settings.output_dir)
+    dirs.add(base_dir)
+
+    if settings.gen_data:
+        dirs.add(base_dir / "ground_truth")
+        dirs.add(base_dir / "postprocess")
+
+    if settings.run_map:
+        dirs.add(base_dir / "map")
+
+    if settings.run_mcmc:
+        dirs.add(base_dir / "mcmc")
+
+    if settings.plotting:
+        dirs.add(base_dir / "plots")
+
+    # Create only the directories we now know we need
+    for d in dirs:
+        d.mkdir(parents=True, exist_ok=True)
+
+    print("[INFO] Created directories:")
+    for d in dirs:
+        print(f"  - {d.resolve()}")

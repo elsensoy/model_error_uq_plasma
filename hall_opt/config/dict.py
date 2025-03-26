@@ -6,6 +6,8 @@ import yaml
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
+import re
+
 
 class ThrusterConfig(BaseModel):
     name: str = Field("SPT-100", description="Thruster name")
@@ -36,7 +38,7 @@ class MultiLogBohmModel(BaseModel):
 #defaulting to classtwozonebohm parameter values if config isnt provided
 class Config(BaseModel):
     """Main configuration model with default settings from `dict.py` and optional user overrides."""
-    thruster: Optional[ThrusterConfig] = None  # Defaulted later in validator
+    thruster: Optional[ThrusterConfig] = None  # Defaulted earlier
     discharge_voltage: Optional[int] = Field(300, ge=0, description="Discharge voltage in V")
     anode_mass_flow_rate: Optional[float] = Field(5.0e-6, gt=0, description="Mass flow rate in kg/s")
     domain: Optional[List[float]] = Field(default=[0, 0.08], min_length=2, max_length=2)
@@ -66,8 +68,6 @@ class Config(BaseModel):
 
         return values
 
-
-
 ### General Settings
 class GeneralSettings(BaseModel):
     results_dir: str = "results"
@@ -80,17 +80,13 @@ class GeneralSettings(BaseModel):
     ion_velocity_weight: float = 2.0
     iterations: int = 20
 
-
-    def absolute_paths(self):
-        """Convert results_dir to an absolute path"""
-        self.results_dir = str(Path(self.results_dir).resolve())
-
 class PostProcessConfig(BaseModel):
     output_file: Dict[str, str] = Field(
         default={
-            "TwoZoneBohm": "results_test/postprocess/output_twozonebohm.json",
-            "MultiLogBohm": "results_test/postprocess/output_multilogbohm.json"
-        })
+            "TwoZoneBohm": "${postprocess.results_dir}/output_twozonebohm.json",
+            "MultiLogBohm": "${postprocess.results_dir}/output_multilogbohm.json"
+        }
+    )
     save_time_resolved: bool = Field(
         default=False, description="Flag to save time-resolved data"
     )
@@ -99,71 +95,55 @@ class PostProcessConfig(BaseModel):
     )
     
 
-
 ### Ground Truth Configuration
 class GroundTruthConfig(BaseModel):
     gen_data: bool = Field(
         default=True, description="Flag to enable gen_data"
     )
-    results_dir: str = "results/ground_truth"
-    output_file: str = "results/ground_truth/output_ground_truth.json"
-
-    def absolute_paths(self, results_dir: str):
-        base_dir = Path(results_dir) / "ground_truth"
-        self.results_dir = str(base_dir)
-        self.output_file = str(base_dir / "output_ground_truth.json")
-
+    results_dir: str = "${ground_truth.results_dir}"
+    output_file: str = "${postprocess.results_dir}/output_multilogbohm.json"
 
 ### MCMC Configuration
 class MCMCConfig(BaseModel):
-    output_dir: str = "results_test/mcmc"
-    base_dir: str = "results_test/mcmc"
+    output_dir: str = "${settings.output_dir}"
+    base_dir: str ="${settings.output_dir}/mcmc"
     burn_in: int = Field(default = 50, description= "Discarded Iterations to Minimize Initial Bias")
     save_interval: int = 10
     checkpoint_interval: int = 10
     save_metadata: bool = True
-    reference_data: str = "results_test/map/final_map_params.json"
-    final_samples_file_log: str = "results_test/mcmc/final_samples_log.csv"
-    final_samples_file_linear: str = "results_test/mcmc/final_samples_linear.csv"
-    checkpoint_file: str = "results_test/mcmc/checkpoint.json"
-    metadata_file: str = "results_test/mcmc/mcmc_metadata.json"
+    initial_data: str = "${map.final_map_params_file}"
+    final_samples_file_log: str = "${mcmc.results_dir}/final_samples_log.csv"
+    final_samples_file_linear: str = "${mcmc.results_dir}/final_samples_linear.csv"
+    checkpoint_file: str = "${mcmc.results_dir}/checkpoint.json"
+    metadata_file: str = "${mcmc.results_dir}/mcmc_metadata.json"
     initial_cov: List[List[float]] = [[0.1, 0.05], [0.05, 0.1]]
     max_iter: int =  Field(default= 100, description="Maximum iteration count" )
-
-    def absolute_paths(self, results_dir: str):
-        base_dir = Path(results_dir) / "mcmc"
-        self.results_dir = str(base_dir)
-        self.base_dir = str(base_dir)
 
 
 class MapConfig(BaseModel):
     """Configuration for MAP optimization settings."""
     
-    output_dir: str = Field(default="results_test/map", description="Directory for MAP results")
-    base_dir: str = Field(default_factory=lambda: "results_test/map", description="Directory for Iterations")
+    output_dir: str = Field(default="${settings.output_dir}", description="Directory for MAP results")
+    base_dir: str = Field(default_factory=lambda: "${settings.output_dir}", description="Directory for Iterations")
     initial_guess: List[float] = Field(default=[-0.2, 0.5], description="Initial guess parameters for TwoZoneBohm model") 
-    iteration_log_file: str = Field(default_factory=lambda: "results_test/map/map_sampling.json", description="MAP iteration log file")
-    final_map_params_file: str = Field(default_factory=lambda: "results_test/map/final_map_params.json", description="Final MAP parameter file")
+    iteration_log_file: str = Field(default_factory=lambda: "${settings.output_dir}/map_sampling.json", description="MAP iteration log file")
+    final_map_params_file: str = Field(default_factory=lambda: "${settings.output_dir}/final_map_params.json", description="Final MAP parameter file")
     method: str = Field(default="Nelder-Mead", description="MAP optimization method")
     maxfev: int = Field(default=5000, ge=100, description="Maximum function evaluations")
     fatol: float = Field(default=0.003, gt=0, description="Function tolerance")
     xatol: float = Field(default=0.003, gt=0, description="Step size tolerance")
     max_iter: int =  Field(default= 100, description="Maximum iteration count" )
 
-    @model_validator(mode="before")
-    @classmethod
-    def resolve_file_paths(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        """Dynamically resolve file paths based on `base_dir`."""
-        base_dir = values.get("base_dir", "results_test/map")
-        values["iteration_log_file"] = f"{base_dir}/map_sampling.json"
-        values["final_map_params_file"] = f"{base_dir}/final_map_params.json"
-        return values
+class MapInputSettings(BaseModel):
+    initial_cs: List[float]
+    max_iter: Optional[int] = 100
+    algorithm: Optional[str] = "slsqp"
 
-### Plotting Configuration
+
 class PlottingConfig(BaseModel):
-    results_dir: str = "results_test/plots"
-    plots_subdir: str = "results_test/plots"
-    metrics_subdir: str = "results_test/plots/iteration_metrics"
+    results_dir: str = "${plots.results_dir}"
+    plots_subdir: str = "${plots.results_dir}"
+    metrics_subdir: str = "${plots.results_dir}/iteration_metrics"
     enabled_plots: List[str] = ["autocorrelation", "trace", "posterior", "pair"]
 
 
@@ -174,16 +154,19 @@ class Simulation(BaseModel):
     num_save: int = Field(default=1000, description="Number of save points")
     duration: float = 0.001
 
-        
-###  Final Settings Model (Updated)
+# ---------------------------------------
+# Master Settings Model
+# ---------------------------------------
+
 class Settings(BaseModel):
-    results_dir: str = Field(default="results_test", description="Base directory for results")
-    output_dir: str = Field(default="sub_dir", description="method result directory for testing == results_test/[method_dir]")
-    gen_data: bool = Field(default=False, description="Enable ground truth data generation")
-    run_map: bool =  Field(default=False, description="Enable MAP optimization")
-    plotting: bool =  Field(default=False, description="Enable Plots Generation")
-    run_mcmc: bool = Field(default=False, description="Enable MCMC Sampling")
-    reference_data: str = Field(default="results_test/map/final_map_params.json", description="initial point for mcmc sampling")
+    results_dir: str = "results_test"
+    output_dir: str = "results_test"
+    gen_data: bool = False
+    run_map: bool = False
+    plotting: bool = False
+    run_mcmc: bool = False
+    reference_data: Optional[str] = "${ground_truth.output_file}"
+    map_settings: Optional[MapInputSettings] = None
     general: Optional[GeneralSettings] = Field(default_factory=GeneralSettings)
     config_settings: Config = Field(default_factory=Config)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)
@@ -193,14 +176,78 @@ class Settings(BaseModel):
     plots: Optional[PlottingConfig] = Field(default_factory=PlottingConfig)
     simulation: Optional[Simulation] = Field(default_factory=Simulation)
 
-    def resolve_all_paths(self):
-        """Resolve any dynamic paths and placeholders."""
-        base_results_dir = Path(self.results_dir).resolve()
-        self.results_dir = str(base_results_dir)
-        self.general.results_dir = self.results_dir  
+    def resolve_all_paths(self, config_file: Optional[str] = None):
+        if not self.output_dir:
+            print("[INFO] No 'output_dir' provided in YAML. Using default: 'results_test'")
+            self.output_dir = "results_test"
 
-        for section in [self.ground_truth, self.mcmc, self.map, self.plots]:
-            if section and hasattr(section, "absolute_paths"):
-                section.absolute_paths(base_results_dir)
+        base = Path(self.output_dir).resolve()
+        self.output_dir = str(base)
+        self.results_dir = str(base)
 
-        print("All paths resolved dynamically!")
+        if self.general:
+            self.general.config_file = str(config_file or "unknown.yaml")
+
+        # Define path substitutions
+        path_map = {
+            "${settings.output_dir}": base,
+            "${postprocess.results_dir}": base / "postprocess",
+            "${map.results_dir}": base / "map",
+            "${mcmc.results_dir}": base / "mcmc",
+            "${plots.results_dir}": base / "plots",
+            
+            "${ground_truth.results_dir}": base / "ground_truth",
+            "${map.final_map_params_file}": Path(self.map.final_map_params_file),
+            "${ground_truth.output_file}": self.ground_truth.output_file
+        }
+
+        if self.reference_data:
+            self.reference_data, _ = resolve_placeholders(self.reference_data, path_map)
+
+        # Collect used placeholders
+        used_keys = set()
+
+        for section in vars(self).values():
+            if isinstance(section, BaseModel):
+                for key, val in vars(section).items():
+                    resolved_val, section_used = resolve_placeholders(val, path_map, used_keys)
+                    setattr(section, key, resolved_val)
+                    used_keys.update(section_used)
+
+        print(f"[INFO] All paths resolved relative to: {base}")
+
+
+# ---------------------------------------
+# Helper Function for Placeholder Resolution
+# ---------------------------------------
+def resolve_placeholders(value, path_map, used_keys=None):
+    import re
+    if used_keys is None:
+        used_keys = set()
+    pattern = re.compile(r"\$\{(.+?)\}")
+
+    def _resolve_str(s):
+        matches = pattern.findall(s)
+        for match in matches:
+            key = f"${{{match}}}"
+            if key not in path_map:
+                raise ValueError(f"[PLACEHOLDER ERROR] Undefined placeholder '{key}'")
+            s = s.replace(key, str(path_map[key]))
+            used_keys.add(key)
+        return s
+
+    if isinstance(value, str):
+        return _resolve_str(value), used_keys
+    elif isinstance(value, list):
+        result = []
+        for v in value:
+            r, used_keys = resolve_placeholders(v, path_map, used_keys)
+            result.append(r)
+        return result, used_keys
+    elif isinstance(value, dict):
+        result = {}
+        for k, v in value.items():
+            r, used_keys = resolve_placeholders(v, path_map, used_keys)
+            result[k] = r
+        return result, used_keys
+    return value, used_keys

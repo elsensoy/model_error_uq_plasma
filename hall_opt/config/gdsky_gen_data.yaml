@@ -1,6 +1,5 @@
-output_dir: "results_test"
+output_dir: "results_c"
 gen_data: true
-
 
 # #UNCOMMENT and CUSTOMIZE
 # config_settings: 

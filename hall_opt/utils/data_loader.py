@@ -4,12 +4,14 @@ import json
 import yaml
 import pandas as pd
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from hall_opt.config.dict import Settings
+from hall_opt.config.verifier import Settings
 
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     if analysis_type == "ground_truth":
-        data_file = Path(settings.postprocess.output_file["MultiLogBohm"]).resolve()
+        data_file = settings.postprocess.output_file["MultiLogBohm"]
+
         print("Ground truth is loaded successfully")
     elif analysis_type == "map":
         data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  
@@ -31,6 +33,7 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
 
     return samples
 
+
 def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
     """Extracts the anomalous model configuration for a given model type."""
     try:
@@ -46,3 +49,5 @@ def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
     except KeyError as e:
         print(f" ERROR: {e}")
         return 
+
+

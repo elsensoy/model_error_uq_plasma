@@ -100,7 +100,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
     # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
   
-    final_map_params_path = os.path.join(settings.mcmc.reference_data)
+    final_map_params_path = os.path.join(settings.mcmc.initial_data)
  
     
     try:
@@ -112,7 +112,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
 
     print(f"DEBUG: Loaded MAP parameters: {final_map_params}")
 
-    #  **Extract only c1_log and alpha_log into a list**
+    #  Extract only c1_log and alpha_log into a list
     try:
         params = [final_map_params["c1"], final_map_params["alpha"]]
  
