@@ -10,8 +10,6 @@ from hall_opt.config.dict import Settings
 from hall_opt.config.verifier import Settings
 from hall_opt.utils.data_loader import load_data
 
-
-
 def generate_ground_truth(settings: Settings):
     """Run ground truth model and return result dict (no file I/O)."""
     output_file = Path(settings.postprocess.output_file["MultiLogBohm"])
@@ -87,18 +85,30 @@ def get_ground_truth_data(settings: Settings) -> Optional[Tuple[dict, dict]]:
 
     # Option 3: Fallback to postprocess output
     print(f"[INFO] Trying fallback ground truth at: {fallback_path}")
-    if fallback_path.exists():
+    if not fallback_path.exists():
+        # Try searching for it if not directly found
+        print("[INFO] Fallback file not found directly. Searching for it...")
+        
+        from hall_opt.utils.parse import find_file_anywhere  
+        alt_fallback = find_file_anywhere("output_multilogbohm.json")
+
+        if alt_fallback and alt_fallback.exists():
+            try:
+                with open(alt_fallback, "r") as f:
+                    observed_data = json.load(f)
+                print(f"[INFO] Found and loaded fallback ground truth from: {alt_fallback}")
+                return observed_data, None
+            except Exception as e:
+                print(f"[WARNING] Failed to load fallback ground truth from found file: {e}")
+        else:
+            print("[WARNING] Could not find fallback file via search.")
+    else:
         try:
             observed_data = load_data(settings, "ground_truth")
             print("[INFO] Ground truth loaded from fallback.")
             return observed_data, None
         except Exception as e:
             print(f"[WARNING] Failed to load fallback: {e}")
-
-    # No data found
-    print("[FATAL] No ground truth data could be found.")
-    print("[SUGGESTION] Try setting `gen_data: true` in your input YAML or ensure `reference_data` path is valid.")
-    return None, None
 
 
 '''EXP:

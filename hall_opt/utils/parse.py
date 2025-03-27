@@ -1,6 +1,7 @@
 import sys
 import argparse
 from pathlib import Path
+from typing import Optional
 import os
 import yaml
 
@@ -50,3 +51,36 @@ def get_yaml_path(method_yaml: str, max_depth_up: int = 3) -> Path:
     # 3. If nothing found
     print(f"[ERROR] Could not find '{method_yaml}' under current or any of {max_depth_up} parent levels.")
     sys.exit(1)
+
+    
+
+def find_file_anywhere(filename: str, max_depth_up: int = 3) -> Optional[Path]:
+    """
+    Searches recursively for the exact file (e.g., 'output_multilogbohm.json').
+    Returns the most recently modified match.
+    """
+
+    root_dir = Path(".").resolve()
+
+    def safe_rglob(directory: Path):
+        try:
+            return list(directory.rglob(filename))
+        except (PermissionError, OSError) as e:
+            print(f"[WARNING] Skipping inaccessible directory: {directory} — {e}")
+            return []
+
+    all_matches = safe_rglob(root_dir)
+
+    for level in range(1, max_depth_up + 1):
+        try:
+            parent = root_dir.parents[level]
+            all_matches.extend(safe_rglob(parent))
+        except IndexError:
+            break
+
+    if not all_matches:
+        print(f"[WARNING] Could not find file: {filename}")
+        return None
+
+    # Return most recently modified file
+    return max(all_matches, key=lambda p: p.stat().st_mtime)

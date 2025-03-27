@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import hallthruster as het
+from pathlib import Path
 from typing import Optional, Dict, Any
 from ..utils.data_loader import extract_anom_model
 from ..config.dict import Settings
@@ -41,7 +42,13 @@ def run_model(
     
     postprocess_dict["output_file"] = output_file
 
+    # Ensure output directory exists
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"[INFO] Ensured directory exists for output file: {output_path.parent}")
+
     print(f"Running simulation with {model_type} configuration...")
+
 
     # Convert `simulation` to a dictionary
     simulation_dict = simulation.model_dump() if isinstance(simulation, BaseModel) else simulation
