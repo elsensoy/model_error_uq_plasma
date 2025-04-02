@@ -1,0 +1,138 @@
+ python run.py run_map.yaml
+[DEBUG] hall_opt directory: /home/alex/code/model_error_uq_plasma/hall_opt
+HallThruster imported successfully from main!
+[DEBUG] Searching for Julia executable...
+[DEBUG] Using Julia: /home/alex/.juliaup/bin/julia
+[DEBUG] Using Julia executable: /home/alex/.juliaup/bin/julia
+The latest version of Julia in the `release` channel is 1.11.4+0.x64.linux.gnu. You currently have `1.11.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.4+0.x64.linux.gnu and update the `release` channel to that version.
+[DEBUG] HallThruster path found: /home/alex/.julia/packages/HallThruster/yxE62/python
+[DEBUG] Set PYTHONPATH=/home/alex/code/model_error_uq_plasma:/home/alex/code/model_error_uq_plasma/hall_opt:/home/alex/.julia/packages/HallThruster/yxE62/src/HallThruster.jl
+[DEBUG] Set PATH=/home/alex/.juliaup/bin:/home/alex/.pyenv/versions/3.11.1/bin:/home/alex/.pyenv/libexec:/home/alex/.pyenv/plugins/python-build/bin:/home/alex/.pyenv/plugins/pyenv-virtualenv/bin:/home/alex/.pyenv/plugins/pyenv-update/bin:/home/alex/.pyenv/plugins/pyenv-doctor/bin:/home/alex/.juliaup/bin:/home/alex/Software/simulateTestCases/packages/openmpi-4.1.0/opt-gfortran/bin:/home/alex/.pyenv/plugins/pyenv-virtualenv/shims:/home/alex/.pyenv/shims:/home/alex/.pyenv/bin:/home/alex/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/alex/Software/simulateTestCases/packages/CGNS/bin
+[DEBUG] Arguments received: ['run_map.yaml']
+[INFO] Found YAML config at: /home/alex/code/model_error_uq_plasma/run_map.yaml
+[DEBUG] Using YAML file: /home/alex/code/model_error_uq_plasma/run_map.yaml
+[DEBUG] Loaded YAML data from: /home/alex/code/model_error_uq_plasma/run_map.yaml
+DEBUG: Adding default `MultiLogBohm` model...
+DEBUG: Adding default `TwoZoneBohm` model...
+DEBUG: Adding default `ThrusterConfig`...
+[INFO] All paths resolved relative to: /home/alex/code/model_error_uq_plasma/map_results_mine
+[INFO] YAML file registered as: /home/alex/code/model_error_uq_plasma/run_map.yaml
+[INFO] Configuration successfully loaded and verified!
+
+[DEBUG] Checking overrides from YAML file...
+Overriding: settings.run_map = True
+DEBUG: Final execution flags:
+  run_map: True
+  run_mcmc: False
+  gen_data: False
+  plotting: False
+[INFO] Created directories:
+  - /home/alex/code/model_error_uq_plasma/map_results_mine
+  - /home/alex/code/model_error_uq_plasma/map_results_mine/map
+[INFO] Attempting to load external ground truth from: /home/alex/code/model_error_uq_plasma/results_mine/postprocess/output_multilogbohm.json
+[INFO] Loaded ground truth from JSON.
+DEBUG: observed_data: <class 'dict'>, False
+DEBUG: Calling run_map_workflow()...
+Created results directory: /home/alex/code/model_error_uq_plasma/map_results_mine/map/map-results-1
+[INFO] MAP results directory: /home/alex/code/model_error_uq_plasma/map_results_mine/map/map-results-1
+[DEBUG] Initial guess: [-0.2, 0.5]
+[DEBUG] User map_settings: {'initial_cs': [0.2, 0.1], 'max_iter': 100, 'algorithm': 'slsqp'}
+[DEBUG] User provided optimization method override: slsqp
+[WARNING] Unsupported method 'slsqp' in /home/alex/code/model_error_uq_plasma/run_map.yaml. Falling back to 'Nelder-Mead'
+DEBUG: Updated model config: c1=0.8187307530779818, c2=1.3498588075760032
+DEBUG: Updated model config: c1=0.8187307530779818, c2=1.3498588075760032
+DEBUG: Before extract_anom_model, config_settings = {'thruster': {'name': 'SPT-100', 'geometry': {'channel_length': 0.025, 'inner_radius': 0.0345, 'outer_radius': 0.05}, 'magnetic_field': {'file': 'hall_opt/config/bfield_spt100.csv'}}, 'discharge_voltage': 300, 'anode_mass_flow_rate': 5e-06, 'domain': [0, 0.08], 'anom_model': {'c1': np.float64(0.8187307530779818), 'c2': np.float64(1.3498588075760032), 'type': 'TwoZoneBohm'}}
+Running simulation with TwoZoneBohm configuration...
+DEBUG: Checking required file paths before running simulation...
+DEBUG: Current working directory: /home/alex/code/model_error_uq_plasma
+DEBUG: JSON configuration sent to HallThruster:
+{
+    "config": {
+        "thruster": {
+            "name": "SPT-100",
+            "geometry": {
+                "channel_length": 0.025,
+                "inner_radius": 0.0345,
+                "outer_radius": 0.05
+            },
+            "magnetic_field": {
+                "file": "hall_opt/config/bfield_spt100.csv"
+            }
+        },
+        "discharge_voltage": 300,
+        "anode_mass_flow_rate": 5e-06,
+        "domain": [
+            0,
+            0.08
+        ],
+        "anom_model": {
+            "c1": 0.8187307530779818,
+            "c2": 1.3498588075760032,
+            "type": "TwoZoneBohm"
+        }
+    },
+    "simulation": {
+        "dt": 1e-06,
+        "adaptive": true,
+        "grid": {
+            "type": "EvenGrid",
+            "num_cells": 100
+        },
+        "num_save": 1000,
+        "duration": 0.001
+    },
+    "postprocess": {
+        "output_file": "/home/alex/code/model_error_uq_plasma/map_results_mine/postprocess/output_twozonebohm.json",
+        "save_time_resolved": false,
+        "average_start_time": 0.0004
+    }
+}
+The latest version of Julia in the `release` channel is 1.11.4+0.x64.linux.gnu. You currently have `1.11.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.4+0.x64.linux.gnu and update the `release` channel to that version.
+[ Info: Simulation exited at t = 0.001 with retcode :success in 2.692038555 seconds.
+ERROR: SystemError: opening file "/home/alex/code/model_error_uq_plasma/map_results_mine/postprocess/output_twozonebohm.json": No such file or directory
+Stacktrace:
+  [1] systemerror(p::String, errno::Int32; extrainfo::Nothing)
+    @ Base ./error.jl:176
+  [2] systemerror
+    @ ./error.jl:175 [inlined]
+  [3] open(fname::String; lock::Bool, read::Nothing, write::Nothing, create::Nothing, truncate::Bool, append::Nothing)
+    @ Base ./iostream.jl:295
+  [4] open
+    @ ./iostream.jl:277 [inlined]
+  [5] open(fname::String, mode::String; lock::Bool)
+    @ Base ./iostream.jl:358
+  [6] open(fname::String, mode::String)
+    @ Base ./iostream.jl:357
+  [7] open(::JSON3.var"#62#63"{@Kwargs{allow_inf::Bool}, OrderedCollections.OrderedDict{String, OrderedCollections.OrderedDict{String}}}, ::String, ::Vararg{String}; kwargs::@Kwargs{})
+    @ Base ./io.jl:408
+  [8] open(::Function, ::String, ::String)
+    @ Base ./io.jl:407
+  [9] #write#61
+    @ ~/.julia/packages/JSON3/ntJon/src/write.jl:45 [inlined]
+ [10] write
+    @ ~/.julia/packages/JSON3/ntJon/src/write.jl:44 [inlined]
+ [11] write_to_json(file::String, sol::HallThruster.Solution{StepRangeLen{Float64, Base.TwicePrecision{Float64}, Base.TwicePrecision{Float64}, Int64}, @NamedTuple{thruster::HallThruster.Thruster, ncharge::Int64, mi::Float64, anode_bc::Symbol, landmark::Bool, transition_length::Float64, Te_L::Float64, Te_R::Float64, implicit_energy::Float64, ion_temperature_K::Float64, neutral_velocity::Float64, anode_mass_flow_rate::Float64, neutral_ingestion_multiplier::Float64, ion_wall_losses::Bool, wall_loss_scale::Float64, plume_loss_scale::Float64, anom_smoothing_iters::Int64, discharge_voltage::Float64, cathode_coupling_voltage::Float64, electron_ion_collisions::Bool, simulation::HallThruster.SimParams{HallThruster.NoController}, iteration::Vector{Int64}, dt::Vector{Float64}, grid::HallThruster.Grid1D, postprocess::HallThruster.Postprocess, index::@NamedTuple{ρn::Int64, ρi::Vector{Int64}, ρiui::Vector{Int64}}, cache::@NamedTuple{Aϵ::LinearAlgebra.Tridiagonal{Float64, Vector{Float64}}, bϵ::Vector{Float64}, νan::Vector{Float64}, νc::Vector{Float64}, νei::Vector{Float64}, νen::Vector{Float64}, radial_loss_frequency::Vector{Float64}, νew_momentum::Vector{Float64}, νiw::Vector{Float64}, νe::Vector{Float64}, νiz::Vector{Float64}, νex::Vector{Float64}, B::Vector{Float64}, κ::Vector{Float64}, μ::Vector{Float64}, ϕ::Vector{Float64}, ∇ϕ::Vector{Float64}, ne::Vector{Float64}, nϵ::Vector{Float64}, Tev::Vector{Float64}, ϵ::Vector{Float64}, pe::Vector{Float64}, ∇pe::Vector{Float64}, ue::Vector{Float64}, K::Vector{Float64}, λ_global::Vector{Float64}, ohmic_heating::Vector{Float64}, wall_losses::Vector{Float64}, inelastic_losses::Vector{Float64}, Z_eff::Vector{Float64}, ni::Matrix{Float64}, ui::Matrix{Float64}, niui::Matrix{Float64}, ji::Vector{Float64}, nn::Vector{Float64}, γ_SEE::Vector{Float64}, Id::Vector{Float64}, Vs::Vector{Float64}, anom_multiplier::Vector{Float64}, F::Matrix{Float64}, UL::Matrix{Float64}, UR::Matrix{Float64}, k::Matrix{Float64}, u1::Matrix{Float64}, cell_cache_1::Vector{Float64}, channel_area::Vector{Float64}, dA_dz::Vector{Float64}, channel_height::Vector{Float64}, inner_radius::Vector{Float64}, outer_radius::Vector{Float64}, tanδ::Vector{Float64}, anom_variables::Vector{Vector{Float64}}, dt_iz::Vector{Float64}, dt::Vector{Float64}, dt_E::Vector{Float64}, dt_u::Vector{Float64}}, fluids::Vector{HallThruster.Fluid}, fluid_ranges::Vector{UnitRange{Int64}}, species_range_dict::Dict{Symbol, UnitRange{Int64}}, is_velocity_index::Vector{Bool}, ionization_reactions::Vector{HallThruster.IonizationReaction}, ionization_reactant_indices::Vector{Int64}, ionization_product_indices::Vector{Int64}, excitation_reactions::Vector{HallThruster.ExcitationReaction}, excitation_reactant_indices::Vector{Int64}, electron_neutral_collisions::Vector{HallThruster.ElasticCollision}, background_neutral_velocity::Float64, background_neutral_density::Float64, γ_SEE_max::Float64, min_Te::Float64}, HallThruster.Config{HallThruster.TwoZoneBohm, HallThruster.Mitchner, HallThruster.WallSheath, HallThruster.HyperbolicScheme{typeof(HallThruster.__rusanov), typeof(HallThruster.__van_leer)}, HallThruster.DefaultInitialization, Returns{Float64}, Vector{Returns{Float64}}, Vector{Returns{Float64}}, Returns{Float64}}, Vector{@NamedTuple{μ::Vector{Float64}, Tev::Vector{Float64}, ϕ::Vector{Float64}, ∇ϕ::Vector{Float64}, ne::Vector{Float64}, pe::Vector{Float64}, ue::Vector{Float64}, ∇pe::Vector{Float64}, νan::Vector{Float64}, νc::Vector{Float64}, νen::Vector{Float64}, νei::Vector{Float64}, radial_loss_frequency::Vector{Float64}, νew_momentum::Vector{Float64}, νiz::Vector{Float64}, νex::Vector{Float64}, νe::Vector{Float64}, Id::Vector{Float64}, ji::Vector{Float64}, nn::Vector{Float64}, anom_multiplier::Vector{Float64}, ohmic_heating::Vector{Float64}, wall_losses::Vector{Float64}, inelastic_losses::Vector{Float64}, Vs::Vector{Float64}, channel_area::Vector{Float64}, inner_radius::Vector{Float64}, outer_radius::Vector{Float64}, dA_dz::Vector{Float64}, tanδ::Vector{Float64}, anom_variables::Vector{Vector{Float64}}, dt::Vector{Float64}, ni::Matrix{Float64}, ui::Matrix{Float64}, niui::Matrix{Float64}}}}; average_start_time::Float64, save_time_resolved::Bool)
+    @ HallThruster ~/.julia/packages/HallThruster/yxE62/src/simulation/json.jl:147
+ [12] run_simulation(json_file::String; restart::String)
+    @ HallThruster ~/.julia/packages/HallThruster/yxE62/src/simulation/json.jl:44
+ [13] run_simulation(json_file::String)
+    @ HallThruster ~/.julia/packages/HallThruster/yxE62/src/simulation/json.jl:11
+ [14] top-level scope
+    @ none:1
+ ERROR during simulation: [Errno 2] No such file or directory: '/home/alex/code/model_error_uq_plasma/map_results_mine/postprocess/output_twozonebohm.json'
+Simulation failed. Returning -np.inf.
+DEBUG: Updated model config: c1=0.8105842459701871, c2=1.336427488025472
+DEBUG: Updated model config: c1=0.8105842459701871, c2=1.336427488025472
+DEBUG: Before extract_anom_model, config_settings = {'thruster': {'name': 'SPT-100', 'geometry': {'channel_length': 0.025, 'inner_radius': 0.0345, 'outer_radius': 0.05}, 'magnetic_field': {'file': 'hall_opt/config/bfield_spt100.csv'}}, 'discharge_voltage': 300, 'anode_mass_flow_rate': 5e-06, 'domain': [0, 0.08], 'anom_model': {'c1': np.float64(0.8105842459701871), 'c2': np.float64(1.336427488025472), 'type': 'TwoZoneBohm'}}
+Running simulation with TwoZoneBohm configuration...
+DEBUG: Checking required file paths before running simulation...
+DEBUG: Current working directory: /home/alex/code/model_error_uq_plasma
+DEBUG: JSON configuration sent to HallThruster:
