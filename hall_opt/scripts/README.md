@@ -1,76 +1,96 @@
-### File Searching Utility: `find_file_anywhere`
 
-This utility function helps locate a specific file within a project structure, even if the exact path isn't known beforehand. It searches the current directory and optionally parent directories, while allowing certain common directories (like virtual environments) to be skipped.
+# IN PROGRESS
 
-**Purpose:**
 
-To find the most recently modified instance of a file with a specific `filename`, searching from a `start_dir` and up a specified number of parent directory levels (`max_depth_up`). It intelligently skips searching within specified `exclude_dirs`. This is useful for locating configuration files, data files, or outputs when their exact location might vary slightly or when you want to avoid searching within dependency/build folders.
+## Libraries:
 
-**Parameters:**
+### import statsmodels.tools.numdiff as smnd
 
-* `filename` (str): **Required.** The exact name of the file you want to find (e.g., `"output_multilogbohm.json"`, `"config.yaml"`).
-* `start_dir` (str): *Optional.* The directory path where the search should begin. Defaults to `"."` (the current working directory).
-* `max_depth_up` (int): *Optional.* How many parent directory levels *above* the `start_dir` should also be searched.
-    * Defaults to `1`.
-    * `0` means only search within the `start_dir` tree.
-    * `1` means search `start_dir` tree AND the parent directory's tree.
-    * `2` means search `start_dir`, parent, and grandparent trees, and so on.
-* `exclude_dirs` (Optional[List[str]]): *Optional.* A list of directory *names* to completely ignore during the search. The function will not look inside any directory whose name is in this list. Defaults to `None` (no exclusions). Common examples: `['venv', '.venv', '__pycache__', '.git', 'node_modules', 'build', 'dist']`.
+https://www.statsmodels.org/stable/generated/statsmodels.tools.numdiff.approx_hess1.html
 
-**Behavior:**
+# MAP Optimization Behavior and Diagnostics
 
-1.  **Starting Point:** Begins searching from the resolved absolute path of `start_dir`.
-2.  **Upward Traversal:** It then searches the parent directory tree, the grandparent tree, and so on, up to the level specified by `max_depth_up`.
-3.  **Search Mechanism:** Uses Python's standard `os.walk` to traverse directory trees efficiently.
-4.  **Exclusion:** Crucially, if `exclude_dirs` is provided, `os.walk` is prevented from descending into any directory whose *name* matches an entry in the list. This avoids unnecessary searching in virtual environments, Git folders, etc.
-5.  **Matching:** Looks for files exactly matching the provided `filename`.
-6.  **Selection:** If multiple matching files are found (outside the excluded directories), it identifies the one with the most recent modification time (`st_mtime`).
-7.  **Error Handling:** Includes basic handling for permission errors during directory traversal or file access issues.
+## Why MAP is a Good Pre-step for MCMC
 
-**Return Value:**
+**Finding a High-Probability Region**:  
+The MAP estimate represents the mode (peak) of the posterior distribution.  
+Starting MCMC chains at or near this mode helps ensure they begin exploring in a region where the target probability is high.
 
-* **`pathlib.Path`:** An absolute `pathlib.Path` object pointing to the most recently modified matching file found.
-* **`None`:** If the file is not found within the searched directories (respecting exclusions and depth limits), or if an error prevented determining the latest file.
+Reference:  
+https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation
 
-**Usage Example:**
+---
 
-```python
-from pathlib import Path
-from typing import Optional, List, Set
-import os
-# Assume the find_file_anywhere function definition is available here
+## Why the "MAP failed" Error When `max_iter` Is Reached
 
-# --- Example Scenario ---
-# Imagine you are running a script in /path/to/project/scripts/
-# and need to find 'results.json' which might be in ./outputs/
-# or ../outputs/ relative to the script.
+`max_iter` is a stopping condition, not necessarily a success condition.  
+When `scipy.optimize.minimize` stops because it hit the `maxiter` limit, it means it didn't converge according to its other criteria (like tolerances `fatol`, `xatol`, gradient norms, etc.) within the allowed number of iterations.
 
-# Define directories we definitely don't want to search inside
-common_excludes = ['venv', '.venv', '__pycache__', '.git', 'node_modules', 'build']
+Because it didn't converge "naturally" by meeting the tolerance criteria, the `result.success` flag returned by `minimize` will be set to `False`.
 
-# Search starting from the current directory, going up 1 parent level
-found_path = find_file_anywhere(
-    filename="results.json",
-    start_dir=".",      # Start search where the script is running
-    max_depth_up=1,     # Search '.' and '..' trees
-    exclude_dirs=common_excludes
-)
+The script checks `if result.success:` after the `minimize` call. Since `result.success` is `False`, code proceeds to the `else:` block and prints `[ERROR] MAP optimization failed.`
 
-if found_path:
-    print(f"Found results file at: {found_path}")
-    # You can now use the found_path object, e.g., read the file
-    # with open(found_path, 'r') as f:
-    #     content = f.read()
-else:
-    print("Could not locate 'results.json'.")
+**Conclusion**: This is the expected behavior.  
+Reaching the iteration limit without meeting convergence criteria is considered an unsuccessful optimization run by SciPy. The error message is generated by code's handling of the unsuccessful result flag.
 
-# Example searching only the current directory tree:
-config_path = find_file_anywhere(
-    filename="config.yaml",
-    start_dir=".",
-    max_depth_up=0, # Only search current dir tree
-    exclude_dirs=common_excludes
-)
+References:  
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html  
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize  
+https://docs.scipy.org/doc/scipy/reference/optimize.minimize-neldermead.html
 
-if config_path:
-    print(f"Config file found at: {config_path}")
+---
+
+## Why 9 Callback Iterations When `max_iter=5`
+
+The definition of an "iteration" counted by `maxiter` within the optimization algorithm (especially for gradient-based methods like SLSQP, BFGS, L-BFGS-B, Nelder-Mead (not gradient-based)) doesn't always correspond 1-to-1 with calls to the callback function.
+
+**Major Iterations vs. Callback Calls**:  
+`maxiter` limits the number of major steps of the algorithm (e.g., updating the main guess based on gradient and line search).
+
+**Function Evaluations / Line Search**:  
+Within a single major iteration, the algorithm (especially gradient-based ones) might perform a "line search" to find the optimal step size along a calculated direction.  
+This line search can involve multiple evaluations of the objective function (`neg_log_posterior_with_penalty`).
+
+**Callback Timing**:  
+The callback function might be called more frequently than just once per major iteration.  
+It could be called after each function evaluation during the line search, or at other intermediate points depending on the specific algorithm (method) chosen.
+
+---
+
+# Parameters QA
+
+## What is `x`?
+
+`x` represents the final parameter values found by the optimization algorithm when it stopped.
+(see scipy documentation reference from above)
+In our specific case:  
+Since `run_map_workflow` function optimizes the parameters in log space (passed `initial_guess` in log space and the objective function `neg_log_posterior_with_penalty` operates on `c_log`), the values in `x` correspond to `[c1_log, alpha_log]`.
+
+**Example**:
+- `x[0]` (-0.270...) is the final `c1_log` value.
+- `x[1]` (0.425...) is the final `alpha_log` value.
+
+**Significance**:  
+This is the "best guess" for the parameters that minimize the objective function (`neg_log_posterior_with_penalty`) that the optimizer could find within the allowed 5 iterations.  
+Even though `success` is `False` (because it didn't converge based on tolerance), `x` still holds the location of the minimum function value (`fun`) encountered before stopping.
+
+---
+
+## What is `final_simplex`?
+
+Specific to the `'Nelder-Mead'` optimization algorithm.  
+Nelder-Mead works by maintaining a geometric shape called a simplex in the parameter space.  
+For a problem with N parameters, the simplex has N+1 vertices (points).  
+In our 2-parameter case (`c1_log`, `alpha_log`), the simplex is a triangle (3 vertices). The algorithm iteratively modifies this simplex (reflecting, expanding, contracting) based on the function values at its vertices to move towards a minimum.
+
+**`final_simplex` Contents**:
+- **"vertices"**: This is a list containing the coordinates (`[c1_log, alpha_log]`) of each of the 3 vertices of the triangle when the optimization terminated.  
+  Notice that the first vertex listed (example: `[-0.270..., 0.425...]`) is identical to the best point found (`x`).  
+  This is typical, as `x` usually corresponds to the vertex with the lowest function value in the final simplex.
+
+- **"values"**: This is a list containing the objective function value (`fun`) evaluated at each corresponding vertex listed in `"vertices"`.  
+
+**Significance**:  
+It gives an insight into where the Nelder-Mead algorithm was exploring right at the end.  
+It shows the spread of points it was considering.
+

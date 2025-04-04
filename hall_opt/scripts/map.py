@@ -1,134 +1,183 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 import json
+import time
 from pathlib import Path
 from scipy.optimize import minimize
 from hall_opt.utils.iter_methods import get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
 from hall_opt.config.verifier import Settings, get_valid_optimization_method
 
+#  Import the new helper function  
+try:
+    from hall_opt.utils.math import calculate_hessian_at_point
+except ImportError:
+    print("[ERROR] Could not import 'calculate_hessian_at_point'. Hessian calculation will be unavailable.")
+    # a dummy function so the rest of the code doesn't crash
+    def calculate_hessian_at_point(*args, **kwargs) -> Tuple[None, None]:
+        print("[WARNING] Using dummy calculate_hessian_at_point function.")
+        return None, None
+# ---
+
 def run_map_workflow(
-    observed_data: Optional[pd.DataFrame],
+    observed_data: Optional[pd.DataFrame], # Or Union[pd.DataFrame, Dict]
     settings: Settings,
-):
+) -> Optional[Dict[str, float]]: # Return type: dictionary of non-log params or None
+    """Runs the MAP optimization workflow, calculates Hessian using helper, and saves results."""
+
+    # --- Setup and Objective Function Definitions ---
     map_base_dir = Path(settings.output_dir) / "map"
     map_base_dir.mkdir(parents=True, exist_ok=True)
     settings.map.base_dir = get_next_results_dir(str(map_base_dir), "map-results")
-  
     Path(settings.map.base_dir).mkdir(parents=True, exist_ok=True)
     print(f"[INFO] MAP results directory: {settings.map.base_dir}")
-
-    # Initial guess
     initial_guess = settings.map.initial_guess
-    print(f"[DEBUG] Initial guess: {initial_guess}")
+    print(f"[DEBUG] Initial guess (log space): {initial_guess}")
+    iteration_counter = [0]; iteration_logs = []
 
-    # Logs
-    iteration_counter = [0]
-    iteration_logs = []
-
-    def bounds_penalty(c_log):
-        penalty = 0
-        if not (-5 <= c_log[0] <= 0):
-            penalty += (c_log[0] - max(-5, min(c_log[0], 0)))**2
-        if not (0 <= c_log[1] <= 3):
-            penalty += (c_log[1] - max(0, min(c_log[1], 3)))**2
+    def bounds_penalty(c_log): # (penalty func)
+        penalty = 0.0; log_c1_min, log_c1_max = -5.0, 0.0; log_alpha_min, log_alpha_max = 0.0, 3.0
+        if not (log_c1_min <= c_log[0] <= log_c1_max): penalty += 1e6 * (c_log[0] - np.clip(c_log[0], log_c1_min, log_c1_max))**2
+        if not (log_alpha_min <= c_log[1] <= log_alpha_max): penalty += 1e6 * (c_log[1] - np.clip(c_log[1], log_alpha_min, log_alpha_max))**2
         return penalty
-
-    def neg_log_posterior_with_penalty(c_log):
+    
+    def neg_log_posterior_with_penalty(c_log): # (objective func)
+        c_log_np = np.asarray(c_log)
         try:
-            loss = -log_posterior(
-                c_log=c_log,
-                observed_data=observed_data,
-                settings=settings,
-            ) + bounds_penalty(c_log)
-            return loss
-        except Exception as e:
-            print(f"[ERROR] Failed to compute log-posterior: {e}")
-            return np.inf
+            log_prob = log_posterior(c_log=c_log_np, observed_data=observed_data, settings=settings)
+            penalty = bounds_penalty(c_log_np)
+            if not np.isfinite(log_prob): 
+                return np.inf
+            return -log_prob + penalty
+        except Exception as e: print(f"[ERROR] Failed obj func at {c_log_np}: {e}"); return np.inf
 
-    # Iteration logging
     iteration_log_path = Path(settings.map.base_dir) / "map_iteration_log.json"
     checkpoint_path = Path(settings.map.base_dir) / "map_checkpoint.json"
+    result_json_path = Path(settings.map.base_dir) / "optimization_result.json"
 
-    def iteration_callback(c_log):
-        iteration_counter[0] += 1
-        c1_log, alpha_log = c_log
-        c1, alpha = np.exp(c1_log), np.exp(alpha_log)
 
-        log_entry = {
-            "iteration": iteration_counter[0],
-            "c1_log": c1_log,
-            "alpha_log": alpha_log,
-            "c1": c1,
-            "alpha": alpha
-        }
+    def iteration_callback(current_params_log): # (callback)
+        iteration_counter[0] += 1; c1_log, alpha_log = current_params_log
+        c1 = np.exp(c1_log) if np.isfinite(c1_log) else float('nan'); alpha = np.exp(alpha_log) if np.isfinite(alpha_log) else float('nan')
+        current_loss = neg_log_posterior_with_penalty(current_params_log)
+        print(f"[MAP] Iter {iteration_counter[0]:<4} -> c1: {c1:.4f}, alpha: {alpha:.4f} | NegLogPost+Penalty: {current_loss:.4e}")
+        log_entry = {"iteration": iteration_counter[0], "c1_log": c1_log, "alpha_log": alpha_log, "c1": c1, "alpha": alpha, "neg_log_posterior_penalty": current_loss}
         iteration_logs.append(log_entry)
-
         try:
-            with open(iteration_log_path, "w") as f:
-                json.dump(iteration_logs, f, indent=4)
-        except Exception as e:
-            print(f"[WARNING] Failed to save iteration log: {e}")
-
+            with open(iteration_log_path, "w") as f: json.dump(iteration_logs, f, indent=4)
+        except Exception as e: print(f"[WARNING] Failed to save iteration log: {e}")
         try:
-            with open(checkpoint_path, "w") as f:
-                json.dump(log_entry, f, indent=4)
-        except Exception as e:
-            print(f"[WARNING] Failed to save checkpoint: {e}")
-
-        print(f"[MAP] Iter {iteration_counter[0]} → c1: {c1:.4f}, alpha: {alpha:.4f}")
-
-# Extract source YAML for debug
-    yaml_file = settings.general.config_file
-    if settings.map_settings:
-        print(f"[DEBUG] User map_settings: {settings.map_settings.model_dump()}")
-    else:
-        print("[DEBUG] No map_settings provided in YAML.")
+            with open(checkpoint_path, "w") as f: json.dump(log_entry, f, indent=4)
+        except Exception as e: print(f"[WARNING] Failed to save checkpoint: {e}")
 
 
-    # Prioritize user override in `map_settings` (from settings block in YAML)
-    user_method = None
-    if settings.map_settings and settings.map_settings.algorithm:
-        user_method = settings.map_settings.algorithm
-        print(f"[DEBUG] User provided optimization method override: {user_method}")
-    else:
-        user_method = settings.map.method
-        print(f"[DEBUG] Using default method from map config: {user_method}")
+    # --- Determine Optimization Method and Options ---
+    # User yaml file overrides 
+    yaml_file = settings.general.config_file or "Unknown YAML"; user_method_override = None
+    if settings.map_settings and settings.map_settings.algorithm: 
+        user_method_override = settings.map_settings.algorithm
+    method_to_validate = user_method_override if user_method_override else settings.map.method
+    method = get_valid_optimization_method(method_to_validate, source_yaml=yaml_file)
 
-    # Pass to validation function
-    method = get_valid_optimization_method(user_method, source_yaml=yaml_file)
+    print(f"[INFO] Using optimization method: {method}")
+    options = {"maxfev": settings.map.maxfev, "fatol": settings.map.fatol, "xatol": settings.map.xatol, 'disp': True}
 
+    max_iterations = None
+    if settings.map_settings and settings.map_settings.max_iter is not None: 
+        max_iterations = settings.map_settings.max_iter
+    elif settings.map and settings.map.max_iter is not None: 
+        max_iterations = settings.map.max_iter
 
-    # Run optimization
+    if max_iterations is not None: 
+        options['maxiter'] = int(max_iterations); print(f"[INFO] Using max_iter: {max_iterations}")
+    
+    else: 
+        print(f"[WARNING] max_iter not defined. Using method default.")
+    print(f"[DEBUG] Final options passed to minimize: {options}")
+
+    # --- Run Optimization ---
+    # (Same as before)
+    print(f"[INFO] Starting {method} optimization...")
     try:
-        result = minimize(
-            neg_log_posterior_with_penalty,
-            initial_guess,
-            method=method,
-            callback=iteration_callback,
-            options={
-                "maxfev": settings.map.maxfev,
-                "fatol": settings.map.fatol,
-                "xatol": settings.map.xatol
-            }
-        )
-    except Exception as e:
-        print(f"[ERROR] Optimization failed: {e}")
-        return None
+        result = minimize(neg_log_posterior_with_penalty, initial_guess, method=method, callback=iteration_callback, options=options)
+    except Exception as e: 
+        print(f"[ERROR] Optimization call failed with exception: {e}"); return None
 
-    if result.success:
-        final_params = {
-            "c1": float(np.exp(result.x[0])),
-            "alpha": float(np.exp(result.x[1]))
-        }
-        try:
-            with open(settings.map.final_map_params_file, "w") as f:
-                json.dump(final_params, f, indent=4)
-            print(f"[INFO] Final MAP parameters saved to: {settings.map.final_map_params_file}")
-        except Exception as e:
-            print(f"[WARNING] Could not save final parameters: {e}")
-        return final_params
-    else:
-        print("[ERROR] MAP optimization failed.")
-        return None
+    # --- Process Results ---
+    print("\n--- Optimization Result (SciPy Object) ---"); 
+    print(result); 
+    print("------------------------------------------\n")
+
+    # --- Prepare data dictionary for saving --- ## MODIFIED BLOCK ##
+    print(f"[INFO] Preparing optimization result details for: {result_json_path}")
+    result_dict_to_save = {}
+    final_params_nonlog = None
+    hessian_logspace_result: Optional[Union[np.ndarray, str]] = None # Store results from helper
+    inv_hessian_logspace_result: Optional[Union[np.ndarray, str]] = None
+
+    try:
+        # Copy basic attributes
+        result_dict_to_save['message'] = getattr(result, 'message', 'N/A')
+        result_dict_to_save['success'] = bool(getattr(result, 'success', False))
+        result_dict_to_save['status'] = int(getattr(result, 'status', -1))
+        result_dict_to_save['fun'] = float(getattr(result, 'fun', float('nan')))
+        result_dict_to_save['nit'] = int(getattr(result, 'nit', -1))
+        result_dict_to_save['nfev'] = int(getattr(result, 'nfev', -1))
+
+        # Process final parameters (log) and calculate non-log version
+        if hasattr(result, 'x') and result.x is not None:
+            final_params_log = result.x # Best parameters found (log space)
+            result_dict_to_save['x_log'] = final_params_log.tolist()
+
+            try: # Calculate non-log parameters
+                 final_params_nonlog = {"c1": float(np.exp(final_params_log[0])), "alpha": float(np.exp(final_params_log[1]))}
+                 result_dict_to_save['final_params_nonlog'] = final_params_nonlog
+                 print(f"[INFO] Parameters calculated (non-log): c1={final_params_nonlog['c1']:.4f}, alpha={final_params_nonlog['alpha']:.4f}")
+            except Exception as calc_e:
+                 print(f"[WARNING] Failed to calculate non-log parameters: {calc_e}")
+                 result_dict_to_save['final_params_nonlog'] = None; final_params_nonlog = None
+
+            # --- Call the separate Hessian calculation function --- 
+            hessian_logspace_result, inv_hessian_logspace_result = calculate_hessian_at_point(
+                objective_func=neg_log_posterior_with_penalty, # Pass the objective function
+                point=final_params_log # Pass the point in log-space
+                # use_statsmodels=True # Default is True, can override if needed
+            )
+            # --- End Hessian calculation call --- 
+
+        else: # Handle case where result.x is missing
+            result_dict_to_save['x_log'] = None; result_dict_to_save['final_params_nonlog'] = None
+            print("[WARNING] Result object missing 'x' attribute. Cannot calculate final parameters or Hessian.")
+
+        # --- Add Hessian results to the save dictionary ---  
+        # Convert numpy arrays to lists ONLY if they are actually arrays (not None or error strings)
+        result_dict_to_save['initial_guess'] = initial_guess.tolist() if isinstance(initial_guess, np.ndarray) else initial_guess
+        result_dict_to_save['hessian_neglogpost_logspace'] = hessian_logspace_result.tolist() if isinstance(hessian_logspace_result, np.ndarray) else hessian_logspace_result
+        result_dict_to_save['inv_hessian_neglogpost_logspace'] = inv_hessian_logspace_result.tolist() if isinstance(inv_hessian_logspace_result, np.ndarray) else inv_hessian_logspace_result
+        # --- End Adding Hessian Results 
+
+
+        # Handle method-specific outputs (e.g., final_simplex)
+        if hasattr(result, 'final_simplex'):
+            try:
+                simplex_vertices, simplex_values = result.final_simplex
+                result_dict_to_save['final_simplex'] = { 'vertices': simplex_vertices.tolist(), 'values': simplex_values.tolist() }
+            except Exception as sim_e: result_dict_to_save['final_simplex'] = f"Error serializing: {sim_e}"
+
+        # --- Save the combined results to ONE file ---
+        result_json_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(result_json_path, "w") as f:
+            json.dump(result_dict_to_save, f, indent=4) # Save the dict with all info
+        print(f"[INFO] Successfully saved combined optimization results to {result_json_path}")
+
+    except Exception as e:
+        print(f"[WARNING] Failed to prepare or save optimization result object to JSON: {e}")
+        return None # Return None if saving prep failed
+
+    # --- Report outcome and determine return value ---
+    if result.success: print("[INFO] MAP optimization successful (converged).")
+    else: print(f"[ERROR] MAP optimization did NOT converge successfully. Status: {result.status}, Message: {result.message}")
+
+    # Return non-log parameters if calculated, otherwise None
+    return final_params_nonlog

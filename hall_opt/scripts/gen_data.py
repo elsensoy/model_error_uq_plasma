@@ -14,7 +14,6 @@ def generate_ground_truth(settings: Settings):
     """Run ground truth model and return result dict (no file I/O)."""
     output_file = Path(settings.postprocess.output_file["MultiLogBohm"])
     output_file.parent.mkdir(parents=True, exist_ok=True)
-
     try:
         result = run_model(
             config_settings=settings.config_settings,
@@ -143,7 +142,6 @@ def get_ground_truth_data(settings: Settings) -> Optional[Tuple[dict, dict]]:
 
             # Keep import local as per original structure
             try:
-                # Ensure this matches the actual location of your function
                 from hall_opt.utils.parse import find_file_anywhere
             except ImportError:
                  print("[ERROR] Cannot search: Failed to import find_file_anywhere.")
@@ -156,11 +154,12 @@ def get_ground_truth_data(settings: Settings) -> Optional[Tuple[dict, dict]]:
                 if alt_fallback and alt_fallback.exists():
                     print(f"[INFO] Found fallback file via search at: {alt_fallback}")
                     try:
-                        # Load the found file (assuming JSON as per original Option 3 search)
+                        # Load the found file (
                         with open(alt_fallback, "r") as f:
                             observed_data = json.load(f) # Load into main variable
                         print(f"[INFO] Successfully loaded fallback ground truth from searched file.")
                         return observed_data, None # <<< EXIT POINT IF SEARCH/LOAD SUCCEEDS
+                    
                     except Exception as e:
                         print(f"[WARNING] Failed to load fallback ground truth from found file {alt_fallback}: {e}")
                         # If loading the found file fails, observed_data remains None

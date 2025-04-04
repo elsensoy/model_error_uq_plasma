@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 from hall_opt.config.dict import Settings
 from hall_opt.config.verifier import Settings
+import re
 
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
     if analysis_type == "ground_truth":
@@ -14,7 +15,7 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
 
         print("Ground truth is loaded successfully")
     elif analysis_type == "map":
-        data_file = os.path.join(settings.map.base_dir, "final_map_params.json")  
+        data_file = os.path.join(settings.map.base_dir, "optimization_result.json")  
     elif analysis_type == "mcmc":
         data_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")  
 
@@ -33,21 +34,45 @@ def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
 
     return samples
 
+def find_latest_results_dir(base_dir: str, base_name: str) -> Optional[Path]:
+    """
+    Finds the results directory matching the pattern '{base_name}-N' inside
+    'base_dir' with the highest number N.
 
-def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
-    """Extracts the anomalous model configuration for a given model type."""
+    Args:
+        base_dir: The parent directory containing the numbered result folders.
+        base_name: The prefix of the result folders (e.g., "map-results").
+
+    Returns:
+        A Path object to the latest directory (highest N), or None if none found.
+    """
+    parent_dir = Path(base_dir)
+    latest_num = -1
+    latest_dir = None
+    pattern = re.compile(rf"^{re.escape(base_name)}-(\d+)$") # Regex to match name-NUMBER
+
+    if not parent_dir.is_dir():
+        print(f"[WARNING] find_latest_results_dir: Base directory '{parent_dir}' does not exist.")
+        return None
+
     try:
-        anom_model_config = settings.config_settings.anom_model
-        if model_type not in anom_model_config:
-            raise KeyError(f" ERROR: Anomalous model type '{model_type}' not found.")
+        for item in parent_dir.iterdir():
+            if item.is_dir():
+                match = pattern.match(item.name)
+                if match:
+                    num = int(match.group(1))
+                    if num > latest_num:
+                        latest_num = num
+                        latest_dir = item
+    except Exception as e:
+         print(f"[WARNING] Error searching for latest results directory in '{parent_dir}': {e}")
+         return None # Return None on error
 
-        base_config = settings.config_settings.model_dump()
-        base_config["anom_model"] = {**anom_model_config[model_type], "type": model_type}
+    if latest_dir:
+        print(f"[DEBUG] Found latest results directory: {latest_dir}")
+    else:
+         print(f"[INFO] No directories matching pattern '{base_name}-N' found in '{parent_dir}'.")
 
-        return base_config
-
-    except KeyError as e:
-        print(f" ERROR: {e}")
-        return 
+    return latest_dir
 
 

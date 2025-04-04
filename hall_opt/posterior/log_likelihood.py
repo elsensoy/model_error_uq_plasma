@@ -25,7 +25,6 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
         return -np.inf
 
     print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
-    print(f"DEBUG: Updated model config: c1={c1}, c2={c2}")
 
     # Run the model simulation
     solution = run_model(

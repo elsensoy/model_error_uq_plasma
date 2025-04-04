@@ -29,8 +29,11 @@ from hall_opt.scripts.map import run_map_workflow
 from hall_opt.scripts.mcmc import run_mcmc_with_final_map_params
 from hall_opt.scripts.gen_data import get_ground_truth_data
 from hall_opt.plotting.posterior_plots import generate_plots
+from hall_opt.plotting.simplex_plot import visualize_final_simplex
 from hall_opt.utils.parse import get_yaml_path, parse_arguments
 from hall_opt.utils.save_data import create_used_directories, save_results_to_json
+from hall_opt.utils.data_loader import find_latest_results_dir
+
 def main():
     try:
              
@@ -110,12 +113,8 @@ def main():
                 try:
                     print("DEBUG: Calling run_map_workflow()...")
                     optimized_params = run_map_workflow(observed_data, settings)
-
                     if optimized_params:
-                        final_map_params_path = Path(settings.map.output_dir) / "final_map_params.json"
-                        with open(final_map_params_path, "w") as f:
-                            json.dump(optimized_params, f, indent=4)
-                        print(f"Final MAP parameters saved to {final_map_params_path}")
+                        print(f"Final MAP parameters saved")
                     else:
                         print("ERROR: MAP optimization failed.")
 
@@ -147,7 +146,34 @@ def main():
             print("Generating plots...")
             generate_plots(settings)
 
-        print("All processes completed successfully!")
+            # --- Call the final simplex visualization (Finding Latest Dir) ---
+            print("Attempting to generate final simplex plot by finding latest MAP results...")
+
+            map_parent_dir = Path(settings.output_dir) / "map"
+            map_base_name = "map-results" # The base name used by get_next_results_dir
+
+            # Find the latest MAP results directory
+            latest_map_dir = find_latest_results_dir(str(map_parent_dir), map_base_name)
+
+            if latest_map_dir:
+                # Construct the path to the specific file within the latest directory
+                optimization_result_file = latest_map_dir / "optimization_result.json"
+
+                # Check if the optimization result file exists in that latest directory
+                if optimization_result_file.is_file():
+                    try:
+                        print(f"Found results file in latest MAP directory: {optimization_result_file}")
+                        # Call the simplex visualization function
+                        visualize_final_simplex(str(optimization_result_file))
+                        print("Final simplex plot displayed/saved.")
+                    except FileNotFoundError:
+                        print(f"[WARNING] File {optimization_result_file} not found despite initial check. Skipping.")
+                    except Exception as e:
+                        print(f"[WARNING] An error occurred during final simplex plot generation: {e}")
+
+            else:
+                print("[INFO] Plotting is disabled in settings (settings.general.plotting=False).")
+
 
     except KeyboardInterrupt:
         print("\n[INFO] KeyboardInterrupt detected in main.py. Exiting.")

@@ -2,10 +2,8 @@ import yaml
 import re
 from pathlib import Path
 from pydantic import ValidationError,BaseModel
-from typing import Optional
-from config.dict import Settings  # Import the updated Settings model
- 
-
+from typing import List, Dict, Any, Optional, Union
+from config.dict import Settings  # Import the updated Settings model\
 def load_yaml(file_path: str) -> Optional[dict]:
     """Loads YAML configuration file safely."""
     try:
@@ -60,3 +58,22 @@ def get_valid_optimization_method(
 
     print(f"[WARNING] Unsupported method '{method}' in {source_yaml or 'unknown.yaml'}. Falling back to 'Nelder-Mead'")
     return "Nelder-Mead"
+
+
+def extract_anom_model(settings: Settings, model_type: str) -> Dict[str, Any]:
+    """Extracts the anomalous model configuration for a given model type."""
+    try:
+        anom_model_config = settings.config_settings.anom_model
+        if model_type not in anom_model_config:
+            raise KeyError(f" ERROR: Anomalous model type '{model_type}' not found.")
+
+        base_config = settings.config_settings.model_dump()
+        base_config["anom_model"] = {**anom_model_config[model_type], "type": model_type}
+
+        return base_config
+
+    except KeyError as e:
+        print(f" ERROR: {e}")
+        return 
+
+

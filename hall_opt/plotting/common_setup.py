@@ -22,8 +22,4 @@ def get_common_paths(settings, analysis_type):
         "metrics_dir": os.path.join(base_dir, settings.plots.metrics_subdir),  # Metrics directory
     }
 
-    # make sure directories exist before saving plots
-    os.makedirs(paths["plots_dir"], exist_ok=True)
-    os.makedirs(paths["metrics_dir"], exist_ok=True)
-
     return paths

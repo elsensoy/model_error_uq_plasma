@@ -4,7 +4,7 @@ import sys
 import hallthruster as het
 from pathlib import Path
 from typing import Optional, Dict, Any
-from ..utils.data_loader import extract_anom_model
+from ..config.verifier import extract_anom_model
 from ..config.dict import Settings
 from pydantic import BaseModel
 
@@ -45,7 +45,7 @@ def run_model(
     # Ensure output directory exists
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"[INFO] Ensured directory exists for output file: {output_path.parent}")
+    print(f"[INFO] Directory exists for output file: {output_path.parent}")
 
     print(f"Running simulation with {model_type} configuration...")
 
@@ -90,3 +90,7 @@ def run_model(
     except Exception as e:
         print(f" ERROR during simulation: {e}")
         return None
+    
+
+
+

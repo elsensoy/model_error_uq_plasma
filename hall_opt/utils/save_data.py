@@ -74,7 +74,7 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")
 
     # make sure directory exists
-    # os.makedirs(directory, exist_ok=True)
+    # os.makedirs(directory, parents=True,exist_ok=True)
 
     # Save metadata
     filepath = os.path.join(directory, filename)
