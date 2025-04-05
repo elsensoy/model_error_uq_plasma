@@ -60,6 +60,7 @@ def run_map_workflow(
     def iteration_callback(current_params_log): # (callback)
         iteration_counter[0] += 1; c1_log, alpha_log = current_params_log
         c1 = np.exp(c1_log) if np.isfinite(c1_log) else float('nan'); alpha = np.exp(alpha_log) if np.isfinite(alpha_log) else float('nan')
+        
         current_loss = neg_log_posterior_with_penalty(current_params_log)
         print(f"[MAP] Iter {iteration_counter[0]:<4} -> c1: {c1:.4f}, alpha: {alpha:.4f} | NegLogPost+Penalty: {current_loss:.4e}")
         log_entry = {"iteration": iteration_counter[0], "c1_log": c1_log, "alpha_log": alpha_log, "c1": c1, "alpha": alpha, "neg_log_posterior_penalty": current_loss}

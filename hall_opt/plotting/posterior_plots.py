@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import arviz as az
-from hall_opt.plotting.common_setup import get_common_paths
+import json
+import pandas as pd
+from hall_opt.plotting.common_setup import get_common_paths,prompt_analysis_type
 from hall_opt.utils.data_loader import load_data
 from hall_opt.config.dict import Settings
+from pathlib import Path
 
 def plot_autocorrelation(samples, output_dir):
     """Generate autocorrelation plots."""
@@ -52,30 +55,49 @@ def generate_plots(settings: Settings):
     Main function to generate and save plots dynamically for both MAP and MCMC.
     """
 
-    # Determine analysis type dynamically
-    if settings.run_map:
-        analysis_type = "map"
-    elif settings.run_mcmc:
-        analysis_type = "mcmc"
-    else:
-        print("ERROR: Neither MAP nor MCMC is enabled! No plots will be generated.")
-        return
-    
+    # Prompt the user for which type to plot
+    analysis_type = prompt_analysis_type()
     print(f"Running plotting for {analysis_type.upper()}.")
-
-    # Get correct directories dynamically
-    paths = get_common_paths(settings, analysis_type)
-    output_dir = paths["plots_dir"]
-
-    # Load data dynamically
+    
+    # --- Get plot directory ---
     try:
-        samples = load_data(settings, analysis_type)
-        print(f"Data loaded successfully for {analysis_type.upper()}.")
+        paths = get_common_paths(settings, analysis_type)
     except FileNotFoundError as e:
         print(f"ERROR: {e}")
         return
 
-    # Generate all plots
+    output_dir = paths["plots_dir"]
+    results_dir = Path(settings.map.base_dir)
+
+    # --- Load data depending on mode ---
+    if analysis_type == "map":
+        iteration_file = results_dir / "map_iteration_log.json"
+        if not iteration_file.exists():
+            print(f"ERROR: MAP iteration file not found at: {iteration_file}")
+            return
+
+        with open(iteration_file, "r") as f:
+            iter_data = json.load(f)
+
+        samples = pd.DataFrame(iter_data)
+
+        if samples.empty:
+            print("ERROR: Loaded MAP iteration data is empty.")
+            return
+
+        # Rename for plotting consistency
+        samples.rename(columns={
+            "c1_log": "log_c1",
+            "alpha_log": "log_alpha"
+        }, inplace=True)
+    else:
+        # Load MCMC samples (same logic as before)
+        samples = load_data(settings, analysis_type)
+
+
+        print(f"Data loaded successfully for {analysis_type.upper()}.")
+
+    # --- Generate Plots ---
     plot_autocorrelation(samples, output_dir)
     plot_trace(samples, output_dir)
     plot_posterior(samples, output_dir)

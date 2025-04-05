@@ -1,5 +1,5 @@
 output_dir: "map_results"
-run_map: true
+run_map: false
 reference_data: "${settings.output_dir}/postprocess/output_multilogbohm.json"
 plotting: true
 map_settings:

@@ -247,54 +247,45 @@ This will check if `HallThruster` is accessed. If not, it will add the path:
 
 
 ---
-## 2:Automatic Setup via `run.py` 
+---
+## 2: Automatic Setup via `run.py`
 
-#### After hallthruster installation is completed, you are ready to run the project. See the guide for running the project below. 
+#### After hallthruster installation is completed, you are ready to run the project. See the guide for running the project below.
+
 ---
 
 ### **Run Project**
 
-*Run:*
-```bash
-python run.py my_file.yaml
+This project uses [PDM](https://pdm-project.org/) for managing dependencies and executing tasks. The `run.py` script serves as the main entry point, handling essential setup before launching the core logic.
+
+**1. Install Dependencies (If not already done):**
+
 ```
-**Command Line Arguments**
+    pdm install
+```
+**2. Execute the Analysis:**
 
-The command line accepts a user-provided YAML file with preferred model settings or method parameters. This allows the user to run the model along with the optimization or Bayesian method they wish to employ.
--- **`[my_file].yaml`**. Examples include: 
-- **`gen_data.yaml`** – For data generation  
-- **`map.yaml`** – For MAP estimation  
-- **`mcmc.yaml`** – For MCMC sampling  
-- **`plotting.yaml`** – For visualization  
+Use the PDM script command defined in pyproject.toml (we'll assume it's named main):
 
-This will:
-- Automatically find the project root
-- Locate the correct Python and Julia paths
-- Ensure HallThruster is correctly imported
-- Run the simulation along with the desired methods with the specified YAML configuration.
+```
+    pdm run main my_project.yaml
+```
+
+### Example:
+```
+    pdm run main configuration.yaml
+```
+
+#### Note: 
+
+This command can be run from any directory within the project. PDM ensures correct execution from the project root.
+
 ---
+    
 
+##               YAML VALIDATION & DEFAULTS WORKFLOW
 
-### Results directory:
-```
-    model_error_uq_plasma/
-    │── hall_opt/
-    │   ├── main.py             # Main execution script
-    │   ├── results/            # Stores all output files
-    │   ├── results_test/       # Results (testing)
-    │   ├── config/             # Configuration files
-    │   ├── scripts/            # Method scripts
-    │   ├── utils/              # Helper scripts
-    │   ├── posterior/          # Posterior calculations
-    │── run.py                  # Entry point
-    │── README.md               # Documentation
-    │── pyproject.toml          # Python dependencies (PDM)
-    │── .venv/                  # Virtual environment
-```
-
-
-#               YAML VALIDATION & DEFAULTS WORKFLOW
-
+Here is a breakdown of the internal steps typically taken after the project is launched via pdm run main 'my_project.yaml'. 
 
 #### 1. START PROCESS
    ------------------------------------------------------------
@@ -361,6 +352,21 @@ This will:
 - All settings are finalized.
 - Ready to proceed with the next computational steps.
 
+### Results directory:
+```
+    model_error_uq_plasma/
+    │── hall_opt/
+    │   ├── main.py             # Main execution script
+    │   ├── results/            # Your output directory
+    │   ├── config/             # Configuration files
+    │   ├── scripts/            # Method scripts
+    │   ├── utils/              # Helper scripts
+    │   ├── posterior/          # Posterior calculations
+    │── run.py                  # Entry point
+    │── README.md               # Documentation
+    │── pyproject.toml          # Python dependencies (PDM)
+    │── .venv/                  # Virtual environment
+```
 
 ## **Contact**
 

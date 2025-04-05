@@ -82,3 +82,9 @@ distribution = false
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+
+#Added manually
+[tool.pdm.scripts]
+main = "python run.py"
+#  End of added section 
