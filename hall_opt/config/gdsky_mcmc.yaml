@@ -1,7 +1,7 @@
 output_dir: "mcmc_results"
-run_mcmc: true
+run_mcmc: false
 reference_data: "results_test/results.json"
-
+plotting: true
 #======CONFIG=====================
 # config_settings:
 #   thruster:
@@ -11,10 +11,10 @@ reference_data: "results_test/results.json"
 #     TwoZoneBohm: 
 #       c1: 0.00625
 #       c2: 0.0625
-# settings:
-#   initial_cs: [0.2, 0.1]
-#   initial_cov: [[1.0, 0.0], [0.0, 1.0]]
-#   max_iter: 100
-#   burn_in: 50
+settings:
+  initial_cs: [0.2, 0.1]
+  initial_cov: [[1.0, 0.0], [0.0, 1.0]]
+  max_iter: 100
+  burn_in: 50
 
     

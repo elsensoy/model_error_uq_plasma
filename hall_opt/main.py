@@ -99,7 +99,7 @@ def main():
                 result_dict=metrics,
                 filename="ground_truth_metrics.json",
                 results_dir=str(Path(settings.output_dir) / "ground_truth"),
-                save_every_n_grid_points=5,
+                save_every_n_grid_points=10,
                 subsample_for_saving=True,
             )
         # -----------------------------
@@ -114,7 +114,10 @@ def main():
                     print("DEBUG: Calling run_map_workflow()...")
                     optimized_params = run_map_workflow(observed_data, settings)
                     if optimized_params:
-                        print(f"Final MAP parameters saved")
+                        final_map_params_path = Path(settings.map.output_dir) / "final_map_params.json"
+                        with open(final_map_params_path, "w") as f:
+                            json.dump(optimized_params, f, indent=4)
+                        print(f"Final MAP parameters saved to {final_map_params_path}")
                     else:
                         print("ERROR: MAP optimization failed.")
 

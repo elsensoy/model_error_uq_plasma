@@ -111,7 +111,7 @@ class MCMCConfig(BaseModel):
     save_interval: int = 10
     checkpoint_interval: int = 10
     save_metadata: bool = True
-    # initial_data: str = "${map.optimization_output}"
+    initial_data: str = "${map.final_map_params_file}"
     final_samples_file_log: str = "${mcmc.results_dir}/final_samples_log.csv"
     final_samples_file_linear: str = "${mcmc.results_dir}/final_samples_linear.csv"
     checkpoint_file: str = "${mcmc.results_dir}/checkpoint.json"
@@ -127,6 +127,7 @@ class MapConfig(BaseModel):
     base_dir: str = Field(default_factory=lambda: "${settings.output_dir}", description="Directory for Iterations")
     initial_guess: List[float] = Field(default=[-0.2, 0.5], description="Initial guess parameters for TwoZoneBohm model") 
     iteration_log_file: str = Field(default_factory=lambda: "${settings.output_dir}/map_sampling.json", description="MAP iteration log file")
+    final_map_params_file: str = Field(default_factory=lambda: "${settings.output_dir}/final_map_params.json", description="Final MAP parameter file")
     method: str = Field(default="Nelder-Mead", description="MAP optimization method")
     maxfev: int = Field(default=5000, ge=100, description="Maximum function evaluations")
     fatol: float = Field(default=0.003, gt=0, description="Function tolerance")
@@ -194,7 +195,8 @@ class Settings(BaseModel):
             "${map.results_dir}": base / "map",
             "${mcmc.results_dir}": base / "mcmc",
             "${plots.results_dir}": base / "plots",
-            
+             "${map.optimization_output}": base / "map" / "optimization_result.json", 
+            "${map.final_map_params_file}": Path(self.map.final_map_params_file),
             "${ground_truth.results_dir}": base / "ground_truth",
             "${ground_truth.output_file}": self.ground_truth.output_file
         }

@@ -8,7 +8,8 @@ from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
-
+from hall_opt.utils.parse import find_file_anywhere
+from hall_opt.config.evaluate.checkpoint import restore_mcmc_checkpoint
 def mcmc_inference(
     logpdf,
     initial_sample,
@@ -92,38 +93,45 @@ def mcmc_inference(
     print(f"Final samples saved to {settings.mcmc.base_dir}")
     return all_samples
 
-def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
-    settings: Settings):
+def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Settings):
     """
-    Run MCMC with optimized parameters loaded from YAML settings.
+    Run MCMC using the most recently modified MAP result file found dynamically.
     """
+    # Use dynamic search instead of relying on initial_data
+    map_filename = "optimization_result.json"  # Or final_map_params.json if preferred
+    found_path = find_file_anywhere(
+        filename=map_filename,
+        start_dir=settings.output_dir,  # Can also use '.' if unsure
+        max_depth_up=1,  # Searches one level up as well
+        exclude_dirs=["venv", ".venv", "__pycache__"]
+    )
 
-    # Ensure `mcmc-results-N/` is determined BEFORE running MCMC
-  
-    final_map_params_path = os.path.join(settings.mcmc.initial_data)
- 
-    
-    try:
-        with open(final_map_params_path, "r") as f:
-            final_map_params = json.load(f)  # This is likely a dictionary
-    except FileNotFoundError:
-        print(f" ERROR: Final MAP parameters file missing: {final_map_params_path}")
+    if not found_path:
+        print(f"[ERROR] Could not locate '{map_filename}'. MCMC cannot proceed.")
         return None
 
-    print(f"DEBUG: Loaded MAP parameters: {final_map_params}")
+    print(f"[INFO] Found MAP optimization result at: {found_path}")
 
-    #  Extract only c1_log and alpha_log into a list
+    # Load the parameters
     try:
-        params = [final_map_params["c1"], final_map_params["alpha"]]
- 
-    except KeyError:
-        raise ValueError(" ERROR: Expected `c1` and `alpha` in final_map_params.json")
-    print(f"DEBUG: Extracted parameter list for MCMC: {params}")
+        with open(found_path, "r") as f:
+            result_data = json.load(f)
 
+        x_log = result_data.get("x_log")
+        if not isinstance(x_log, list) or len(x_log) != 2:
+            print(f"[ERROR] 'x_log' missing or invalid in {map_filename}")
+            return None
 
-    all_samples = mcmc_inference(
+        print(f"[DEBUG] Using extracted x_log for MCMC: c1_log = {x_log[0]}, alpha_log = {x_log[1]}")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to read MAP file '{found_path}': {e}")
+        return None
+
+    # Run the MCMC
+    return mcmc_inference(
         lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings),
-        initial_sample=np.array(params, dtype=np.float64),
+        initial_sample=np.array(x_log, dtype=np.float64),
         initial_cov=np.array(settings.mcmc.initial_cov, dtype=np.float64),
         iterations=settings.mcmc.max_iter,
         save_interval=settings.mcmc.save_interval,
@@ -131,6 +139,3 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any],
         settings=settings,
         burn_in=settings.mcmc.burn_in
     )
-    return all_samples
-
-

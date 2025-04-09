@@ -76,10 +76,10 @@ def log_likelihood(c_log: list[float], observed_data: dict, settings: Settings, 
 
     #  directory for saving metrics map/mcmc
     if settings.run_map:
-        output_dir = settings.map.base_dir  #  base_dir instead of results_dir
+        output_dir = settings.map.base_dir  
         print("DEBUG: Saving metrics in MAP results directory.")
     elif settings.run_mcmc:
-        output_dir = settings.mcmc.base_dir  #  base_dir instead of results_dir
+        output_dir = settings.mcmc.base_dir   
         print("DEBUG: Saving metrics in MCMC results directory.")
     else:
         print("DEBUG: No MAP or MCMC executed")

@@ -181,3 +181,6 @@ src/
 results_test/
 notes/
 Issues/
+map_results/
+mcmc_results/
+results_c/

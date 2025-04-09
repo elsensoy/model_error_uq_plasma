@@ -265,7 +265,7 @@ This project uses [PDM](https://pdm-project.org/) for managing dependencies and 
 ```
 **2. Execute the Analysis:**
 
-Use the PDM script command defined in pyproject.toml (we'll assume it's named main):
+Use the PDM script command defined in pyproject.toml (see the manually added entry `main = "python run.py"`  in the toml file) This allows define the console script entry points within the package. Now, we can easily run:
 
 ```
     pdm run main my_project.yaml
@@ -278,7 +278,7 @@ Use the PDM script command defined in pyproject.toml (we'll assume it's named ma
 
 #### Note: 
 
-This command can be run from any directory within the project. PDM ensures correct execution from the project root.
+This command can be run from any directory within the project. PDM ensures correct execution from the project root. See link here for more details: https://pdm-project.org/latest/usage/scripts/ 
 
 ---
     

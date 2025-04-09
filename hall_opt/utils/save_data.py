@@ -38,6 +38,7 @@ def save_results_to_json(
         raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metrics.")
 
 
+
     # Filter required keys
     required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
@@ -60,7 +61,6 @@ def save_results_to_json(
         json.dump(result_dict_copy, json_file, indent=4)
     
     print(f"Results successfully saved to {result_file_path}")
-
 
 def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
     """

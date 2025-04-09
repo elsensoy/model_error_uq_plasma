@@ -9,22 +9,11 @@ from hall_opt.utils.iter_methods import get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
 from hall_opt.config.verifier import Settings, get_valid_optimization_method
 
-#  Import the new helper function  
-try:
-    from hall_opt.utils.math import calculate_hessian_at_point
-except ImportError:
-    print("[ERROR] Could not import 'calculate_hessian_at_point'. Hessian calculation will be unavailable.")
-    # a dummy function so the rest of the code doesn't crash
-    def calculate_hessian_at_point(*args, **kwargs) -> Tuple[None, None]:
-        print("[WARNING] Using dummy calculate_hessian_at_point function.")
-        return None, None
-# ---
-
 def run_map_workflow(
     observed_data: Optional[pd.DataFrame], # Or Union[pd.DataFrame, Dict]
     settings: Settings,
 ) -> Optional[Dict[str, float]]: # Return type: dictionary of non-log params or None
-    """Runs the MAP optimization workflow, calculates Hessian using helper, and saves results."""
+    """Runs the MAP optimization workflow and saves results."""
 
     # --- Setup and Objective Function Definitions ---
     map_base_dir = Path(settings.output_dir) / "map"
@@ -110,12 +99,10 @@ def run_map_workflow(
     print(result); 
     print("------------------------------------------\n")
 
-    # --- Prepare data dictionary for saving --- ## MODIFIED BLOCK ##
+    # --- Prepare data dictionary for saving
     print(f"[INFO] Preparing optimization result details for: {result_json_path}")
     result_dict_to_save = {}
     final_params_nonlog = None
-    hessian_logspace_result: Optional[Union[np.ndarray, str]] = None # Store results from helper
-    inv_hessian_logspace_result: Optional[Union[np.ndarray, str]] = None
 
     try:
         # Copy basic attributes
@@ -139,24 +126,13 @@ def run_map_workflow(
                  print(f"[WARNING] Failed to calculate non-log parameters: {calc_e}")
                  result_dict_to_save['final_params_nonlog'] = None; final_params_nonlog = None
 
-            # --- Call the separate Hessian calculation function --- 
-            hessian_logspace_result, inv_hessian_logspace_result = calculate_hessian_at_point(
-                objective_func=neg_log_posterior_with_penalty, # Pass the objective function
-                point=final_params_log # Pass the point in log-space
-                # use_statsmodels=True # Default is True, can override if needed
-            )
-            # --- End Hessian calculation call --- 
-
         else: # Handle case where result.x is missing
             result_dict_to_save['x_log'] = None; result_dict_to_save['final_params_nonlog'] = None
-            print("[WARNING] Result object missing 'x' attribute. Cannot calculate final parameters or Hessian.")
-
-        # --- Add Hessian results to the save dictionary ---  
+   
+        
         # Convert numpy arrays to lists ONLY if they are actually arrays (not None or error strings)
         result_dict_to_save['initial_guess'] = initial_guess.tolist() if isinstance(initial_guess, np.ndarray) else initial_guess
-        result_dict_to_save['hessian_neglogpost_logspace'] = hessian_logspace_result.tolist() if isinstance(hessian_logspace_result, np.ndarray) else hessian_logspace_result
-        result_dict_to_save['inv_hessian_neglogpost_logspace'] = inv_hessian_logspace_result.tolist() if isinstance(inv_hessian_logspace_result, np.ndarray) else inv_hessian_logspace_result
-        # --- End Adding Hessian Results 
+    
 
 
         # Handle method-specific outputs (e.g., final_simplex)

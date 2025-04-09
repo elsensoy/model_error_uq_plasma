@@ -30,3 +30,10 @@ Highlight Best Point: Uses ax.plot with a red star marker ('r*') to clearly show
 Labels & Formatting: Adds axis labels, a title, a legend, and grid lines. It also sets axis limits slightly larger than the simplex bounds for better visibility.
 Show Plot: Displays the generated plot using plt.show().
 Save Plot (Optional): Includes commented-out code to save the plot as a PNG file in the same directory as the JSON file.
+
+
+NELDERMEAD:
+https://alexdowad.github.io/visualizing-nelder-mead/
+"The Nelder-Mead algorithm doesn’t always reach a minimum point, either; or at least, not in a reasonable number of iterations. Sometimes it gets close to a minimum point... and then moves very, very slowly towards it.
+
+For that reason, when implementing Nelder-Mead, you need to limit the number of iterations so it doesn’t run for too long. Rather than running Nelder-Mead for a huge number of iterations, you will probably get better results by restarting it several times, with different starting points, and then picking the best overall solution found.[2]"
