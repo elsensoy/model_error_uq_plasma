@@ -151,6 +151,30 @@ def main():
         # This function should internally handle prompting the user (MAP vs MCMC)
         # and use get_common_paths to find the data for the selected type.
         if settings.general.plotting:
+
+            # --- Generate Final Simplex Plot (Specific to MAP) ---
+            print("\n[INFO] Attempting to generate final simplex plot for MAP results...")
+
+            from hall_opt.utils.parse import find_file_anywhere  # adjust path as needed
+
+            # Use a flexible file search starting from output_dir
+            map_file = find_file_anywhere(
+                filename="optimization_result.json",
+                start_dir=settings.output_dir,  # Or '.' or 'map_results' depending on your folder structure
+                max_depth_up=1,
+                exclude_dirs=["venv", ".venv", "__pycache__"]
+            )
+
+            if map_file and map_file.is_file():
+                try:
+                    print(f"[INFO] Found optimization result file: {map_file}")
+                    visualize_final_simplex(str(map_file))
+                    print("[INFO] Final simplex plot generation completed.")
+                except Exception as e:
+                    print(f"[ERROR] An error occurred during final simplex plot generation: {e}")
+            else:
+                print("[INFO] Could not find 'optimization_result.json' for MAP plotting. Skipping simplex plot.")
+
             print("\n[INFO] General plotting enabled. Starting generate_plots...")
             generate_plots(settings) # Assumes this function does its own path finding internally
             print("[INFO] generate_plots finished.")

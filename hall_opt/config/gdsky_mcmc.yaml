@@ -1,5 +1,5 @@
 output_dir: "mcmc_results"
-run_mcmc: false
+run_mcmc: true
 reference_data: "results_test/results.json"
 plotting: true
 #======CONFIG=====================

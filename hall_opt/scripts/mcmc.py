@@ -3,7 +3,7 @@ import json
 import sys
 from pathlib import Path
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, Optional 
 from hall_opt.config.dict import Settings
 from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
@@ -93,40 +93,67 @@ def mcmc_inference(
     print(f"Final samples saved to {settings.mcmc.base_dir}")
     return all_samples
 
+
+
+
 def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Settings):
     """
     Run MCMC using the most recently modified MAP result file found dynamically.
+    Includes checkpoint restore support.
     """
-    # Use dynamic search instead of relying on initial_data
-    map_filename = "optimization_result.json"  # Or final_map_params.json if preferred
-    found_path = find_file_anywhere(
-        filename=map_filename,
-        start_dir=settings.output_dir,  # Can also use '.' if unsure
-        max_depth_up=1,  # Searches one level up as well
-        exclude_dirs=["venv", ".venv", "__pycache__"]
-    )
-
-    if not found_path:
-        print(f"[ERROR] Could not locate '{map_filename}'. MCMC cannot proceed.")
+    # Ask the user
+    print("Enter checkpoint iteration to resume from (0 to start fresh):")
+    try:
+        resume_iter = int(input().strip())
+    except ValueError:
+        print("[ERROR] Invalid input. Please enter an integer.")
         return None
 
-    print(f"[INFO] Found MAP optimization result at: {found_path}")
+    # If resuming, try to restore last sample from checkpoint
+    if resume_iter > 0:
+        checkpoint_path = Path(settings.mcmc.output_dir) / "checkpoint.json"
+        restored_sample = restore_mcmc_checkpoint(checkpoint_path)
 
-    # Load the parameters
-    try:
-        with open(found_path, "r") as f:
-            result_data = json.load(f)
-
-        x_log = result_data.get("x_log")
-        if not isinstance(x_log, list) or len(x_log) != 2:
-            print(f"[ERROR] 'x_log' missing or invalid in {map_filename}")
+        if restored_sample is None:
+            print("[ERROR] Could not restore from checkpoint. Exiting.")
             return None
 
-        print(f"[DEBUG] Using extracted x_log for MCMC: c1_log = {x_log[0]}, alpha_log = {x_log[1]}")
+        x_log = restored_sample
+        burn_in = 0  # Skip burn-in when resuming
 
-    except Exception as e:
-        print(f"[ERROR] Failed to read MAP file '{found_path}': {e}")
-        return None
+    else:
+        # Use dynamic search instead of relying on initial_data
+        map_filename = "optimization_result.json"
+        found_path = find_file_anywhere(
+            filename=map_filename,
+            start_dir=settings.output_dir,
+            max_depth_up=1,
+            exclude_dirs=["venv", ".venv", "__pycache__"]
+        )
+
+        if not found_path:
+            print(f"[ERROR] Could not locate '{map_filename}'. MCMC cannot proceed.")
+            return None
+
+        print(f"[INFO] Found MAP optimization result at: {found_path}")
+
+        # Load the parameters
+        try:
+            with open(found_path, "r") as f:
+                result_data = json.load(f)
+
+            x_log = result_data.get("x_log")
+            if not isinstance(x_log, list) or len(x_log) != 2:
+                print(f"[ERROR] 'x_log' missing or invalid in {map_filename}")
+                return None
+
+            print(f"[DEBUG] Using extracted x_log for MCMC: c1_log = {x_log[0]}, alpha_log = {x_log[1]}")
+
+        except Exception as e:
+            print(f"[ERROR] Failed to read MAP file '{found_path}': {e}")
+            return None
+
+        burn_in = settings.mcmc.burn_in  # Apply burn-in when starting fresh
 
     # Run the MCMC
     return mcmc_inference(
@@ -137,5 +164,5 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Sett
         save_interval=settings.mcmc.save_interval,
         checkpoint_interval=settings.mcmc.checkpoint_interval,
         settings=settings,
-        burn_in=settings.mcmc.burn_in
+        burn_in=burn_in
     )
