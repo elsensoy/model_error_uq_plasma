@@ -86,23 +86,28 @@ def main():
         # -----------------------------
         #  Step 5: Generate or Load Ground Truth Data
         # -----------------------------
-        observed_data = None
+
         observed_data, metrics = get_ground_truth_data(settings)
 
         if observed_data is None:
             print("[FATAL] Cannot proceed without ground truth.")
             sys.exit(1)
 
-        #  metrics only if they were generated (not when loading from CSV)
-        if metrics:
+        # Save metrics from observed_data regardless of source
+        try:
+            print("[INFO] Attempting to extract and save ground truth metrics...")
+            metrics_source = observed_data.get("output", {}).get("average", {}) or observed_data
             save_results_to_json(
                 settings=settings,
-                result_dict=metrics,
+                result_dict=metrics_source,
                 filename="ground_truth_metrics.json",
                 results_dir=str(Path(settings.output_dir) / "ground_truth"),
                 save_every_n_grid_points=10,
                 subsample_for_saving=True,
             )
+        except Exception as e:
+            print(f"[WARNING] Failed to save ground truth metrics: {e}")
+
         # -----------------------------
         #  Step 6: Run MAP Estimation (If Enabled)
         # -----------------------------

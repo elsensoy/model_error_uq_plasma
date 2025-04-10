@@ -10,29 +10,71 @@ from hall_opt.config.verifier import Settings
 import re
 
 def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
+    
     if analysis_type == "ground_truth":
-        data_file = settings.postprocess.output_file["MultiLogBohm"]
+        data_file = settings.postprocess.output_file.get("MultiLogBohm")
+        print("[INFO] Ground truth data file path:", data_file)
 
-        print("Ground truth is loaded successfully")
+        if not os.path.isfile(data_file):
+            raise FileNotFoundError(f"[ERROR] Data file not found at {data_file}")
+
+        return pd.read_csv(data_file)
+
     elif analysis_type == "map":
-        data_file = os.path.join(settings.map.base_dir, "optimization_result.json")  
+
+
+        base_results_root = Path(settings.output_dir).resolve() / "map"
+        latest_dir = find_latest_results_dir(base_results_root, "map-results")
+
+        if not latest_dir:
+            raise FileNotFoundError(f"[ERROR] Could not find latest MAP results directory in {base_results_root}")
+
+        opt_file = latest_dir / "optimization_result.json"
+        log_file = latest_dir / "map_iteration_log.json"
+        gen_data_file = latest_dir / "ground_truth" / "ground_truth_metrics.json"
+
+        
+        print(f"[INFO] Loading MAP optimization result from: {opt_file}")
+        print(f"[INFO] Loading MAP iteration log from: {log_file}")
+        print(f"[INFO] Loading Gen data metrics file from: {gen_data_file}")
+        if not opt_file.is_file():
+            raise FileNotFoundError(f"[ERROR] optimization_result.json not found at {opt_file}")
+
+        if not log_file.is_file():
+            raise FileNotFoundError(f"[ERROR] map_iteration_log.json not found at {log_file}")
+
+        if not log_file.is_file():
+            raise FileNotFoundError(f"[ERROR] gen_data_file.json not found at {gen_data_file}")
+
+        # Load full MAP iteration trace as samples
+        with open(log_file, "r") as f:
+            all_iters = json.load(f)
+
+        samples = pd.DataFrame(all_iters)
+ 
+        if "c1_log" not in samples.columns or "alpha_log" not in samples.columns:
+            raise ValueError("[ERROR] Required columns missing in map_iteration_log.json")
+
+        return samples
+
     elif analysis_type == "mcmc":
-        data_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")  
+        base_results_root = Path(settings.output_dir).resolve() / "mcmc"
+        latest_dir = find_latest_results_dir(base_results_root, "mcmc-results")
+
+        if not latest_dir:
+            raise FileNotFoundError(f"[ERROR] Could not find latest MCMC results directory in {base_results_root}")
+
+        data_file = latest_dir / "final_samples_log.csv"
+        print(f"[INFO] Loading MCMC data from: {data_file}")
+
+        if not data_file.is_file():
+            raise FileNotFoundError(f"[ERROR] Data file not found at {data_file}")
+
+        return pd.read_csv(data_file, header=None, names=["log_c1", "log_alpha"])
 
     else:
-        raise ValueError(" Invalid analysis type. Choose 'map' or 'mcmc'.")
+        raise ValueError("[ERROR] Invalid analysis type. Choose 'map', 'mcmc', or 'ground_truth'.")
 
-    if not os.path.exists(data_file):
-        raise FileNotFoundError(f" Error: Data file not found at {data_file}")
-
-    if analysis_type == "map":
-        with open(data_file, "r") as f:
-            data = json.load(f)
-        samples = pd.DataFrame([data])  #  Convert single MAP estimate to DataFrame
-    else:  # MCMC
-        samples = pd.read_csv(data_file, header=None, names=["log_c1", "log_alpha"])
-
-    return samples
 
 def find_latest_results_dir(base_dir: str, base_name: str) -> Optional[Path]:
     """

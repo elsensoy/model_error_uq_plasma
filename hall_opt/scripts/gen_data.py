@@ -27,7 +27,7 @@ def generate_ground_truth(settings: Settings):
             print("ERROR: Simulation failed.")
             return None
 
-        # Only return data — no saving   
+        # Only return data — no saving (no file i/o lib rule#)  
         return result
 
     except Exception as e:

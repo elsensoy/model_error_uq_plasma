@@ -30,6 +30,8 @@ def save_results_to_json(
     # Determine correct results directory
     if settings.gen_data:
         results_dir = settings.ground_truth.results_dir
+        print("DEBUG ground truth ion_velocity:", result_dict.get("ui"))
+
     elif settings.run_map:
         results_dir = settings.map.base_dir  # Uses `map-results-N/`
     elif settings.run_mcmc:
@@ -40,18 +42,18 @@ def save_results_to_json(
 
 
     # Filter required keys
-    required_keys = ['thrust', 'discharge_current', 'ion_velocity', 'z_normalized']
+    required_keys = ['thrust', 'discharge_current', 'ui', 'z_normalized']
     result_dict_copy = {key: result_dict[key] for key in required_keys if key in result_dict}
 
     #  ion_velocity contains only the first entry
-    if "ion_velocity" in result_dict_copy and isinstance(result_dict_copy["ion_velocity"], list):
-        if len(result_dict_copy["ion_velocity"]) > 0 and isinstance(result_dict_copy["ion_velocity"][0], list):
-            result_dict_copy["ion_velocity"] = result_dict_copy["ion_velocity"][0]  # Pick first set
+    if "ui" in result_dict_copy and isinstance(result_dict_copy["ui"], list):
+        if len(result_dict_copy["ui"]) > 0 and isinstance(result_dict_copy["ui"][0], list):
+            result_dict_copy["ui"] = result_dict_copy["ui"][0]  # Pick first set
 
     # Subsample data 
      # Subsample data 
     if subsample_for_saving:
-        for key in ['z_normalized', 'ion_velocity']:
+        for key in ['z_normalized', 'ui']:
             if key in result_dict_copy and result_dict_copy[key] is not None:
                 result_dict_copy[key] = subsample_data(result_dict_copy[key], save_every_n_grid_points)
 
