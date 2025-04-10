@@ -31,7 +31,7 @@ from hall_opt.scripts.gen_data import get_ground_truth_data
 from hall_opt.plotting.posterior_plots import generate_plots
 from hall_opt.plotting.simplex_plot import visualize_final_simplex
 from hall_opt.utils.parse import get_yaml_path, parse_arguments
-from hall_opt.utils.save_data import create_used_directories, save_results_to_json
+from hall_opt.utils.save_data import create_used_directories, save_results_to_json, save_gen_metrics
 from hall_opt.utils.data_loader import find_latest_results_dir
 from hall_opt.plotting.common_setup import get_common_paths, resolve_analysis_type
 def main():
@@ -86,28 +86,23 @@ def main():
         # -----------------------------
         #  Step 5: Generate or Load Ground Truth Data
         # -----------------------------
-
+        observed_data = None
         observed_data, metrics = get_ground_truth_data(settings)
 
         if observed_data is None:
             print("[FATAL] Cannot proceed without ground truth.")
             sys.exit(1)
 
-        # Save metrics from observed_data regardless of source
-        try:
-            print("[INFO] Attempting to extract and save ground truth metrics...")
-            metrics_source = observed_data.get("output", {}).get("average", {}) or observed_data
-            save_results_to_json(
+        #  metrics only if they were generated (not when loading from CSV)
+        if metrics:
+            save_gen_metrics(
                 settings=settings,
-                result_dict=metrics_source,
+                result_dict=metrics,
                 filename="ground_truth_metrics.json",
                 results_dir=str(Path(settings.output_dir) / "ground_truth"),
                 save_every_n_grid_points=10,
                 subsample_for_saving=True,
             )
-        except Exception as e:
-            print(f"[WARNING] Failed to save ground truth metrics: {e}")
-
         # -----------------------------
         #  Step 6: Run MAP Estimation (If Enabled)
         # -----------------------------

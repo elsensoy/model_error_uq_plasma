@@ -131,8 +131,10 @@ def plot_ion_velocity_iterations(settings: Settings, metric_files: List[Path], s
         plt.text(final_z[-1], final_v[-1], f"{final_v[-1]:.1f}", fontsize=9, color="blue")
 
     # --- Ground truth overlay ---
-# --- Plot Ground Truth if Available ---
-    gt_file = Path(settings.output_dir) / "ground_truth" / "ground_truth_metrics.json"
+    gt_file = Path(settings.output_dir) / "postprocess" / "ground_truth_metrics.json"
+    print(f"[DEBUG] Checking ground truth file at: {gt_file}")
+    print(f"[DEBUG] File exists? {gt_file.is_file()}")
+
     if gt_file.is_file():
         with open(gt_file, "r") as f:
             gt_data = json.load(f)
@@ -140,15 +142,17 @@ def plot_ion_velocity_iterations(settings: Settings, metric_files: List[Path], s
         z_gt = gt_data.get("z_normalized")
         v_gt = gt_data.get("ion_velocity") or gt_data.get("ui")
 
-        if z_gt and v_gt and len(z_gt) == len(v_gt):
-            plt.plot(z_gt, v_gt, color="green", linestyle="--", linewidth=2, label=f"Observed (Final: {v_gt[-1]:.1f} m/s)")
-            plt.scatter(z_gt, v_gt, color="green", s=25)
-        if isinstance(v_gt, list) and isinstance(v_gt[0], list):
-            print("[DEBUG] Flattening nested ion velocity list from ground truth")
-            v_gt = v_gt[0]
+        if z_gt and v_gt:
+            plt.plot(z_gt, v_gt, color="green", linestyle="--", linewidth=2, label="Observed (Ground Truth)")
+            plt.scatter(z_gt, v_gt, color="green", s=30)
 
-            # Annotate the final ground truth point
-            plt.text(z_gt[-1], v_gt[-1], f"{v_gt[-1]:.1f}", fontsize=9, color="green")
+        # Include final value in legend
+        # legend_label = f"Observed (Ground Truth) – Final: {v_gt[-1]:.1f} m/s"
+        # plt.plot(z_gt, v_gt, color="green", linestyle="--", linewidth=2, label=legend_label)
+        # plt.scatter(z_gt, v_gt, color="green", s=30)
+
+    # Annotate the last data point
+    plt.text(z_gt[-1], v_gt[-1], f"{v_gt[-1]:.1f}", fontsize=9, color="green")
 
     # --- Finalize layout ---
     plt.xlabel("Normalized Axial Position (z)")
@@ -161,4 +165,4 @@ def plot_ion_velocity_iterations(settings: Settings, metric_files: List[Path], s
     output_path = save_dir / "ion_velocity_iterations.png"
     plt.savefig(output_path, dpi=150)
     plt.close()
-    print(f"[INFO] Saved ion velocity evolution plot: {output_path}")
+    print(f"[INFO] Saved enhanced ion velocity evolution plot: {output_path}")
