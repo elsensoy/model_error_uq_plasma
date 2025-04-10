@@ -80,6 +80,7 @@ class GeneralSettings(BaseModel):
     ion_velocity_weight: float = 2.0
     iterations: int = 20
 
+
 class PostProcessConfig(BaseModel):
     output_file: Dict[str, str] = Field(
         default={

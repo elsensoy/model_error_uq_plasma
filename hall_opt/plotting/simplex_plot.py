@@ -72,7 +72,8 @@ def visualize_final_simplex(json_filepath_str: str):
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.set_aspect('equal', adjustable='box') #  aspect ratio is equal if scales are similar
 
-    # optional: Annotate vertices with their values (can get cluttered)
+    # optional: Annotate vertices with their values (can get cluttered)1
+    
     # for i, txt in enumerate(values):
     #    ax.annotate(f"{txt:.3f}", (vertices[i, 0], vertices[i, 1]), textcoords="offset points", xytext=(5,5), ha='center', fontsize=8)
 
@@ -80,9 +81,12 @@ def visualize_final_simplex(json_filepath_str: str):
     # Show the plot
     plt.tight_layout()
     plt.show()
+    # Ensure the plot subdir exists inside the run folder
+    plot_dir = json_filepath.parent / "plots"
+    plot_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save the figure
-    save_path = json_filepath.parent / "final_simplex_visualization.png"
+    save_path = plot_dir / "final_simplex_visualization.png"
+
     try:
         fig.savefig(save_path, dpi=150)
         print(f"Plot saved to {save_path}")

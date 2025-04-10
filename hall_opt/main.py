@@ -33,7 +33,7 @@ from hall_opt.plotting.simplex_plot import visualize_final_simplex
 from hall_opt.utils.parse import get_yaml_path, parse_arguments
 from hall_opt.utils.save_data import create_used_directories, save_results_to_json
 from hall_opt.utils.data_loader import find_latest_results_dir
-from hall_opt.plotting.common_setup import get_common_paths
+from hall_opt.plotting.common_setup import get_common_paths, resolve_analysis_type
 def main():
     try:
              
@@ -67,6 +67,7 @@ def main():
             if flag in yaml_data:  # If the flag exists in the YAML file
                 setattr(settings.general, flag, bool(yaml_data[flag]))
                 print(f"Overriding: settings.{flag} = {getattr(settings.general, flag)}")
+
 
         # -----------------------------
         #  Debugging: Print Final Execution Flags
@@ -145,86 +146,67 @@ def main():
         # -----------------------------
         #  Step 8: Generate Plots (If Enabled)
         # -----------------------------
+        from hall_opt.plotting.iteration_plots import generate_iteration_metric_plots
 
 
-        # --- Generate General Plots (if enabled) ---
-        # This function should internally handle prompting the user (MAP vs MCMC)
-        # and use get_common_paths to find the data for the selected type.
+        # -----------------------------
+        #  Step 8: Generate Plots (If Enabled)
+        # -----------------------------
+        
         if settings.general.plotting:
+            print("\n[INFO] Plotting is enabled. Starting plot generation...")
 
-            # --- Generate Final Simplex Plot (Specific to MAP) ---
-            print("\n[INFO] Attempting to generate final simplex plot for MAP results...")
+            # ----------------------------------------
+            # 1. Generate posterior plots (MCMC or MAP)
+            # ----------------------------------------
+            print("\n[INFO] Attempting to generate posterior plots...")
+            analysis_type = resolve_analysis_type(settings)
+            generate_plots(settings, analysis_type=analysis_type)
 
-            from hall_opt.utils.parse import find_file_anywhere  # adjust path as needed
-
-            # Use a flexible file search starting from output_dir
-            map_file = find_file_anywhere(
-                filename="optimization_result.json",
-                start_dir=settings.output_dir,  # Or '.' or 'map_results' depending on your folder structure
-                max_depth_up=1,
-                exclude_dirs=["venv", ".venv", "__pycache__"]
-            )
-
-            if map_file and map_file.is_file():
-                try:
-                    print(f"[INFO] Found optimization result file: {map_file}")
-                    visualize_final_simplex(str(map_file))
-                    print("[INFO] Final simplex plot generation completed.")
-                except Exception as e:
-                    print(f"[ERROR] An error occurred during final simplex plot generation: {e}")
-            else:
-                print("[INFO] Could not find 'optimization_result.json' for MAP plotting. Skipping simplex plot.")
-
-            print("\n[INFO] General plotting enabled. Starting generate_plots...")
-            generate_plots(settings) # Assumes this function does its own path finding internally
-            print("[INFO] generate_plots finished.")
-
-            # --- Generate Final Simplex Plot (Specific to MAP) ---
-            # Since this plot is specific to MAP results, we explicitly get the MAP paths here.
-            # This avoids modifying generate_plots if it handles MCMC too,
-            # and ensures we target the correct file even if generate_plots ran for MCMC.
-            print("\n[INFO] Attempting to generate final simplex plot for MAP results...")
-
-            # Get paths specifically for MAP analysis using the centralized function
-            # Pass "map" directly as analysis_type
-            map_paths = get_common_paths(settings, "map")
-
-            # Retrieve the latest MAP directory path from the dictionary
-            latest_map_dir = map_paths.get("latest_results_dir") # Use .get() for safety
+            # ----------------------------------------
+            # 2. Final simplex plot for MAP (if available)
+            # ----------------------------------------
+            print("\n[INFO] Attempting to generate final simplex plot...")
+            # Use common setup logic
+            paths = get_common_paths(settings, "map")
+            latest_map_dir = paths.get("latest_results_dir")
 
             if latest_map_dir:
-                # Construct the path to the specific file within the found directory
                 optimization_result_file = latest_map_dir / "optimization_result.json"
-
-                print(f"[DEBUG] Checking for MAP optimization file: {optimization_result_file}")
-
-                # Check if the specific optimization result file exists
                 if optimization_result_file.is_file():
                     try:
-                        print(f"[INFO] Found optimization results file: {optimization_result_file}")
-                        # Call the simplex visualization function with the correct path
-                        visualize_final_simplex(str(optimization_result_file)) # Pass path as string if needed
-                        print("[INFO] Final simplex plot generation attempted.")
+                        print(f"[INFO] Found MAP optimization result at: {optimization_result_file}")
+                        visualize_final_simplex(str(optimization_result_file))
+                        print("[INFO] Final simplex plot displayed/saved.")
                     except Exception as e:
-                        print(f"[ERROR] An error occurred during final simplex plot generation: {e}")
+                        print(f"[WARNING] Error during simplex plot generation: {e}")
                 else:
-                    print(f"[INFO] Optimization result file not found in the latest MAP directory ({latest_map_dir}). Skipping simplex plot.")
+                    print(f"[INFO] optimization_result.json not found in {latest_map_dir}. Skipping simplex plot.")
             else:
-                # This message comes from get_common_paths/find_latest_results_dir if no dir was found
-                print("[INFO] Could not find the latest MAP results directory.")
+                print("[INFO] No MAP result folder found. Skipping simplex plot.")
+# ----------------------------------------
+# 3. Plot MAP Iteration Metric Evolution
+# ----------------------------------------
+            print("\n[INFO] Attempting to plot MAP iteration metric evolution...")
 
+            if latest_map_dir:
+                iter_metrics_dir = latest_map_dir / "iter_metrics"
+                plots_dir = latest_map_dir / "plots"
+
+                if iter_metrics_dir.exists():
+                    try:
+                        generate_iteration_metric_plots(settings, iter_metrics_dir, plots_dir)
+                    except Exception as e:
+                        print(f"[WARNING] Failed to generate iteration metric plots: {e}")
+                else:
+                    print(f"[INFO] No iter_metrics/ directory found at: {iter_metrics_dir}")
+            
         else:
-            print("\n[INFO] Plotting is disabled in settings (settings.general.plotting=False).")
-
-        print("\n[INFO] Main script finished.")
+            print("[INFO] Plotting is disabled in settings.general.plotting.")
 
     except KeyboardInterrupt:
-        print("\n[INFO] KeyboardInterrupt detected in main.py. Exiting gracefully.")
-        sys.exit(0)  # Exit on Ctrl+C
-    except AttributeError as e:
-         print(f"\n[ERROR] Missing setting attribute in main execution: {e}")
-         sys.exit(1)
+        print("\n[INFO] KeyboardInterrupt detected. Exiting gracefully.")
+        sys.exit(0)
     except Exception as e:
-        print(f"\n[ERROR] An unexpected error occurred in main: {e}")
+        print(f"[ERROR] Unexpected error in main plotting block: {e}")
         sys.exit(1)
-

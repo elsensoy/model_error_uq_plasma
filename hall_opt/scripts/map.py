@@ -8,20 +8,40 @@ from scipy.optimize import minimize
 from hall_opt.utils.iter_methods import get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
 from hall_opt.config.verifier import Settings, get_valid_optimization_method
-
+#assumed 
 def run_map_workflow(
     observed_data: Optional[pd.DataFrame], # Or Union[pd.DataFrame, Dict]
     settings: Settings,
 ) -> Optional[Dict[str, float]]: # Return type: dictionary of non-log params or None
     """Runs the MAP optimization workflow and saves results."""
 
-    # --- Setup and Objective Function Definitions ---
+    # Setup and Objective Function Definitions 
     map_base_dir = Path(settings.output_dir) / "map"
     map_base_dir.mkdir(parents=True, exist_ok=True)
     settings.map.base_dir = get_next_results_dir(str(map_base_dir), "map-results")
     Path(settings.map.base_dir).mkdir(parents=True, exist_ok=True)
     print(f"[INFO] MAP results directory: {settings.map.base_dir}")
-    initial_guess = settings.map.initial_guess
+
+    #  Determine Initial Guess ( ASSUMING USER INPUT IS LOG SPACE)) 
+    initial_guess_log = settings.map.initial_guess # Assume default initially
+    log_source_info = f"default: {initial_guess_log}"
+
+    user_cs = settings.map_settings.initial_cs if settings.map_settings else None
+    if user_cs: # Attempt to use user input if provided
+        try:
+            cs_np = np.asarray(user_cs, dtype=float)
+            if np.any(cs_np <= 0): raise ValueError("Values must be positive.") # Basic check
+            initial_guess = cs_np.tolist()
+            log_source_info = f"user (log converted): {initial_guess}"
+        except (ValueError, TypeError) as e:
+            # Failed: Keep default, update log message only
+            log_source_info = f"default (user value {user_cs} invalid: {e}): {initial_guess}"
+
+    print(f"[INFO] Using initial guess -> {log_source_info}")
+
+    if initial_guess is None:
+        print("[ERROR] No valid initial guess found (check default/user input). Aborting.")
+        return None
     print(f"[DEBUG] Initial guess (log space): {initial_guess}")
     iteration_counter = [0]; iteration_logs = []
 
@@ -90,7 +110,7 @@ def run_map_workflow(
     # (Same as before)
     print(f"[INFO] Starting {method} optimization...")
     try:
-        result = minimize(neg_log_posterior_with_penalty, initial_guess, method=method, callback=iteration_callback, options=options)
+        result = minimize(neg_log_posterior_with_penalty, initial_guess_log, method=method, callback=iteration_callback, options=options)
     except Exception as e: 
         print(f"[ERROR] Optimization call failed with exception: {e}"); return None
 
@@ -131,7 +151,7 @@ def run_map_workflow(
    
         
         # Convert numpy arrays to lists ONLY if they are actually arrays (not None or error strings)
-        result_dict_to_save['initial_guess'] = initial_guess.tolist() if isinstance(initial_guess, np.ndarray) else initial_guess
+        result_dict_to_save['initial_guess'] = initial_guess_log.tolist() if isinstance(initial_guess, np.ndarray) else initial_guess
     
 
 

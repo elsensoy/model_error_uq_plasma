@@ -8,88 +8,58 @@ import os
 import re
 from pathlib import Path
 from typing import Optional, Dict, Union # Added Dict, Union
+import json
+import yaml
+import pandas as pd
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Union
+from hall_opt.config.dict import Settings
+from hall_opt.config.verifier import Settings
+import re
 
-# --- Revised function to get paths ---
+
 def get_common_paths(settings, analysis_type: str) -> Dict[str, Optional[Path]]:
     """
-    Get relevant paths based on the analysis type (MAP or MCMC), using YAML settings.
-    Finds the latest numbered results directory automatically.
-
-    Args:
-        settings: The loaded settings object.
-        analysis_type: Either "map" or "mcmc".
-
-    Returns:
-        A dictionary containing Path objects for relevant directories.
-        'latest_results_dir' will be None if no matching directory is found.
+    Get relevant paths for MAP or MCMC. Uses output_dir/map or output_dir/mcmc.
     """
     try:
-        base_results_root = Path(settings.results_dir) # e.g., C:\...\model_error_uq_plasma
-        plots_root = Path(settings.plotting.results_dir)  # e.g., relative path 'plots' or absolute path
-        metrics_root = Path(settings.output_dir) # e.g., relative path 'metrics' or absolute path
-
-        # make sure plots/metrics roots are absolute or relative to results_dir if not absolute
-        if not plots_root.is_absolute():
-             plots_root = base_results_root / plots_root
-        if not metrics_root.is_absolute():
-             metrics_root = base_results_root / metrics_root
-
-
-        latest_run_dir: Optional[Path] = None
-        search_base_dir: Optional[Path] = None
-        base_name_pattern: Optional[str] = None
-
+        #  FIX: Adjust base path based on analysis type
+        base_results_root = Path(settings.output_dir).resolve()
         if analysis_type == "map":
-            search_base_dir = base_results_root / settings.map.subdir # e.g., C:\...\map_results\map
-            base_name_pattern = settings.map.base_name # e.g., "map-results"
+            base_results_root = base_results_root / "map"
+
         elif analysis_type == "mcmc":
-            search_base_dir = base_results_root / settings.mcmc.subdir # e.g., C:\...\mcmc_results\mcmc
-            base_name_pattern = settings.mcmc.base_name # e.g., "mcmc-results"
-        else:
-            raise ValueError("Invalid analysis type. Choose 'map' or 'mcmc'.")
+            base_results_root = base_results_root / "mcmc"
 
-        if search_base_dir and base_name_pattern:
-            print(f"[INFO] Searching for latest '{base_name_pattern}-N' in '{search_base_dir}'")
-            latest_run_dir = find_latest_results_dir(search_base_dir, base_name_pattern)
-        else:
-             print("[ERROR] Could not determine search directory or base name pattern.")
+        plots_root = Path(settings.plots.results_dir)
+        metrics_root = base_results_root
 
+        if not plots_root.is_absolute():
+            plots_root = base_results_root / plots_root
+        if not metrics_root.is_absolute():
+            metrics_root = base_results_root / metrics_root
+
+        base_name_pattern = f"{analysis_type}-results"
+
+        print(f"[INFO] Searching in '{base_results_root}' for '{base_name_pattern}-N' folders...")
+        latest_run_dir = find_latest_results_dir(base_results_root, base_name_pattern)
 
         paths = {
-            # The specific directory like 'map-results-1' or 'mcmc-run-5'
             "latest_results_dir": latest_run_dir,
-             # The parent directory, e.g., 'map_results/map'
-            "parent_results_dir": search_base_dir,
-            # Saves plots under `plots/map` or `plots/mcmc` relative to plots_root
+            "parent_results_dir": base_results_root,
             "plots_dir": plots_root / analysis_type,
-             # Where metrics are stored (potentially independent of specific run)
             "metrics_dir": metrics_root,
-             # Include the root results dir as well
             "root_results_dir": base_results_root
         }
 
-        # Create plot/metrics directories if they don't exist
-        if paths["plots_dir"]:
-            paths["plots_dir"].mkdir(parents=True, exist_ok=True)
-        if paths["metrics_dir"]:
-            paths["metrics_dir"].mkdir(parents=True, exist_ok=True)
-
+        for key in ["plots_dir", "metrics_dir"]:
+            if paths[key]:
+                paths[key].mkdir(parents=True, exist_ok=True)
 
         return paths
 
-    except AttributeError as e:
-        print(f"[ERROR] Missing setting attribute: {e}")
-        # Return a dictionary with None values to prevent downstream crashes needing paths
-        return {
-            "latest_results_dir": None,
-            "parent_results_dir": None,
-            "plots_dir": None,
-            "metrics_dir": None,
-            "root_results_dir": None,
-        }
     except Exception as e:
-        print(f"[ERROR] Unexpected error in get_common_paths: {e}")
-        # Return a dictionary with None values
+        print(f"[ERROR] get_common_paths failed: {e}")
         return {
             "latest_results_dir": None,
             "parent_results_dir": None,
@@ -97,6 +67,48 @@ def get_common_paths(settings, analysis_type: str) -> Dict[str, Optional[Path]]:
             "metrics_dir": None,
             "root_results_dir": None,
         }
+
+
+def find_latest_results_dir(base_dir: str, base_name: str) -> Optional[Path]:
+    """
+    Finds the results directory matching the pattern '{base_name}-N' inside
+    'base_dir' with the highest number N.
+
+    Args:
+        base_dir: The parent directory containing the numbered result folders.
+        base_name: The prefix of the result folders (e.g., "map-results").
+
+    Returns:
+        A Path object to the latest directory (highest N), or None if none found.
+    """
+    parent_dir = Path(base_dir)
+    latest_num = -1
+    latest_dir = None
+    pattern = re.compile(rf"^{re.escape(base_name)}-(\d+)$") # Regex to match name-NUMBER
+
+    if not parent_dir.is_dir():
+        print(f"[WARNING] find_latest_results_dir: Base directory '{parent_dir}' does not exist.")
+        return None
+
+    try:
+        for item in parent_dir.iterdir():
+            if item.is_dir():
+                match = pattern.match(item.name)
+                if match:
+                    num = int(match.group(1))
+                    if num > latest_num:
+                        latest_num = num
+                        latest_dir = item
+    except Exception as e:
+         print(f"[WARNING] Error searching for latest results directory in '{parent_dir}': {e}")
+         return None # Return None on error
+
+    if latest_dir:
+        print(f"[DEBUG] Found latest results directory: {latest_dir}")
+    else:
+         print(f"[INFO] No directories matching pattern '{base_name}-N' found in '{parent_dir}'.")
+
+    return latest_dir
 
 
 # --- Function to prompt user ---
@@ -114,3 +126,148 @@ def prompt_analysis_type() -> str:
             return "mcmc"
         else:
             print("Invalid input. Please enter 1 for MAP or 2 for MCMC.")
+
+def get_latest_analysis_type(settings: Settings) -> Optional[str]:
+    """
+    Determine whether 'map' or 'mcmc' was run most recently based on results folder timestamps.
+    """
+
+    output_dir = Path(settings.output_dir)
+
+    map_dir = find_latest_results_dir(output_dir / "map", "map-results")
+    mcmc_dir = find_latest_results_dir(output_dir / "mcmc", "mcmc-results")
+
+    if not map_dir and not mcmc_dir:
+        return None
+    if map_dir and not mcmc_dir:
+        return "map"
+    if mcmc_dir and not map_dir:
+        return "mcmc"
+
+    # Compare modification times
+    map_time = os.path.getmtime(map_dir)
+    mcmc_time = os.path.getmtime(mcmc_dir)
+
+    return "map" if map_time > mcmc_time else "mcmc"
+
+
+def resolve_analysis_type(settings: Settings) -> str:
+    """
+    Determine analysis type (map or mcmc) based on settings flags.
+    Falls back to latest results directory if both are False.
+    """
+    if settings.run_map:
+        return "map"
+    elif settings.run_mcmc:
+        return "mcmc"
+    else:
+        detected = get_latest_analysis_type(settings)
+        if detected:
+            print(f"[INFO] Detected latest completed run as: {detected.upper()}")
+            return detected
+        return prompt_analysis_type()
+    
+from pathlib import Path
+
+def interactive_plot_prompt(settings) -> tuple[str, Path]:
+    """
+    Interactive CLI prompt for plotting options.
+    Returns:
+        analysis_type (str): 'map' or 'mcmc'
+        chosen_results_dir (Path): Path to result folder
+    """
+    print("\n[CLI] Would you like to plot the latest results? (y/n): ", end="")
+    latest_choice = input().strip().lower()
+
+    if latest_choice in ["y", "yes"]:
+        # Infer latest analysis type from flags
+        if settings.run_map:
+            analysis_type = "map"
+        elif settings.run_mcmc:
+            analysis_type = "mcmc"
+        else:
+            analysis_type = prompt_analysis_type()
+
+        paths = get_common_paths(settings, analysis_type)
+        latest_dir = paths.get("latest_results_dir")
+
+        if not latest_dir:
+            raise FileNotFoundError(f"[ERROR] No latest {analysis_type.upper()} results directory found.")
+
+        return analysis_type, latest_dir
+
+    else:
+        # Ask user for analysis type manually
+        analysis_type = prompt_analysis_type()
+
+        print(f"\n[CLI] Enter the exact name of the results folder to plot (e.g., {analysis_type}-results-3): ")
+        folder_name = input(">> ").strip()
+
+        base_dir = Path(settings.output_dir).resolve() / analysis_type
+        results_dir = base_dir / folder_name
+
+        if not results_dir.is_dir():
+            raise FileNotFoundError(f"[ERROR] Specified folder not found: {results_dir}")
+
+        return analysis_type, results_dir
+
+def load_data(settings: Settings, analysis_type: str) -> pd.DataFrame:
+    
+    if analysis_type == "ground_truth":
+        data_file = settings.postprocess.output_file.get("MultiLogBohm")
+        print("[INFO] Ground truth data file path:", data_file)
+
+        if not os.path.isfile(data_file):
+            raise FileNotFoundError(f"[ERROR] Data file not found at {data_file}")
+
+        return pd.read_csv(data_file)
+
+    elif analysis_type == "map":
+
+
+        base_results_root = Path(settings.output_dir).resolve() / "map"
+        latest_dir = find_latest_results_dir(base_results_root, "map-results")
+
+        if not latest_dir:
+            raise FileNotFoundError(f"[ERROR] Could not find latest MAP results directory in {base_results_root}")
+
+        opt_file = latest_dir / "optimization_result.json"
+        log_file = latest_dir / "map_iteration_log.json"
+
+        print(f"[INFO] Loading MAP optimization result from: {opt_file}")
+        print(f"[INFO] Loading MAP iteration log from: {log_file}")
+
+        if not opt_file.is_file():
+            raise FileNotFoundError(f"[ERROR] optimization_result.json not found at {opt_file}")
+
+        if not log_file.is_file():
+            raise FileNotFoundError(f"[ERROR] map_iteration_log.json not found at {log_file}")
+
+        # Load full MAP iteration trace as samples
+        with open(log_file, "r") as f:
+            all_iters = json.load(f)
+
+        samples = pd.DataFrame(all_iters)
+ 
+        if "c1_log" not in samples.columns or "alpha_log" not in samples.columns:
+            raise ValueError("[ERROR] Required columns missing in map_iteration_log.json")
+
+        return samples
+
+    elif analysis_type == "mcmc":
+        base_results_root = Path(settings.output_dir).resolve() / "mcmc"
+        latest_dir = find_latest_results_dir(base_results_root, "mcmc-results")
+
+        if not latest_dir:
+            raise FileNotFoundError(f"[ERROR] Could not find latest MCMC results directory in {base_results_root}")
+
+        data_file = latest_dir / "final_samples_log.csv"
+        print(f"[INFO] Loading MCMC data from: {data_file}")
+
+        if not data_file.is_file():
+            raise FileNotFoundError(f"[ERROR] Data file not found at {data_file}")
+
+        return pd.read_csv(data_file, header=None, names=["log_c1", "log_alpha"])
+
+    else:
+        raise ValueError("[ERROR] Invalid analysis type. Choose 'map', 'mcmc', or 'ground_truth'.")

@@ -3,93 +3,113 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from ..utils.data_loader import load_data
-from ..config.dict import Settings
+from typing import List
+from hall_opt.config.dict import Settings
 
-def generate_plots(settings: Settings):
+def generate_iteration_metric_plots(settings: Settings, iter_metrics_dir: Path, save_dir: Path):
     """
-    Generate and save plots based on iteration metrics dynamically configured via YAML.
+    Generates evolution plots for metrics like thrust and discharge_current over iterations.
+
+    Args:
+        iter_metrics_dir: Path to the folder containing metrics_*.json files.
+        save_dir: Path to save the output plots.
     """
 
-    # Determine analysis type
-    if settings.general.run_map:
-        method = "map"
-    elif settings.general.run_mcmc:
-        method = "mcmc"
-    elif settings.general.run_gen_data:
-        method = "gen_data"
-    else:
-        print("ERROR: No valid method enabled! Skipping plots.")
+    save_dir.mkdir(parents=True, exist_ok=True)
+    # Load ground truth if available
+    gt_file = Path(settings.output_dir) / "ground_truth" / "ground_truth_metrics.json"
+    observed_thrust = None
+    observed_current = None
+
+    if gt_file.is_file():
+        with open(gt_file, "r") as f:
+            gt_data = json.load(f)
+            observed_thrust = gt_data.get("thrust")
+            observed_current = gt_data.get("discharge_current")
+
+    # --- Load all JSON files in order ---
+    metric_files = sorted(
+        [f for f in iter_metrics_dir.glob("metrics_*.json")],
+        key=lambda f: int(f.stem.split("_")[-1])
+    )
+
+    if not metric_files:
+        print(f"[ERROR] No metric files found in {iter_metrics_dir}")
         return
+
+    thrust_vals = []
+    current_vals = []
+
+    for file in metric_files:
+        with open(file, "r") as f:
+            data = json.load(f)
+            thrust_vals.append(data.get("thrust"))
+            current_vals.append(data.get("discharge_current"))
+
+    iterations = list(range(1, len(thrust_vals) + 1))
+
+
+    # --- Plot Thrust Evolution ---
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, thrust_vals, marker="o", label="Thrust [N]")
+    plt.title("Thrust over MAP Iterations")
+    plt.xlabel("Iteration")
+    plt.ylabel("Thrust (N)")
+    plt.grid(True, linestyle="--", alpha=0.7)
+    plt.tight_layout()
+    thrust_plot_path = save_dir / "thrust_evolution.png"
+    plt.savefig(thrust_plot_path)
+    print(f"[INFO] Saved: {thrust_plot_path}")
+    plt.close()
+
+    # --- Plot Discharge Current Evolution ---
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, current_vals, marker="o", color="purple", label="Discharge Current [A]")
+    plt.title("Discharge Current over MAP Iterations")
+    plt.xlabel("Iteration")
+    plt.ylabel("Discharge Current (A)")
+    plt.grid(True, linestyle="--", alpha=0.7)
+    plt.tight_layout()
+    current_plot_path = save_dir / "discharge_current_evolution.png"
+    plt.savefig(current_plot_path)
+    print(f"[INFO] Saved: {current_plot_path}")
+    plt.close()
     
-    print(f"Running plotting for {method.upper()}.")
+    plot_ion_velocity_iterations(metric_files=metric_files, save_dir=save_dir)
 
-    # Ensure plotting is enabled in YAML settings
-    if not settings.plotting.enable:
-        print("Plotting is disabled in settings.")
-        return
+def plot_ion_velocity_iterations(metric_files: List[Path], save_dir: Path):
+    """
+    Simple plot of ion velocity across iterations over z_normalized.
+    
+    Args:
+        metric_files: Sorted list of iteration metric JSON files.
+        save_dir: Path where the figure will be saved.
+    """
+    import matplotlib.pyplot as plt
+    import json
 
-    # Get paths from settings
-    plots_dir = settings.plotting.save_dir.format(method=method)
-    os.makedirs(plots_dir, exist_ok=True)
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load iteration data
-    iteration_data_path = Path(f"hall_opt/results/{method}/iteration_log.json")
-    if not iteration_data_path.exists():
-        print(f"ERROR: Iteration log not found: {iteration_data_path}")
-        return
-
-    with open(iteration_data_path, "r") as file:
-        iteration_metrics = json.load(file)
-
-    if not iteration_metrics:
-        print("ERROR: Iteration metrics are empty. Check input data.")
-        return
-
-    # Extract iteration values
-    thrust_values = [metric["c1"] for metric in iteration_metrics]
-    discharge_values = [metric["alpha"] for metric in iteration_metrics]
-
-    # Ensure non-empty values
-    if not thrust_values or not discharge_values:
-        raise ValueError("ERROR: Missing iteration metrics.")
-
-    # Compute statistics
-    mean_thrust = np.mean(thrust_values)
-    last_thrust = thrust_values[-1]
-    mean_discharge = np.mean(discharge_values)
-    last_discharge = discharge_values[-1]
-
-    # Histogram: Thrust Predictions
     plt.figure(figsize=(10, 6))
-    plt.hist(thrust_values, bins=settings.plotting.bins, alpha=0.7, color="blue", label="Thrust Predictions")
-    plt.axvline(mean_thrust, color="purple", linestyle="--", label=f"Mean: {mean_thrust:.3f}")
-    plt.axvline(last_thrust, color="orange", linestyle="--", label=f"Final (Last Sample): {last_thrust:.3f}")
-    plt.xlabel(settings.plotting.thrust_label)
-    plt.ylabel("Frequency")
-    plt.title("Thrust Predictions Histogram")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "thrust_histogram.png"))
-    if settings.plotting.show:
-        plt.show()
-    plt.close()
 
-    # Histogram: Discharge Current Predictions
-    plt.figure(figsize=(10, 6))
-    plt.hist(discharge_values, bins=settings.plotting.bins, alpha=0.7, color="purple", label="Discharge Current Predictions")
-    plt.axvline(mean_discharge, color="purple", linestyle="--", label=f"Mean: {mean_discharge:.3f}")
-    plt.axvline(last_discharge, color="orange", linestyle="--", label=f"Final (Last Sample): {last_discharge:.3f}")
-    plt.xlabel(settings.plotting.discharge_label)
-    plt.ylabel("Frequency")
-    plt.title("Discharge Current Predictions Histogram")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(os.path.join(plots_dir, "discharge_current_histogram.png"))
-    if settings.plotting.show:
-        plt.show()
-    plt.close()
+    for i, file in enumerate(metric_files):
+        with open(file, "r") as f:
+            data = json.load(f)
+            z = data["z_normalized"]
+            v = data["ion_velocity"]
 
-    print(f"Plots saved in {plots_dir}")
+            label = f"Iter {i+1}" if i == 0 or i == len(metric_files) - 1 else None
+            plt.plot(z, v, alpha=0.3, linewidth=1.0, label=label)
+
+    plt.xlabel("Normalized Axial Position (z)")
+    plt.ylabel("Ion Velocity (m/s)")
+    plt.title("Ion Velocity Evolution Over Iterations")
+    plt.grid(True, linestyle="--", alpha=0.5)
+    if plt.gca().get_legend_handles_labels()[1]:  # only show legend if any label was added
+        plt.legend()
+    plt.tight_layout()
+
+    output_path = save_dir / "ion_velocity_iterations.png"
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+    print(f"[INFO] Saved simple ion velocity evolution plot: {output_path}")

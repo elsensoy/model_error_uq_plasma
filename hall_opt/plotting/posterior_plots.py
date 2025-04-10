@@ -1,9 +1,14 @@
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import arviz as az
+import pandas as pd
+import json
+from typing import Optional
 from hall_opt.plotting.common_setup import get_common_paths
 from hall_opt.utils.data_loader import load_data
 from hall_opt.config.dict import Settings
+from .common_setup import interactive_plot_prompt
+
 
 def plot_autocorrelation(samples, output_dir):
     """Generate autocorrelation plots."""
@@ -46,39 +51,49 @@ def plot_pair(samples, output_dir):
     plt.savefig(f"{output_dir}/pair_plot.png")
     plt.close()
     print(f"Saved pair plot to {output_dir}")
-
-def generate_plots(settings: Settings):
+def generate_plots(settings: Settings, analysis_type: Optional[str] = None):
     """
     Main function to generate and save plots dynamically for both MAP and MCMC.
     """
+    print("Generating plots...")
 
-    # Determine analysis type dynamically
-    if settings.run_map:
-        analysis_type = "map"
-    elif settings.run_mcmc:
-        analysis_type = "mcmc"
-    else:
-        print("ERROR: Neither MAP nor MCMC is enabled! No plots will be generated.")
-        return
-    
-    print(f"Running plotting for {analysis_type.upper()}.")
+    # Interactive CLI input
+    analysis_type, results_dir = interactive_plot_prompt(settings)
 
-    # Get correct directories dynamically
+    # Get correct latest directory
     paths = get_common_paths(settings, analysis_type)
-    output_dir = paths["plots_dir"]
+    latest_dir = paths["latest_results_dir"]
+    plots_dir = latest_dir / "plots"
+    plots_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load data dynamically
+    # --- Select proper file based on analysis type ---
     try:
-        samples = load_data(settings, analysis_type)
-        print(f"Data loaded successfully for {analysis_type.upper()}.")
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}")
+        if analysis_type == "map":
+            log_file = latest_dir / "map_iteration_log.json"
+            if not log_file.is_file():
+                raise FileNotFoundError(f"[ERROR] MAP log file not found: {log_file}")
+            with open(log_file, "r") as f:
+                all_iters = json.load(f)
+            samples = pd.DataFrame(all_iters)[["c1_log", "alpha_log"]]
+            samples.rename(columns={"c1_log": "log_c1", "alpha_log": "log_alpha"}, inplace=True)
+
+        elif analysis_type == "mcmc":
+            csv_file = latest_dir / "final_samples_log.csv"
+            if not csv_file.is_file():
+                raise FileNotFoundError(f"[ERROR] MCMC sample file not found: {csv_file}")
+            samples = pd.read_csv(csv_file, header=None, names=["log_c1", "log_alpha"])
+
+        else:
+            raise ValueError("[ERROR] Unknown analysis type passed to generate_plots()")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to load samples for {analysis_type.upper()}: {e}")
         return
 
-    # Generate all plots
-    plot_autocorrelation(samples, output_dir)
-    plot_trace(samples, output_dir)
-    plot_posterior(samples, output_dir)
-    plot_pair(samples, output_dir)
+    # --- Generate standard posterior plots ---
+    plot_autocorrelation(samples, plots_dir)
+    plot_trace(samples, plots_dir)
+    plot_posterior(samples, plots_dir)
+    plot_pair(samples, plots_dir)
 
-    print(f"All plots for {analysis_type.upper()} have been saved to {output_dir}!")
+    print(f"[INFO] All {analysis_type.upper()} plots saved to {plots_dir}")

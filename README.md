@@ -374,3 +374,34 @@ For any questions or issues, contact:
 
 - **Name:** Elida Sensoy  
 - **Email:** elsensoy@umich.edu  
+
+
+ /results/
+         ├── map/
+         │   ├── map-results-1/  Created dynamically per MAP run
+         │   │   ├── iter_metrics/
+         │   │   │   ├── metrics_1.json  Iteration metrics
+         │   │   │   ├── metrics_2.json
+         │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
+         │   │   ├── final_map_params.json  Final MAP sample 
+         │   │   ├── plots/  Automatically created using `get_common_paths()`
+         │   ├── map-results-2/
+         │   │   ├── iter_metrics/
+         │   │   ├── map_iteration_log.json   
+         │   │   ├── final_map_params.json
+         │   │   ├── plots/
+         ├── mcmc/
+         │   ├── mcmc-results-1/
+         │   │   ├── iter_metrics/
+         │   │   │   ├── metrics_1.json
+         │   │   │   ├── metrics_2.json
+         │   │   ├── checkpoint.json  Checkpoint saving dynamically
+         │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
+         │   │   ├── mcmc_metadata.json  Metadata for MCMC
+         │   │   ├── plots/
+         │   ├── mcmc-results-2/
+         │   │   ├── iter_metrics/
+         │   │   ├── checkpoint.json
+         │   │   ├── final_samples_log.csv
+         │   │   ├── mcmc_metadata.json
+         │   │   ├── plots/
