@@ -1,4 +1,4 @@
-output_dir: "mcmc_results"
+output_dir: "test-results"
 run_mcmc: true
 reference_data: "results_test/results.json"
 plotting: true
@@ -11,10 +11,10 @@ plotting: true
 #     TwoZoneBohm: 
 #       c1: 0.00625
 #       c2: 0.0625
-settings:
+mcmc_settings:
   initial_cs: [0.2, 0.1]
   initial_cov: [[1.0, 0.0], [0.0, 1.0]]
-  max_iter: 100
-  burn_in: 50
+  max_iter: 1000
+  burn_in: 100
 
     

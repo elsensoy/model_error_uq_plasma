@@ -1,0 +1,22 @@
+Bounds Handling: Using the explicit bounds argument with compatible methods (L-BFGS-B, SLSQP, TNC) might be more robust than the penalty function, especially if the optimum lies exactly on a boundary. The penalty function approach can sometimes "push" the solution slightly away from the true boundary optimum.
+
+Gradient Information: If the gradient of the log-posterior (log_posterior) is analytically available or can be efficiently computed numerically, using gradient-based optimization methods (like 'L-BFGS-B', 'BFGS', 'SLSQP') is often much faster and more reliable for finding the precise mode than gradient-free methods like 'Nelder-Mead'. The current objective function doesn't seem to provide a gradient (no jac argument passed to minimize). Adding gradient calculation could be a significant improvement if feasible.
+Hessian for MCMC: If intending to use the result to inform MCMC proposals, calculating the Hessian matrix at the MAP point (e.g., using scipy.optimize.approx_fprime multiple times or analytical derivatives) would be necessary.
+
+Improving Sampler Efficiency: For some MCMC algorithms, information gathered at the MAP point (like the curvature/Hessian) can be used to tune the sampler's proposal steps, leading to more efficient exploration.
+
+Bounds Handling: Instead of a penalty function, consider using the explicit bounds argument in scipy.optimize.minimize if we use methods that support it (like 'L-BFGS-B', 'TNC', 'SLSQP'). This can sometimes be more numerically stable, especially if the true optimum lies exactly on a boundary. The current penalty method is still a valid approach, however.
+Gradient Information: If we can compute the gradient of the log_posterior function with respect to c_log, providing it to minimize (via the jac argument) can make gradient-based methods ('L-BFGS-B', 'SLSQP', 'BFGS') significantly faster and potentially more accurate in finding the precise minimum compared to gradient-free methods like 'Nelder-Mead'.
+Local vs. Global Optima: minimize typically finds local optima. If the posterior distribution might have multiple peaks (multi-modal), running the optimization from a few different initial_guess values could increase confidence that we've found the global MAP estimate.
+
+
+
+
+ACTIONS: Include hessian matrix. 
+
+The Hessian tells about the curvature of the log-posterior surface at its peak (the MAP point). Its inverse is often used as an approximation of the parameter covariance matrix, which can be valuable for:
+
+Estimating Parameter Uncertainties: Provides a quick (though approximate, for Gaussian posterior?checkTODO) estimate of how uncertain the MAP parameters are.
+
+Tuning MCMC Proposals: Can be used to set the scale and orientation of proposal distributions in some MCMC algorithms (like Metropolis-Hastings) to improve sampling efficiency.
+https://www.mathworks.com/help/econ/bnlssm.tune.html

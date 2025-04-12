@@ -94,3 +94,19 @@ In our 2-parameter case (`c1_log`, `alpha_log`), the simplex is a triangle (3 ve
 It gives an insight into where the Nelder-Mead algorithm was exploring right at the end.  
 It shows the spread of points it was considering.
 
+# MCMC 
+
+#### The acceptance rate is automatically tracked in the MetropolisHastings base class through:
+
+python
+``` 
+    self.accept_num  # Number of accepted proposals
+    self.num_steps   # Total steps taken
+```
+And there's even a method provided:
+
+``` 
+  def accept_ratio(self):
+      return self.accept_num / self.num_steps
+```
+ 

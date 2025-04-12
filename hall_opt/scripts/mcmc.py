@@ -9,7 +9,10 @@ from MCMCIterators.samplers import DelayedRejectionAdaptiveMetropolis
 from hall_opt.utils.iter_methods import get_next_filename, get_next_results_dir
 from hall_opt.posterior.statistics import log_posterior
 from hall_opt.utils.parse import find_file_anywhere
+from datetime import datetime
+from hall_opt.utils.save_data import save_metadata
 from hall_opt.config.evaluate.checkpoint import restore_mcmc_checkpoint
+
 def mcmc_inference(
     logpdf,
     initial_sample,
@@ -18,17 +21,18 @@ def mcmc_inference(
     save_interval,
     checkpoint_interval,
     settings,
-    burn_in
+    burn_in,
+    observed_data 
 ):
     """Performs MCMC inference, saving results in structured directories."""
 
     # Set up result directories
-    mcmc_settings = settings.mcmc
-    results_dir = Path(settings.mcmc.output_dir)
-    mcmc_base_dir = Path(get_next_results_dir(results_dir, "mcmc-results"))
-    settings.mcmc.base_dir = mcmc_base_dir  # Update settings with resolved directory
+    mcmc_base_dir = Path(settings.output_dir) / "mcmc"
+    mcmc_base_dir.mkdir(parents=True, exist_ok=True)
+    settings.mcmc.base_dir = get_next_results_dir(str(mcmc_base_dir), "mcmc-results")
+    Path(settings.mcmc.base_dir).mkdir(parents=True, exist_ok=True)
     final_samples_log_file = os.path.join(settings.mcmc.base_dir, "final_samples_log.csv")
-    final_samples_mcmc_file = os.path.join(settings.mcmc.output_dir, "final_samples.csv")
+    final_samples_mcmc_file = os.path.join(settings.mcmc.base_dir, "final_samples.csv")
     checkpoint_file = os.path.join(settings.mcmc.base_dir, "checkpoint.json")
 
     print(f"MCMC base directory: {settings.mcmc.base_dir}")
@@ -48,6 +52,7 @@ def mcmc_inference(
     all_samples = []
     checkpoint_samples = []   
     burn_in_samples = [] 
+    checkpoint_index = 1
 
     print(f"Starting MCMC inference with {settings.mcmc.max_iter} iterations with burn in {settings.mcmc.burn_in}...")
 
@@ -73,22 +78,54 @@ def mcmc_inference(
                 np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",", fmt="%.6f")
                 np.savetxt(final_samples_mcmc_file, np.array(all_samples), delimiter=",", fmt="%.6f")             
 
-            # Save checkpoint every `checkpoint_interval` iterations (only MCMC parameters)
+            # Save checkpoint every `checkpoint_interval` iterations
             if (iteration + 1) % checkpoint_interval == 0:
-                checkpoint_samples.append(list(proposed_sample))  # Store every 10th sample
-                checkpoint_data = {
+                # Load existing checkpoint data
+                if os.path.exists(checkpoint_file):
+                    with open(checkpoint_file, "r") as f:
+                        all_checkpoints = json.load(f)
+                else:
+                    all_checkpoints = {}
+
+                # Add new checkpoint entry
+                all_checkpoints[str(checkpoint_index)] = {
                     "iteration": iteration + 1,
-                    "checkpoint_samples": checkpoint_samples
+                    "sample": list(proposed_sample)
                 }
 
+                # Save updated checkpoints
                 with open(checkpoint_file, "w") as f:
-                    json.dump(checkpoint_data, f, indent=4)
+                    json.dump(all_checkpoints, f, indent=4)
 
-                print(f"Checkpoint saved at iteration {iteration + 1}")
+                print(f"Checkpoint #{checkpoint_index} saved at iteration {iteration + 1}")
+                checkpoint_index += 1
+
+
+            # Prepare metadata dictionary
+            metadata = {
+                "timestamp": datetime.now().isoformat(),
+                "initial_parameters": list(initial_sample),
+                "final_sample": list(all_samples[-1]) if all_samples else None,
+                "final_log_posterior": float(log_posterior(np.array(all_samples[-1]), observed_data, settings)) if all_samples else None,
+                "used_covariance": initial_cov.tolist(),
+                "total_iterations": iterations,
+                "burn_in": burn_in,
+                "samples_saved": len(all_samples),
+                "checkpoint_iterations": list(range(checkpoint_interval, iterations + 1, checkpoint_interval)),
+                "acceptance_rate": sampler.accept_ratio()  # Using built-in tracking
+            }
+
+            # Save metadata
+            save_metadata(settings, metadata, filename="mcmc_metadata.json")
 
         except Exception as e:
             print(f" Error during MCMC iteration {iteration + 1}: {e}")
             break
+    # Final save in case loop ended before hitting save_interval
+    if all_samples:
+        print(f"[INFO] Saving final samples (n={len(all_samples)}) to log file...")
+        np.savetxt(final_samples_log_file, np.array(all_samples), delimiter=",", fmt="%.6f")
+
 
     print(f"Final samples saved to {settings.mcmc.base_dir}")
     return all_samples
@@ -101,6 +138,35 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Sett
     Run MCMC using the most recently modified MAP result file found dynamically.
     Includes checkpoint restore support.
     """
+    # Overwrite default MCMC values with user-provided input if available
+
+    if settings.mcmc_settings:
+        print("[DEBUG] Found user-defined mcmc_settings in YAML. Applying overrides...")
+        user = settings.mcmc_settings
+
+        if user.max_iter is not None:
+            print(f"[DEBUG] Overriding max_iter: {settings.mcmc.max_iter} -> {user.max_iter}")
+            settings.mcmc.max_iter = user.max_iter
+
+        if user.burn_in is not None:
+            print(f"[DEBUG] Overriding burn_in: {settings.mcmc.burn_in} -> {user.burn_in}")
+            settings.mcmc.burn_in = user.burn_in
+
+        if user.initial_cov is not None:
+            print(f"[DEBUG] Overriding initial_cov:\n{settings.mcmc.initial_cov} -> {user.initial_cov}")
+            settings.mcmc.initial_cov = user.initial_cov
+
+        if user.save_interval is not None:
+            print(f"[DEBUG] Overriding save_interval: {settings.mcmc.save_interval} -> {user.save_interval}")
+            settings.mcmc.save_interval = user.save_interval
+
+        if user.checkpoint_interval is not None:
+            print(f"[DEBUG] Overriding checkpoint_interval: {settings.mcmc.checkpoint_interval} -> {user.checkpoint_interval}")
+            settings.mcmc.checkpoint_interval = user.checkpoint_interval
+
+    else:
+        print("[DEBUG] No user-defined mcmc_settings found in YAML. Using all defaults.")
+
     # Ask the user
     print("Enter checkpoint iteration to resume from (0 to start fresh):")
     try:
@@ -111,8 +177,8 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Sett
 
     # If resuming, try to restore last sample from checkpoint
     if resume_iter > 0:
-        checkpoint_path = Path(settings.mcmc.output_dir) / "checkpoint.json"
-        restored_sample = restore_mcmc_checkpoint(checkpoint_path)
+        checkpoint_path = Path(settings.output_dir) / "mcmc" / settings.mcmc.base_dir.name / "checkpoint.json"
+        restored_sample = restore_mcmc_checkpoint(checkpoint_path, resume_iter)  # <-- pass checkpoint number
 
         if restored_sample is None:
             print("[ERROR] Could not restore from checkpoint. Exiting.")
@@ -155,6 +221,7 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Sett
 
         burn_in = settings.mcmc.burn_in  # Apply burn-in when starting fresh
 
+
     # Run the MCMC
     return mcmc_inference(
         lambda c_log: log_posterior(np.array(c_log, dtype=np.float64), observed_data, settings),
@@ -164,5 +231,6 @@ def run_mcmc_with_final_map_params(observed_data: Dict[str, Any], settings: Sett
         save_interval=settings.mcmc.save_interval,
         checkpoint_interval=settings.mcmc.checkpoint_interval,
         settings=settings,
-        burn_in=burn_in
+        burn_in=burn_in,
+        observed_data=observed_data
     )

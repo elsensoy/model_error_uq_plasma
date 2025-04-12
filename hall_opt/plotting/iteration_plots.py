@@ -48,6 +48,15 @@ def generate_iteration_metric_plots(settings: Settings, iter_metrics_dir: Path, 
 
     iterations = list(range(1, len(thrust_vals) + 1))
 
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, thrust_vals, marker="o", label="MAP Thrust")
+    plt.axvline(iterations[-1], color="gray", linestyle="--", alpha=0.3)
+    plt.scatter(iterations[-1], thrust_vals[-1], color="red", zorder=5)
+    plt.text(iterations[-1], thrust_vals[-1] + 0.01, f"{thrust_vals[-1]:.3f}", fontsize=9, color="red")
+
+    if observed_thrust:
+        plt.axhline(observed_thrust, color="green", linestyle="--", label="Observed Thrust")
+        plt.text(iterations[0], observed_thrust + 0.005, f"Obs: {observed_thrust:.3f}", fontsize=9, color="green")
 
     # --- Plot Thrust Evolution ---
     plt.figure(figsize=(10, 6))
@@ -62,6 +71,16 @@ def generate_iteration_metric_plots(settings: Settings, iter_metrics_dir: Path, 
     print(f"[INFO] Saved: {thrust_plot_path}")
     plt.close()
 
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, current_vals, marker="o", color="purple", label="MAP Discharge Current")
+    plt.scatter(iterations[-1], current_vals[-1], color="red", zorder=5)
+    plt.text(iterations[-1], current_vals[-1] + 0.5, f"{current_vals[-1]:.2f}", fontsize=9, color="red")
+
+    if observed_current:
+        plt.axhline(observed_current, color="green", linestyle="--", label="Observed Current")
+        plt.text(iterations[0], observed_current + 0.5, f"Obs: {observed_current:.2f}", fontsize=9, color="green")
+
     # --- Plot Discharge Current Evolution ---
     plt.figure(figsize=(10, 6))
     plt.plot(iterations, current_vals, marker="o", color="purple", label="Discharge Current [A]")
@@ -75,41 +94,75 @@ def generate_iteration_metric_plots(settings: Settings, iter_metrics_dir: Path, 
     print(f"[INFO] Saved: {current_plot_path}")
     plt.close()
     
-    plot_ion_velocity_iterations(metric_files=metric_files, save_dir=save_dir)
+    plot_ion_velocity_iterations(settings, metric_files=metric_files, save_dir=save_dir)
 
-def plot_ion_velocity_iterations(metric_files: List[Path], save_dir: Path):
+def plot_ion_velocity_iterations(settings: Settings, metric_files: List[Path], save_dir: Path):
     """
-    Simple plot of ion velocity across iterations over z_normalized.
-    
-    Args:
-        metric_files: Sorted list of iteration metric JSON files.
-        save_dir: Path where the figure will be saved.
+    Enhanced ion velocity evolution plot:
+    - Adds scatter markers to each iteration
+    - Plots final iteration in bold
+    - Overlays ground truth with label and annotation
     """
-    import matplotlib.pyplot as plt
-    import json
-
     save_dir.mkdir(parents=True, exist_ok=True)
-
     plt.figure(figsize=(10, 6))
 
+    final_z, final_v = None, None
+
+    # --- Plot each iteration ---
     for i, file in enumerate(metric_files):
         with open(file, "r") as f:
             data = json.load(f)
             z = data["z_normalized"]
             v = data["ion_velocity"]
 
-            label = f"Iter {i+1}" if i == 0 or i == len(metric_files) - 1 else None
-            plt.plot(z, v, alpha=0.3, linewidth=1.0, label=label)
+            is_first_or_last = i in (0, len(metric_files) - 1)
+            label = f"Iter {i+1}" if is_first_or_last else None
 
+            plt.plot(z, v, alpha=0.3, linewidth=1.0, label=label)
+            plt.scatter(z, v, alpha=0.3, s=10, color="gray")
+
+            if i == len(metric_files) - 1:
+                final_z, final_v = z, v
+
+    # --- Final iteration bold ---
+    if final_z and final_v:
+        plt.plot(final_z, final_v, color="blue", linewidth=2.5, label="Final Iteration")
+        plt.scatter(final_z, final_v, color="blue", s=25)
+        plt.text(final_z[-1], final_v[-1], f"{final_v[-1]:.1f}", fontsize=9, color="blue")
+
+    # --- Ground truth overlay ---
+    gt_file = Path(settings.output_dir) / "postprocess" / "ground_truth_metrics.json"
+    print(f"[DEBUG] Checking ground truth file at: {gt_file}")
+    print(f"[DEBUG] File exists? {gt_file.is_file()}")
+
+    if gt_file.is_file():
+        with open(gt_file, "r") as f:
+            gt_data = json.load(f)
+
+        z_gt = gt_data.get("z_normalized")
+        v_gt = gt_data.get("ion_velocity") or gt_data.get("ui")
+
+        if z_gt and v_gt:
+            plt.plot(z_gt, v_gt, color="green", linestyle="--", linewidth=2, label="Observed (Ground Truth)")
+            plt.scatter(z_gt, v_gt, color="green", s=30)
+
+        # Include final value in legend
+        # legend_label = f"Observed (Ground Truth) – Final: {v_gt[-1]:.1f} m/s"
+        # plt.plot(z_gt, v_gt, color="green", linestyle="--", linewidth=2, label=legend_label)
+        # plt.scatter(z_gt, v_gt, color="green", s=30)
+
+    # Annotate the last data point
+    plt.text(z_gt[-1], v_gt[-1], f"{v_gt[-1]:.1f}", fontsize=9, color="green")
+
+    # --- Finalize layout ---
     plt.xlabel("Normalized Axial Position (z)")
     plt.ylabel("Ion Velocity (m/s)")
     plt.title("Ion Velocity Evolution Over Iterations")
     plt.grid(True, linestyle="--", alpha=0.5)
-    if plt.gca().get_legend_handles_labels()[1]:  # only show legend if any label was added
-        plt.legend()
+    plt.legend()
     plt.tight_layout()
 
     output_path = save_dir / "ion_velocity_iterations.png"
     plt.savefig(output_path, dpi=150)
     plt.close()
-    print(f"[INFO] Saved simple ion velocity evolution plot: {output_path}")
+    print(f"[INFO] Saved enhanced ion velocity evolution plot: {output_path}")

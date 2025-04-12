@@ -31,7 +31,7 @@ from hall_opt.scripts.gen_data import get_ground_truth_data
 from hall_opt.plotting.posterior_plots import generate_plots
 from hall_opt.plotting.simplex_plot import visualize_final_simplex
 from hall_opt.utils.parse import get_yaml_path, parse_arguments
-from hall_opt.utils.save_data import create_used_directories, save_results_to_json
+from hall_opt.utils.save_data import create_used_directories, save_results_to_json, save_gen_metrics
 from hall_opt.utils.data_loader import find_latest_results_dir
 from hall_opt.plotting.common_setup import get_common_paths, resolve_analysis_type
 def main():
@@ -95,7 +95,7 @@ def main():
 
         #  metrics only if they were generated (not when loading from CSV)
         if metrics:
-            save_results_to_json(
+            save_gen_metrics(
                 settings=settings,
                 result_dict=metrics,
                 filename="ground_truth_metrics.json",

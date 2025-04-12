@@ -1,0 +1,13 @@
+What is the difference between Hessian and Jacobian matrix?
+A Hessian matrix consists of the second-order partial derivatives formed from all pairs of variables that the function is dependent on. A Jacobian matrix is also a matrix based on the partial differentiation of the function, but first-order partial derivatives.
+
+# --- Check for statsmodels dependency ---
+# It's good to check once when the module is imported
+try:
+    import statsmodels.tools.numdiff as smnd
+    _has_statsmodels = True
+    print("[DEBUG] statsmodels library found by math_utils.")
+except ImportError:
+    _has_statsmodels = False
+    print("[WARNING] math_utils: statsmodels not found. Hessian calculation unavailable.")
+# ---

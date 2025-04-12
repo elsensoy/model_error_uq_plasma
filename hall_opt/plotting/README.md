@@ -34,6 +34,6 @@ Save Plot (Optional): Includes commented-out code to save the plot as a PNG file
 
 NELDERMEAD:
 https://alexdowad.github.io/visualizing-nelder-mead/
-"The Nelder-Mead algorithm doesn’t always reach a minimum point, either; or at least, not in a reasonable number of iterations. Sometimes it gets close to a minimum point... and then moves very, very slowly towards it.
+"The Nelder-Mead algorithm doesn’t always reach a minimum point, either; or at least, not in a reasonable number of iterations. Sometimes it gets close to a minimum point..and then moves very, very slowly towards it.
 
-For that reason, when implementing Nelder-Mead, you need to limit the number of iterations so it doesn’t run for too long. Rather than running Nelder-Mead for a huge number of iterations, you will probably get better results by restarting it several times, with different starting points, and then picking the best overall solution found.[2]"
+For that reason, when implementing Nelder-Mead, we need to limit the number of iterations so it doesn’t run for too long. Rather than running Nelder-Mead for a huge number of iterations, we will probably get better results by restarting it several times, with different starting points, and then picking the best overall solution found.[2]"

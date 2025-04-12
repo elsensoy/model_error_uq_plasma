@@ -66,15 +66,9 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
     """
     Saves metadata in the appropriate MAP or MCMC directory.
     """
-    if settings.run_map:
-        directory = settings.map.base_dir  # Uses `map-results-N/`
-    elif settings.run_mcmc:
-        directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
-    else:
-        raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")
-
-    # make sure directory exists
-    # os.makedirs(directory, parents=True,exist_ok=True)
+ 
+    directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
+    os.makedirs(directory, exist_ok=True)
 
     # Save metadata
     filepath = os.path.join(directory, filename)
@@ -111,3 +105,55 @@ def create_used_directories(settings):
     print("[INFO] Created directories:")
     for d in dirs:
         print(f"  - {d.resolve()}")
+
+
+
+def save_gen_metrics(
+    settings: Settings, 
+    result_dict: dict, 
+    filename: str, 
+    results_dir=str,
+    save_every_n_grid_points=int, 
+    subsample_for_saving=True
+):
+    # Determine correct results directory
+    if settings.gen_data:
+        results_dir = settings.ground_truth.results_dir
+
+
+    # Filter required keys
+    required_keys = ['thrust', 'discharge_current', 'ui', 'z']
+    result_dict_copy = {}
+    for key in required_keys:
+        value = result_dict.get(key)
+        if value is not None:
+            result_dict_copy[key] = value
+
+    if "ui" in result_dict_copy:
+        ion_v = result_dict_copy["ui"]
+        if isinstance(ion_v, list) and len(ion_v) > 0:
+            if isinstance(ion_v[0], list):
+                result_dict_copy["ui"] = ion_v[0]  # Use only the first profile
+            elif isinstance(ion_v[0], (int, float)):
+                pass  # Already flattened
+            else:
+                print("[WARNING] Unexpected ion_velocity format:", type(ion_v[0]))
+
+    # Subsample data 
+     # Subsample data 
+    if subsample_for_saving:
+        for key in ['z', 'ui']:
+            if key in result_dict_copy and result_dict_copy[key] is not None:
+                result_dict_copy[key] = subsample_data(result_dict_copy[key], save_every_n_grid_points)
+
+    if "ui" in result_dict_copy:
+        result_dict_copy["ion_velocity"] = result_dict_copy.pop("ui")
+    if "z" in result_dict_copy:
+        result_dict_copy["z_normalized"] = result_dict_copy.pop("z")
+        
+    # Save results to JSON
+    result_file_path = os.path.join(results_dir, filename)
+    with open(result_file_path, 'w') as json_file:
+        json.dump(result_dict_copy, json_file, indent=4)
+    
+    print(f"Results successfully saved to {result_file_path}")
