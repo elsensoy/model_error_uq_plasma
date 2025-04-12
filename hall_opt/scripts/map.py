@@ -107,7 +107,7 @@ def run_map_workflow(
     print(f"[DEBUG] Final options passed to minimize: {options}")
 
     # --- Run Optimization ---
-    # (Same as before)
+ 
     print(f"[INFO] Starting {method} optimization...")
     try:
         result = minimize(neg_log_posterior_with_penalty, initial_guess_log, method=method, callback=iteration_callback, options=options)

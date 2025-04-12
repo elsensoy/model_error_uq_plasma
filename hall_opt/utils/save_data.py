@@ -66,15 +66,9 @@ def save_metadata(settings: Settings, metadata: dict, filename="metadata.json"):
     """
     Saves metadata in the appropriate MAP or MCMC directory.
     """
-    if settings.run_map:
-        directory = settings.map.base_dir  # Uses `map-results-N/`
-    elif settings.run_mcmc:
-        directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
-    else:
-        raise ValueError("ERROR: Neither MAP nor MCMC is enabled. Cannot save metadata.")
-
-    # make sure directory exists
-    # os.makedirs(directory, parents=True,exist_ok=True)
+ 
+    directory = settings.mcmc.base_dir  # Uses `mcmc-results-N/`
+    os.makedirs(directory, exist_ok=True)
 
     # Save metadata
     filepath = os.path.join(directory, filename)

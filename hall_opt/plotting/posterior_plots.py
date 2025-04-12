@@ -8,7 +8,7 @@ from hall_opt.plotting.common_setup import get_common_paths
 from hall_opt.utils.data_loader import load_data
 from hall_opt.config.dict import Settings
 from .common_setup import interactive_plot_prompt
-
+from .kde_mcmc import plot_mcmc_kde
 
 def plot_autocorrelation(samples, output_dir):
     """Generate autocorrelation plots."""
@@ -51,6 +51,44 @@ def plot_pair(samples, output_dir):
     plt.savefig(f"{output_dir}/pair_plot.png")
     plt.close()
     print(f"Saved pair plot to {output_dir}")
+
+
+def plot_mcmc_kde(samples, plots_dir):
+    """
+    Generate 2D KDE plot for posterior samples.
+    """
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from scipy.stats import gaussian_kde
+
+    # Extract sample arrays
+    log_c1_samples = samples["log_c1"].values
+    log_alpha_samples = samples["log_alpha"].values
+
+    kde = gaussian_kde(np.vstack([log_c1_samples, log_alpha_samples]))
+
+    x = np.linspace(log_c1_samples.min(), log_c1_samples.max(), 100)
+    y = np.linspace(log_alpha_samples.min(), log_alpha_samples.max(), 100)
+    X, Y = np.meshgrid(x, y)
+    positions = np.vstack([X.ravel(), Y.ravel()])
+    Z = kde(positions).reshape(X.shape)
+
+    plt.figure(figsize=(8, 6))
+    contour = plt.contourf(X, Y, Z, levels=50, cmap="viridis")
+    plt.colorbar(contour, label="Density")
+
+    plt.xlabel("log(c1)")
+    plt.ylabel("log(alpha)")
+    plt.title("2D KDE of Posterior Samples")
+    plt.tight_layout()
+
+    kde_plot_path = plots_dir / "kde_2d_log_c1_log_alpha.png"
+    plt.savefig(kde_plot_path, dpi=300)
+    plt.close()
+
+    print(f"[INFO] Saved 2D KDE plot to: {kde_plot_path}")
+
 def generate_plots(settings: Settings, analysis_type: Optional[str] = None):
     """
     Main function to generate and save plots dynamically for both MAP and MCMC.
@@ -95,5 +133,9 @@ def generate_plots(settings: Settings, analysis_type: Optional[str] = None):
     plot_trace(samples, plots_dir)
     plot_posterior(samples, plots_dir)
     plot_pair(samples, plots_dir)
+    if analysis_type == "mcmc":
+        plot_mcmc_kde(samples, plots_dir)  # <-- passing plots_dir and DataFrame directly
+    else:
+        print(f"KDE plots skipped for analysis type '{analysis_type}'")
 
     print(f"[INFO] All {analysis_type.upper()} plots saved to {plots_dir}")

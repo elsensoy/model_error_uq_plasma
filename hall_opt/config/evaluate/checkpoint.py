@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Optional, Tuple, List
 import numpy as np
 
-def restore_mcmc_checkpoint(checkpoint_path: Path) -> Optional[np.ndarray]:
+def restore_mcmc_checkpoint(checkpoint_path: Path, checkpoint_number: int) -> Optional[np.ndarray]:
     """
-    Restores the last saved sample from a JSON MCMC checkpoint.
+    Restores a specific checkpoint sample from a JSON file with multiple checkpoints.
     """
     if not checkpoint_path.is_file():
         print(f"[INFO] No checkpoint found at: {checkpoint_path}")
@@ -15,13 +15,15 @@ def restore_mcmc_checkpoint(checkpoint_path: Path) -> Optional[np.ndarray]:
         with open(checkpoint_path, "r") as f:
             data = json.load(f)
 
-        samples = data.get("checkpoint_samples")
-        if not samples or not isinstance(samples, list):
-            print(f"[WARNING] No valid samples found in checkpoint.")
+        checkpoint_key = str(checkpoint_number)
+        checkpoint_entry = data.get(checkpoint_key)
+
+        if not checkpoint_entry or "sample" not in checkpoint_entry:
+            print(f"[WARNING] No valid sample found for checkpoint #{checkpoint_number}.")
             return None
 
-        last_sample = samples[-1]
-        print(f"[INFO] Restored last sample from checkpoint: {last_sample}")
+        last_sample = checkpoint_entry["sample"]
+        print(f"[INFO] Restored sample from checkpoint #{checkpoint_number}: {last_sample}")
         return np.array(last_sample, dtype=np.float64)
 
     except Exception as e:

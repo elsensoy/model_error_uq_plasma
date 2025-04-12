@@ -120,6 +120,12 @@ class MCMCConfig(BaseModel):
     initial_cov: List[List[float]] = [[0.1, 0.05], [0.05, 0.1]]
     max_iter: int =  Field(default= 100, description="Maximum iteration count" )
 
+class MCMCInputSettings(BaseModel):
+    max_iter: Optional[int] = None
+    burn_in: Optional[int] = None
+    initial_cov: Optional[List[List[float]]] = None
+    save_interval: Optional[int] = None
+    checkpoint_interval: Optional[int] = None
 
 class MapConfig(BaseModel):
     """Configuration for MAP optimization settings."""
@@ -168,6 +174,7 @@ class Settings(BaseModel):
     run_mcmc: bool = False
     reference_data: Optional[str] = "${ground_truth.output_file}"
     map_settings: Optional[MapInputSettings] = None
+    mcmc_settings: Optional[MCMCInputSettings] = None
     general: Optional[GeneralSettings] = Field(default_factory=GeneralSettings)
     config_settings: Config = Field(default_factory=Config)
     postprocess: Optional[PostProcessConfig] = Field(default_factory=PostProcessConfig)
