@@ -1,0 +1,27 @@
+{
+    "timestamp": "2025-04-11T17:51:05.737999",
+    "initial_parameters": [
+        -2.203618373870862,
+        0.39004125595092515
+    ],
+    "final_sample": [
+        -5.283402961566628,
+        1.7042994395063364
+    ],
+    "final_log_posterior": -3.6360080395369385,
+    "used_covariance": [
+        [
+            1.0,
+            0.0
+        ],
+        [
+            0.0,
+            1.0
+        ]
+    ],
+    "total_iterations": 5,
+    "burn_in": 0,
+    "samples_saved": 5,
+    "checkpoint_iterations": [],
+    "acceptance_rate": 0.4
+}
