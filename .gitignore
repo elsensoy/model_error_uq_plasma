@@ -165,10 +165,11 @@ tests/
 pdm/
 MCMCIterators/
 hall_opt/debug/
-hall_opt/results/
 src/
 results_test/
-notes/
 Issues/
+map_results/
+mcmc_results/
+results_c/
 test-results/
  
