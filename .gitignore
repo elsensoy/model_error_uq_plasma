@@ -160,7 +160,6 @@ cython_debug/
 # .idea/ is ignored for PyCharm projects
 .idea/
 # Ignore results directory
-results/
 hallthruster_project/
 tests/
 pdm/
@@ -171,8 +170,5 @@ src/
 results_test/
 notes/
 Issues/
-map_results/
-mcmc_results/
-results_c/
 test-results/
  

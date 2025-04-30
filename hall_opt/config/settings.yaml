@@ -1,0 +1,114 @@
+# Unified simulation configuration
+simulation_config:
+  thruster:
+    name: "SPT-100"
+    geometry:
+      channel_length: 0.025
+      inner_radius: 0.0345
+      outer_radius: 0.05
+    magnetic_field:
+      file: "hall_opt/config/bfield_spt100.csv"
+    discharge_voltage: 300.0
+    anode_mass_flow_rate: 0.0001
+    domain: [0.0, 0.08]
+    propellant: Xenon
+    ion_wall_losses: true
+    solve_plume: false  # Plume model disabled
+    apply_thrust_divergence_correction: true
+    neutral_ingestion_multiplier: 1.0
+    ncharge: 3
+    anom_model:
+      TwoZoneBohm:
+        c1: -2.0
+        c2: 0.5
+      MultiLogBohm:
+        zs: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07]
+        cs: [0.02, 0.024, 0.028, 0.033, 0.04, 0.004, 0.004, 0.05]
+
+simulation:
+  dt: 0.000001
+  adaptive: true
+  grid:
+    type: "EvenGrid"
+    num_cells: 100
+  num_save: 100
+  duration: 0.001
+
+postprocess:
+  output_file:
+    TwoZoneBohm: "/results/output_twozonebohm.json"
+    MultiLogBohm: "hall_opt/results/output_multilogbohm.json"
+  save_time_resolved: false
+  average_start_time: 0.0004
+
+# Additional parameters integrated from the GitHub file
+thruster_config:
+  transition_length: 0.003  # Inner to outer transition length
+  neutral_velocity: 300  # Neutral velocity in m/s
+  anom_model:
+    type: LogisticPressureShift
+    model:
+      type: TwoZoneBohm
+      c1: 0.00625
+      c2: 0.0625
+    dz: 0.2
+    z0: -0.03
+    pstar: 45.0e-6
+    alpha: 15
+
+inputs:
+  P_b: 1.0e-5  # Background pressure in Torr
+  mdot_a: 0.0001  # Anode mass flow rate in kg/s
+  T_e: 1.32721  # Electron temperature at cathode in eV
+  V_a: 300  # Anode voltage
+  u_n: 141.24234  # Neutral velocity in m/s
+  l_t: 0.00187915  # Transition length
+  a_1: 0.00680237  # Anomalous transport scale inside channel
+  a_2: 14.645  # Anomalous transport scale outside channel
+  dz: 0.4  # Anomalous shift displacement
+  z0: -0.03  # Upstream anomalous shift axial limit
+  p0: 56.86006e-6  # Upstream anomalous shift pressure limit
+
+outputs:
+  - name: I_B0
+    description: Ion beam current
+    tex: "$I_b$"
+    units: A
+    nominal: 3.6
+    domain: (0, 10)
+  - name: T
+    description: Thrust
+    tex: "$T$"
+    units: N
+    nominal: 0.08
+    domain: (0, 0.2)
+  - name: I_d
+    description: Discharge current
+    tex: "$I_d$"
+    units: A
+    nominal: 4.5
+    domain: (0, 10)
+  - name: eta_c
+    description: Current efficiency
+    tex: "$\\eta_c$"
+    domain: (0, 1)
+  - name: eta_m
+    description: Mass utilization efficiency
+    tex: "$\\eta_m$"
+    domain: (0, 1)
+  - name: eta_v
+    description: Voltage utilization efficiency
+    tex: "$\\eta_v$"
+    domain: (0, 1)
+  - name: eta_a
+    description: Anode efficiency
+    tex: "$\\eta_a$"
+    domain: (0, 1)
+  - name: u_ion
+    description: Singly-charged axial ion velocity
+    tex: "$u_{ion}$"
+    units: m/s
+    norm: linear(1.0e-3)
+    compression:
+      method: svd
+      energy_tol: 0.95

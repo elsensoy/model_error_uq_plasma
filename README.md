@@ -1,18 +1,164 @@
 
-# **Project Overview**
 
-This project aims to optimize the behavior of a Hall Thruster using the **HallThruster.jl** Julia package, integrated with Python through Juliacall. The project involves parameter estimation using MCMC sampling and MAP optimization, providing tools for comparison between simulated and observed data. It employs Bayesian inference techniques to refine the parameters of the **TwoZoneBohm** and **MultiLogBohm** models.
+### ⚠️ Disclaimer and Authorship
+This repository contains original work developed as part of an academic research collaboration under the supervision of Professor Alex Gorodetsky at the University of Michigan.
 
-Please refer to:
+The repository has been made public with permission from the supervising professor, strictly for educational and professional portfolio purposes.
+
+While this project uses the HallThruster.jl framework maintained by the UM PEPL Lab, the parameter estimation workflows, Python integration, MCMC and MAP methods, and associated YAML validation systems were implemented and customized by the contributor.
+
+This repository does not represent official releases or endorsements by the HallThruster.jl developers or the University of Michigan Plasma, Pulsed Power, and Microwave Laboratory.
+
+---
+## Project Overview
+
+In computational modeling, **model error** (also known as structural error or model inadequacy) refers to the
+gap between a model’s predictions and actual system behavior due to limitations in the model’s structure.
+This discrepancy typically arises from simplifications, assumptions, or incomplete knowledge of complex
+physical processes. Such errors are especially prominent in complex systems where simplified models cannot
+fully represent underlying dynamics.
+In many applications, model error is one of the largest sources of uncertainty in predictions, often more
+significant than measurement noise or parameter estimation uncertainty. Conventional model calibration
+methods generally assume that the model structure is correct and focus on optimizing model parameters,
+which can lead to biased parameter estimates and overconfident predictions. Addressing model error
+directly allows us to create models that better reflect physical reality, yielding predictions with more reliable
+uncertainty quantification.
+
+### Overall Approach to Address Model Error
+To address model error, we employ Bayesian model calibration with an embedded model error representation. This approach incorporates model error directly within the model structure as an internal correction,
+rather than treating it as an external adjustment on specific quantities of interest. By embedding model error,
+we achieve a physically consistent correction that respects the model’s underlying dynamics and constraints.
+### Application to the Hall Thruster Model
+The Hall thruster, a plasma propulsion device commonly used in spacecraft, serves as the application context
+for this study. Modeling the Hall thruster involves capturing complex plasma dynamics and anomalous
+electron transport processes, which are challenging to represent accurately. We aim to reduce the model
+error by calibrating a simplified model using a higher-fidelity truth model as the benchmark.
+
+This project aims to optimize the behavior of a Hall Thruster using the **HallThruster.jl** Julia package, integrated with Python through Juliacall. The project involves parameter estimation using MCMC sampling, incorporates DRAM algorithm, and MAP optimization, providing tools for comparison between simulated and observed data. It employs Bayesian inference techniques to refine the parameters of the **TwoZoneBohm** and **MultiLogBohm** models.
+
+
+---
+
+## 2.1 Configuration
+
+
+#### We follow the configuration steps as outlined in Hallthruster.jl tutorials. 
+We define the core configuration parameters used in the Hall thruster simulation. These values are based on the standard setup for realistic SPT-100 operating conditions. Please see the links below:
 
 - [HallThruster.jl (v0.18.1)](https://um-pepl.github.io/HallThruster.jl/dev/)
 - [Simulation Tutorial](https://um-pepl.github.io/HallThruster.jl/dev/tutorials/simulation/)
 - [Running Simulations from JSON](https://um-pepl.github.io/HallThruster.jl/dev/howto/json/)
 - [Using HallThruster with Python](https://um-pepl.github.io/HallThruster.jl/dev/howto/python/)
 
----
+
+### Thruster Model
+- **Type:** SPT-100 Hall Thruster  
+- **Description:** A widely used electric propulsion device for spacecraft missions.
+
+### Spatial Resolution and Grid
+- **Number of Grid Cells:** 100  
+- **Channel Length:** 0.025 meters  
+- **Grid Type:** 1D along channel axis
+
+### Simulation Duration
+- **Total Duration:** 1 millisecond (`duration_s = 1e-3`)  
+- **Data Save Interval:** Every 10 microseconds (`num_save = 100`)
+
+### Magnetic Field and Boundary Conditions
+- **Magnetic Field Source:** `bfield_spt100.csv` (external file with field profile)  
+- **Anode Potential:** 300 V  
+- **Cathode Potential:** 0 V
+
+### Additional Model Configurations
+
+- **Propellant:** Xenon  
+- **Wall Material:** Boron Nitride-Silicon Dioxide (BNSiO₂)
+
+#### Thermal and Flow Conditions
+- **Ion Temperature:** 1000 K  
+- **Neutral Temperature:** 500 K  
+- **Neutral Velocity:** 150 m/s
+
+#### Anomalous Transport Coefficients
+### Anomalous Transport Coefficients
+
+The anomalous collision frequency ν_AN(z) is modeled as:
+
+    ν_AN(z) = c(z) * ω_ce(z),  for z in [0, L]
+
+where:
+- ν_AN(z): anomalous electron collision frequency
+- ω_ce(z): electron cyclotron frequency
+- c(z): empirical coefficient function (dimensionless)
+- L: channel length (e.g., 0.025 m)
+
+## Truth Model: MultiLogBohm
+
+The **MultiLogBohm** model is a high-fidelity simulation of the Hall thruster. It accurately captures plasma interactions and transport behaviors, serving as the "ground truth" for ion transport, current, and thrust.
+
+### Anomalous Collision Frequency
+
+The anomalous collision frequency is defined as:
+
+```
+nu_AN(z) = c(z) * omega_ce(z)
+```
+
+where:
+- `omega_ce(z)`: electron cyclotron frequency at position `z`
+- `c(z)`: spatially varying empirical coefficient
+
+The function `c(z)` is defined via logarithmic interpolation between nodes `(z_i, c_i)`:
+
+```
+log(c(z)) = [(z - z_i) / (z_{i+1} - z_i)] * log(c_{i+1}) + [(z_{i+1} - z) / (z_{i+1} - z_i)] * log(c_i),
+for z_i < z < z_{i+1}
+```
+
+Outside the range:
+```
+c(z) = c_1        if z < z_1
+     = c_end      if z > z_end
+```
+
+### Data
+
+Observed time-averaged measurements under specific operating conditions:
+- **Ion Velocity** at normalized positions:
+```
+z_normalized = [0.0, 0.19, 0.39, 0.59, 0.79, 0.99, 1.19, 1.39, 1.59, 1.79, 1.99]
+```
+- **Discharge Current**
+- **Thrust**
+
+### Time-Averaging Process
+
+1. Discard first 40% of simulation frames.
+2. Average remaining frames for each observable.
+
+Simulation duration: `X` seconds. Time averaging starts at `Y = 0.4 * X`.
+
+For ion velocity, spatial subsampling uses:
+```
+save_every_n_grid_points = 10
+```
 
 ---
+
+## Baseline Model: TwoZoneBohm
+
+The **TwoZoneBohm** model splits the channel into two zones:
+
+```
+nu_AN = c_1 * omega_ce    if z < L_ch
+      = c_2 * omega_ce    if z >= L_ch
+```
+
+This model is computationally efficient but introduces structural error due to reduced spatial flexibility.
+
+---
+
+
 
 ## **Table of Contents**
 1. [Methods](#methods)
@@ -23,7 +169,6 @@ Please refer to:
 4. [Run Project](#run-project)
 8. [Contact](#contact)
 
----
 
 ## **Methods**
 
@@ -45,6 +190,61 @@ Please refer to:
 5. **Visualization and Analysis:**  
    - Generate plots and statistical summaries to analyze parameter convergence and posterior distributions.  
    - Compare simulation results against observed data for model validation.
+
+
+## Likelihood Model
+
+A Gaussian likelihood is used:
+```
+y = y_hat + epsilon,    epsilon ~ N(0, sigma^2)
+```
+
+### Log-Likelihoods
+
+**Thrust:**
+```
+log L_thrust = -0.5 * [(y_thrust - y_hat_thrust) / sigma_thrust]^2 - 0.5 * log(2 * pi * sigma_thrust^2)
+```
+
+**Discharge Current:**
+```
+log L_dc = -0.5 * [(y_dc - y_hat_dc) / sigma_dc]^2 - 0.5 * log(2 * pi * sigma_dc^2)
+```
+
+**Ion Velocity (over M points):**
+```
+log L_ion_velocity = -0.5 * sum over j [(y_ion_velocity[j] - y_hat_ion_velocity[j]) / sigma_ion_velocity]^2
+                     - 0.5 * M * log(2 * pi * sigma_ion_velocity^2)
+```
+
+**Total:**
+```
+log L(y | theta) = log L_thrust + log L_dc + log L_ion_velocity
+```
+
+---
+
+## Priors
+
+**Gaussian Prior on** `log10(c1)`:
+```
+log10(c1) ~ N(log10(1/160), 2)
+```
+
+**Log-Uniform Prior on** `log10(alpha)`:
+```
+log10(alpha) ~ Uniform(0, 2)
+```
+
+---
+
+## MCMC Sampling (DRAM)
+
+We use Delayed Rejection Adaptive Metropolis (DRAM) for Bayesian parameter estimation.
+
+![MCMC Sampling Diagram](img/mcmc-diagram.png)
+
+
 
 ## **Requirements**
 
@@ -354,18 +554,18 @@ Here is a breakdown of the internal steps typically taken after the project is l
 
 ### Results directory:
 ```
-    model_error_uq_plasma/
-    │── hall_opt/
-    │   ├── main.py             # Main execution script
-    │   ├── results/            # Your output directory
-    │   ├── config/             # Configuration files
-    │   ├── scripts/            # Method scripts
-    │   ├── utils/              # Helper scripts
-    │   ├── posterior/          # Posterior calculations
-    │── run.py                  # Entry point
-    │── README.md               # Documentation
-    │── pyproject.toml          # Python dependencies (PDM)
-    │── .venv/                  # Virtual environment
+model_error_uq_plasma/
+│── hall_opt/
+│   ├── main.py             # Main execution script
+│   ├── results/            # Your output directory
+│   ├── config/             # Configuration files
+│   ├── scripts/            # Method scripts
+│   ├── utils/              # Helper scripts
+│   ├── posterior/          # Posterior calculations
+│── run.py                  # Entry point
+│── README.md               # Documentation
+│── pyproject.toml          # Python dependencies (PDM)
+│── .venv/                  # Virtual environment
 ```
 
 ## **Contact**
@@ -375,33 +575,3 @@ For any questions or issues, contact:
 - **Name:** Elida Sensoy  
 - **Email:** elsensoy@umich.edu  
 
-
- /results/
-         ├── map/
-         │   ├── map-results-1/  Created dynamically per MAP run
-         │   │   ├── iter_metrics/
-         │   │   │   ├── metrics_1.json  Iteration metrics
-         │   │   │   ├── metrics_2.json
-         │   │   ├── map_iteration_log.json  Stores all iterations. Loaded in `load_data()`
-         │   │   ├── final_map_params.json  Final MAP sample 
-         │   │   ├── plots/  Automatically created using `get_common_paths()`
-         │   ├── map-results-2/
-         │   │   ├── iter_metrics/
-         │   │   ├── map_iteration_log.json   
-         │   │   ├── final_map_params.json
-         │   │   ├── plots/
-         ├── mcmc/
-         │   ├── mcmc-results-1/
-         │   │   ├── iter_metrics/
-         │   │   │   ├── metrics_1.json
-         │   │   │   ├── metrics_2.json
-         │   │   ├── checkpoint.json  Checkpoint saving dynamically
-         │   │   ├── final_samples_log.csv  Final sample logs, Loaded in `load_data()`
-         │   │   ├── mcmc_metadata.json  Metadata for MCMC
-         │   │   ├── plots/
-         │   ├── mcmc-results-2/
-         │   │   ├── iter_metrics/
-         │   │   ├── checkpoint.json
-         │   │   ├── final_samples_log.csv
-         │   │   ├── mcmc_metadata.json
-         │   │   ├── plots/
