@@ -1,14 +1,5 @@
 
 
-### ⚠️ Disclaimer and Authorship
-This repository contains original work developed as part of an academic research collaboration under the supervision of Professor Alex Gorodetsky at the University of Michigan.
-
-The repository has been made public with permission from the supervising professor, strictly for educational and professional portfolio purposes.
-
-While this project uses the HallThruster.jl framework maintained by the UM PEPL Lab, the parameter estimation workflows, Python integration, MCMC and MAP methods, and associated YAML validation systems were implemented and customized by the contributor.
-
-This repository does not represent official releases or endorsements by the HallThruster.jl developers or the University of Michigan Plasma, Pulsed Power, and Microwave Laboratory.
-
 ---
 ## Project Overview
 
@@ -574,4 +565,13 @@ For any questions or issues, contact:
 
 - **Name:** Elida Sensoy  
 - **Email:** elsensoy@umich.edu  
+
+
+### Disclaimer and Authorship
+This repository contains original work developed as part of an academic research collaboration under the supervision of Professor Alex Gorodetsky at the University of Michigan.
+The repository has been made public with permission from the supervising professor, strictly for educational and professional portfolio purposes.
+
+While this project uses the HallThruster.jl framework maintained by the UM PEPL Lab, the parameter estimation workflows, Python integration, MCMC and MAP methods, and associated YAML validation systems were implemented and customized by the contributor.
+
+
 
